@@ -1,0 +1,61 @@
+---
+description: Unity project conventions for ra2-analog
+alwaysApply: true
+---
+
+# Unity
+
+## Project facts
+
+- Production engine: **Unity** (locked).
+- Workspace baseline: `UnityProject/ra2-analog/` (Unity 6 stream; pin via experiments).
+- Prefer existing URP/Input System unless an experiment justifies change.
+- Unity MCP package: `com.emeryporter.unitymcp` (already in `Packages/manifest.json`).
+
+## Cursor ↔ Unity MCP
+
+Project MCP config: `.cursor/mcp.json` → `unity-mcp` at `http://localhost:8080/`.
+
+Before using Unity MCP tools from the agent:
+
+1. Open `UnityProject/ra2-analog` in Unity Editor.
+2. **Window → Unity MCP** → Start server (status Connected / listening on 8080).
+3. In Cursor: enable the `unity-mcp` server if prompted; reload MCP if needed.
+4. Keep the Editor open while driving scenes/assets via MCP.
+
+Do not assume MCP tools work when Unity is closed or the server is stopped.
+
+If the port was changed in Unity MCP Status tab, update `.cursor/mcp.json` to match.
+
+## Scene / runtime
+
+- Support fast Design ↔ Configure ↔ Test; avoid mandatory long loads between those modes.
+- Runtime construction of modular robots from data is expected — design for spawn/assemble, not only scene-placed heroes.
+- Keep edit-mode editor tools out of authoritative simulation codepaths.
+
+## MonoBehaviour policy
+
+`MonoBehaviour` is for:
+
+- Unity lifecycle glue (spawn, serialize refs, thin view adapters)
+- Input device reading adapters
+- Presentation / gizmo / debug draw
+
+Not for:
+
+- Core construction validation rules
+- Damage resolution authority
+- Binding/composite resolution (keep pure/testable)
+- Match win logic
+
+Push logic into plain C# services/modules; MB calls them.
+
+## Packages
+
+Do not add Netcode/Physics/extra packages “because tutorials do”. Justify against requirements; mark `[EXPERIMENT REQUIRED]` when unproven. See `docs/UNITY_ENGINE.md`.
+
+Keep Unity MCP unless replacing with a documented alternative; do not stack multiple Unity MCP packages.
+
+## Assets
+
+Respect `.gitignore` Unity noise (`Library/`, `Temp/`, `*.csproj`, etc.). Do not commit generated junk.

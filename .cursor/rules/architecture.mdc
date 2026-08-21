@@ -1,0 +1,37 @@
+---
+description: Layering, coupling limits, and anti-monolith architecture rules
+alwaysApply: true
+---
+
+# Architecture
+
+## Preferred layers
+
+Keep these separable:
+
+1. **Data** — blueprints, component defs, actions, configs  
+2. **Simulation** — physics-facing gameplay state and rules (authoritative in battles)  
+3. **Input** — devices → commands (not direct joint writes from UI)  
+4. **Networking** — transport, replication, sessions  
+5. **Presentation** — visuals, audio, cameras, editor chrome  
+
+Dependencies should point inward toward simulation/data — not from sim into UI/net transport details.
+
+## Do
+
+- Small focused services/modules with clear ownership.
+- Interface/port boundaries for physics backend, net transport, persistence.
+- Document decisions that change multiplayer or physics assumptions.
+- Design robot as assembled system data (`blueprint` + runtime), not fixed prefab heroes.
+
+## Do not
+
+- Monolithic `*Manager` god objects that own build + combat + UI + net.
+- Hide authoritative logic inside view/`MonoBehaviour` update soup.
+- Create a second “fake” battle physics path divergent from Test Room.
+- Gold-plate frameworks before a hypothesis is tested.
+- Skip STAGE 2-class physics+MP risk for editor/content work.
+
+## Ambiguity rule
+
+If unclear: ship the smallest spike that answers one question. Expand only after evidence.

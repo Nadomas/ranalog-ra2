@@ -1,0 +1,11 @@
+---
+description: Pointer to PROJECT_CONTEXT and specialized Cursor rules
+alwaysApply: true
+---
+
+# ra2-analog rule index
+
+1. Read `docs/PROJECT_CONTEXT.md` for stable shared truth.  
+2. Follow specialized rules: `project`, `architecture`, `physics`, `networking`, `unity`, `csharp`.  
+3. Deep docs: GDD / SDS / Roadmap / UNITY_ENGINE / ARCHITECTURE_REVIEW under `docs/`.  
+4. Never skip physics+multiplayer proof for premature content.

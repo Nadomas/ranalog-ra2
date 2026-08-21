@@ -1,0 +1,35 @@
+---
+description: C# coding standards for Unity gameplay code
+globs: "**/*.cs"
+alwaysApply: false
+---
+
+# C#
+
+## Style
+
+- Clear names; prefer explicit over clever.
+- New code: readable plain C#; match existing file style when editing.
+- Avoid mega-classes; split by responsibility (data / sim / view / net).
+
+## Unity-specific C#
+
+- Prefer composing small components/services over inheritance trees.
+- Cache references thoughtfully; no per-frame `GetComponent` in hot paths without reason.
+- Gameplay-critical motion: drive through physics APIs (`AddForce`, torques, motor joints, velocities) — not `transform` writes on dynamic bodies.
+- Keep serializable DTOs/`ScriptableObject` data free of net/session side effects.
+
+## Testability
+
+- Pure functions for validation, binding resolve, damage rules where possible.
+- Avoid `FindObjectOfType` as architecture.
+- No hidden singletons that own half the game; if a service locator exists, keep it thin and explicit.
+
+## Safety
+
+- Clamp/validate external and networked values at trust boundaries.
+- Do not swallow exceptions silently in sim/net paths; fail loud in development.
+
+## Dependencies
+
+- No new NuGet/UPM dependency without a one-line justification in the change notes.

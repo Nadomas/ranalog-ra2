@@ -1,0 +1,31 @@
+# Unity generated folders
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+UIElementsSchema/
+
+# Unity generated files
+MemoryCaptures/
+Recordings/
+
+# Visual Studio / Rider / Cursor local files
+.vs/
+.vscode/
+*.csproj
+*.sln
+*.slnx
+*.user
+*.unityproj
+*.pidb
+*.booproj
+*.svd
+*.opendb
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db

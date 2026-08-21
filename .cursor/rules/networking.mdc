@@ -1,0 +1,49 @@
+---
+description: Multiplayer-first networking and authority rules
+alwaysApply: true
+---
+
+# Networking / Multiplayer
+
+Multiplayer is a **first-class architectural requirement**.
+
+## Default assumption
+
+Never implement gameplay logic assuming single-player only unless the feature is **explicitly marked local-only** (e.g. Test Room chrome, editor gizmos).
+
+## Separate concerns
+
+- player **input**
+- **simulation** state
+- **authoritative** state
+- **replicated** state
+- **presentation**
+
+## Authority
+
+- Clients must **not** be trusted for authoritative gameplay results (wins, damage application, legal robot stats, final transforms of sim bodies).
+- Battles target **server-authoritative** (or dedicated sim host) simulation.
+- Validate blueprints/commands on the server; recompute mass/stats from trusted defs where needed.
+
+## Replication discipline
+
+- Avoid architectures that require **complete physics state replication every frame** for every body without a budget.
+- Prefer: inputs/commands + authoritative sim + selective snapshots/events; proxies/LOD when proven necessary.
+- Do not assume deterministic lockstep is required; choose net model via experiments.
+
+## New gameplay system checklist
+
+When adding a system, explicitly identify:
+
+1. server authority  
+2. client responsibility  
+3. replicated data  
+4. events  
+5. prediction requirements  
+6. reconciliation requirements  
+
+If prediction is not required for the spike, keep it **off**.
+
+## Local-only features
+
+Mark clearly (`local-only`). Still avoid inventing a divergent robot format that cannot be admitted to a match.

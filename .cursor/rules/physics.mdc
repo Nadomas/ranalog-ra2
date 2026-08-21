@@ -1,0 +1,44 @@
+---
+description: Physics-first rules — no transform hacks for dynamic simulation
+alwaysApply: true
+---
+
+# Physics
+
+Physics is a **core gameplay system**.
+
+## Never fake intended physical simulation
+
+If a feature is meant to be physically simulated, do not fake it with animation-only or teleport hacks.
+
+## Prefer physical relationships
+
+- `Rigidbody`
+- `Collider`
+- `Joint` / constraints
+- Force / Impulse
+- Torque
+- `velocity` / `angularVelocity`
+- mass / inertia / center of mass
+
+## Hard bans (dynamic bodies)
+
+- Avoid manually teleporting physics objects during simulation.
+- Do **not** set `transform.position` / `transform.rotation` on **dynamic** physics objects as a substitute for forces, velocities, or joints.
+- Do not “fix” stuck robots every frame with transform writes.
+- Do not use kinematic teleport chains to fake continuous drive when dynamic/motorized motion is the design intent (except explicit presentation proxies after a documented net decision).
+
+## Required qualities
+
+- Physics behavior must be **reproducible** and **testable**.
+- Prefer fixed-step simulation reasoning for gameplay-critical motion.
+- Mass, CoM, and joints must matter; construction changes should change behaviour.
+- Test Room and Battle share the same base physical model.
+
+## Optimizations
+
+Any optimization that **changes physical behavior** must be explicitly justified and documented (what drifts, why acceptable, how tested).
+
+## Detach / damage
+
+Prefer functional failure through simulation/state flags first. True detach only with documented net/physics plan — never silent transform orphaning.
