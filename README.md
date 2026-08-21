@@ -36,6 +36,7 @@
 | [docs/TECHNICAL_ROADMAP.md](docs/TECHNICAL_ROADMAP.md) | **Technical roadmap**, gates, critical path |
 | [docs/SDS.md](docs/SDS.md) | **Software/Technical Design Spec** (architecture) |
 | [docs/ARCHITECTURE_REVIEW.md](docs/ARCHITECTURE_REVIEW.md) | Architecture review (risks / gates) |
+| [docs/TEAM_WORKFLOW.md](docs/TEAM_WORKFLOW.md) | Роли Codex, Cursor и рабочий процесс |
 
 ## Репозиторий
 
