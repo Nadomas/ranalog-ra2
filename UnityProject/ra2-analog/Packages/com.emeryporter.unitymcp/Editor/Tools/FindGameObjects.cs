@@ -473,7 +473,7 @@ namespace UnityMCP.Editor.Tools
             int endIndex = Mathf.Min(totalCount, cursor + pageSize);
             int actualPageSize = endIndex - cursor;
 
-            var instanceIds = new List<int>(actualPageSize);
+            var instanceIds = new List<ulong>(actualPageSize);
             for (int i = cursor; i < endIndex; i++)
             {
                 var gameObject = results[i];

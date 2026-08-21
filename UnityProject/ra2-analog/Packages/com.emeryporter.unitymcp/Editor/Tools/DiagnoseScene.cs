@@ -478,7 +478,7 @@ namespace UnityMCP.Editor.Tools
 
                             if (property.propertyType == SerializedPropertyType.ObjectReference &&
                                 property.objectReferenceValue == null &&
-                                property.objectReferenceInstanceIDValue != 0)
+                                property.objectReferenceEntityIdValue != default)
                             {
                                 string gameObjectPath = GetGameObjectPath(gameObject);
                                 string componentTypeName = component.GetType().Name;
