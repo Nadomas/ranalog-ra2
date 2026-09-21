@@ -11,11 +11,11 @@
 | Field | Value |
 |-------|--------|
 | **Current milestone** | **STAGE 11 MVP player + UI Toolkit** |
-| **Roadmap position** | Thin spine PASS; **S11-07 player** + **S11-08 UI Toolkit** **PASS** |
-| **Queue status** | **Idle for agents** — playable `.exe` with product UI shell; `PIPE-T02` human-only |
+| **Roadmap position** | Thin spine PASS; **S11-07…S11-09** UI polish **PASS** |
+| **Queue status** | **Idle for agents** — playable `.exe` with polished workshop HUD; `PIPE-T02` human-only |
 | **Last queue update** | 2026-09-21 |
 | **Autonomy recommendation** | Level **2–3** (see [`AI_WORKFLOW.md`](AI_WORKFLOW.md)) |
-| **Evidence snapshot** | [`S11-08_MVP_UI_TOOLKIT.md`](../experiments/S11-08_MVP_UI_TOOLKIT.md) |
+| **Evidence snapshot** | [`S11-09_MVP_UI_POLISH.md`](../experiments/S11-09_MVP_UI_POLISH.md) |
 
 ---
 
@@ -147,6 +147,7 @@
 | S11-T06 | Workshop unified Design polygon + Configure bindings | done | `S11_06_WORKSHOP_UNIFIED_CHROME.md` |
 | S11-T07 | First Windows MVP player build (playable) | done | `S11-07_MVP_PLAYER_BUILD.md` |
 | S11-T08 | UI Toolkit workshop shell (replace IMGUI) | done | `S11-08_MVP_UI_TOOLKIT.md` |
+| S11-T09 | Workshop UI polish (flow / HUD / results) | done | `S11-09_MVP_UI_POLISH.md` |
 
 ### Pipeline meta (this setup)
 

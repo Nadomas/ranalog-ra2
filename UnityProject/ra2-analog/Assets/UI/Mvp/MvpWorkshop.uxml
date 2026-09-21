@@ -2,10 +2,22 @@
     <Style src="MvpWorkshop.uss" />
     <ui:VisualElement name="root" class="root">
         <ui:VisualElement name="top-bar" class="top-bar">
-            <ui:Label name="brand" text="RA2 ANALOG" class="brand" />
-            <ui:Label name="mode-label" text="DESIGN" class="mode-pill" />
+            <ui:VisualElement class="brand-block">
+                <ui:Label name="brand" text="RA2" class="brand" />
+                <ui:Label text="ANALOG" class="brand-sub" />
+            </ui:VisualElement>
+            <ui:VisualElement name="flow" class="flow">
+                <ui:Label name="step-design" text="1 DESIGN" class="flow-step" />
+                <ui:Label text="›" class="flow-sep" />
+                <ui:Label name="step-configure" text="2 CONFIGURE" class="flow-step" />
+                <ui:Label text="›" class="flow-sep" />
+                <ui:Label name="step-test" text="3 TEST" class="flow-step" />
+                <ui:Label text="›" class="flow-sep" />
+                <ui:Label name="step-fight" text="4 FIGHT" class="flow-step" />
+            </ui:VisualElement>
             <ui:VisualElement class="spacer" />
-            <ui:Label name="hint" text="Build · Wire · Test · Fight" class="hint" />
+            <ui:Label name="mode-label" text="DESIGN" class="mode-pill" />
+            <ui:Label name="admit-badge" text="NO ADMIT" class="admit-badge" />
         </ui:VisualElement>
 
         <ui:VisualElement name="body" class="body">
@@ -19,48 +31,70 @@
 
                 <ui:VisualElement name="panel-design" class="tool-panel">
                     <ui:Label text="Chassis polygon" class="tool-title" />
+                    <ui:Label text="Select a vertex, then nudge to reshape the chassis outline." class="tool-help" />
                     <ui:Label name="poly-info" text="pts=0" class="tool-meta" />
                     <ui:VisualElement class="row">
-                        <ui:Button name="btn-poly-prev" text="Prev" class="tool-btn" />
-                        <ui:Button name="btn-poly-next" text="Next" class="tool-btn" />
-                        <ui:Button name="btn-poly-nudge" text="Nudge +X" class="tool-btn accent" />
+                        <ui:Button name="btn-poly-prev" text="◀ Prev" class="tool-btn" />
+                        <ui:Button name="btn-poly-next" text="Next ▶" class="tool-btn" />
                     </ui:VisualElement>
+                    <ui:Button name="btn-poly-nudge" text="Nudge +X" class="tool-btn wide accent" />
                 </ui:VisualElement>
 
                 <ui:VisualElement name="panel-configure" class="tool-panel hidden">
                     <ui:Label text="Binding groups" class="tool-title" />
+                    <ui:Label text="Map Drive / Turn inputs. TankSteer is the quick preset." class="tool-help" />
                     <ui:Label name="bind-info" text="Drive=—  Turn=—" class="tool-meta" />
                     <ui:VisualElement class="row">
                         <ui:Button name="btn-bind-drive" text="Drive" class="tool-btn" />
                         <ui:Button name="btn-bind-turn" text="Turn" class="tool-btn" />
-                        <ui:Button name="btn-bind-cycle" text="Cycle" class="tool-btn accent" />
                     </ui:VisualElement>
-                    <ui:Button name="btn-tank" text="Apply TankSteer" class="tool-btn wide" />
+                    <ui:VisualElement class="row">
+                        <ui:Button name="btn-bind-cycle" text="Cycle binding" class="tool-btn" />
+                        <ui:Button name="btn-tank" text="TankSteer" class="tool-btn accent" />
+                    </ui:VisualElement>
                 </ui:VisualElement>
 
                 <ui:VisualElement name="panel-test" class="tool-panel hidden">
                     <ui:Label text="Test Room" class="tool-title" />
-                    <ui:Label text="WASD drive · Space brake" class="tool-meta" />
-                    <ui:Button name="btn-reset" text="Reset Test" class="tool-btn wide accent" />
+                    <ui:Label text="Drive the assembled bot on the floor before admitting to a fight." class="tool-help" />
+                    <ui:VisualElement class="key-chips">
+                        <ui:Label text="W A S D" class="chip" />
+                        <ui:Label text="SPACE brake" class="chip" />
+                    </ui:VisualElement>
+                    <ui:Button name="btn-reset" text="Reset Test Spawn" class="tool-btn wide accent" />
                 </ui:VisualElement>
 
                 <ui:VisualElement class="divider" />
-                <ui:Label text="MATCH" class="section-title" />
-                <ui:Button name="btn-admit" text="Prepare Admit" class="tool-btn wide" />
-                <ui:Button name="btn-admit-test" text="Test Admit Clone" class="tool-btn wide" />
-                <ui:Button name="btn-fight" text="Local Fight 1v1" class="tool-btn wide fight" />
+                <ui:Label text="MATCH PIPELINE" class="section-title" />
+                <ui:Label text="Validate blueprint → optional admit clone → local 1v1." class="tool-help" />
+                <ui:Button name="btn-admit" text="1 · Prepare Admit" class="tool-btn wide" />
+                <ui:Button name="btn-admit-test" text="2 · Test Admit Clone" class="tool-btn wide" />
+                <ui:Button name="btn-fight" text="3 · Local Fight 1v1" class="tool-btn wide fight" />
 
-                <ui:Label name="status" text="Ready" class="status" />
+                <ui:VisualElement name="status-box" class="status-box">
+                    <ui:Label text="STATUS" class="status-caption" />
+                    <ui:Label name="status" text="Ready" class="status" />
+                </ui:VisualElement>
             </ui:VisualElement>
 
             <ui:VisualElement name="arena-chrome" class="arena-chrome">
-                <ui:Label name="arena-caption" text="ARENA VIEW" class="arena-caption" />
+                <ui:VisualElement class="arena-top">
+                    <ui:Label name="arena-caption" text="DESIGN · CHASSIS" class="arena-caption" />
+                    <ui:Label name="fight-pill" text="" class="fight-pill hidden" />
+                </ui:VisualElement>
+                <ui:VisualElement class="spacer-v" />
+                <ui:VisualElement name="bottom-bar" class="bottom-bar">
+                    <ui:Label name="help-line" text="Shape the chassis polygon, then Configure bindings." class="help-line" />
+                    <ui:Label name="build-tag" text="MVP · LOCAL" class="build-tag" />
+                </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
 
         <ui:VisualElement name="results-overlay" class="results-overlay hidden">
             <ui:VisualElement class="results-card">
-                <ui:Label text="MATCH RESULTS" class="results-title" />
+                <ui:Label text="MATCH RESULTS" class="results-kicker" />
+                <ui:Label name="results-title" text="Fight complete" class="results-title" />
+                <ui:VisualElement class="results-rule" />
                 <ui:Label name="results-body" text="" class="results-body" />
                 <ui:Button name="btn-results-close" text="Back to Workshop" class="tool-btn wide accent" />
             </ui:VisualElement>

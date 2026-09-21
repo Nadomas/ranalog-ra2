@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 
 /// <summary>
-/// S11-08: UI Toolkit shell present + mode/nudge/cycle APIs respond.
+/// S11-08/09: UI Toolkit shell present + polished chrome + mode/nudge/cycle APIs respond.
 /// </summary>
 [DisallowMultipleComponent]
 public sealed class RobotMvpUiVerifier : MonoBehaviour
@@ -32,8 +32,10 @@ public sealed class RobotMvpUiVerifier : MonoBehaviour
         var shell = FindFirstObjectByType<RobotMvpUiShell>();
         var doc = FindFirstObjectByType<UIDocument>();
         var hasUi = shell != null && doc != null && doc.visualTreeAsset != null;
-        var rootOk = doc != null && doc.rootVisualElement != null &&
-                     doc.rootVisualElement.Q("side-panel") != null;
+        var root = doc != null ? doc.rootVisualElement : null;
+        var rootOk = root != null && root.Q("side-panel") != null &&
+                     root.Q("flow") != null && root.Q("admit-badge") != null &&
+                     root.Q("bottom-bar") != null;
 
         var modeOk = app != null && app.TryUiSetMode(Ra2.Robot.WorkshopMode.Design);
         yield return null;
@@ -51,6 +53,9 @@ public sealed class RobotMvpUiVerifier : MonoBehaviour
         var imguiSuppressed = app?.Chrome != null && app.Chrome.SuppressImgui;
 
         var pass = hasUi && rootOk && modeOk && cfgOk && testOk && inst && imguiSuppressed;
+        Debug.Log(
+            $"[S11-09] VERIFIER_DONE pass={pass} ui={hasUi} root={rootOk} design={modeOk} " +
+            $"cfg={cfgOk} test={testOk} inst={inst} imgui_off={imguiSuppressed}");
         Debug.Log(
             $"[S11-08] VERIFIER_DONE pass={pass} ui={hasUi} root={rootOk} design={modeOk} " +
             $"cfg={cfgOk} test={testOk} inst={inst} imgui_off={imguiSuppressed}");

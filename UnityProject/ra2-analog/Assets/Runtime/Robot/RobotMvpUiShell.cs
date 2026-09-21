@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 
 /// <summary>
-/// S11-08: UI Toolkit workshop shell for the MVP playable player.
+/// S11-08/09: UI Toolkit workshop shell for the MVP playable player.
 /// Presentation-only — drives <see cref="RobotMvpPlayableApp"/> / workshop session.
 /// </summary>
 [DisallowMultipleComponent]
@@ -18,7 +18,15 @@ public sealed class RobotMvpUiShell : MonoBehaviour
     Label polyInfo;
     Label bindInfo;
     Label resultsBody;
+    Label resultsTitle;
     Label arenaCaption;
+    Label admitBadge;
+    Label helpLine;
+    Label fightPill;
+    Label stepDesign;
+    Label stepConfigure;
+    Label stepTest;
+    Label stepFight;
     VisualElement panelDesign;
     VisualElement panelConfigure;
     VisualElement panelTest;
@@ -72,7 +80,15 @@ public sealed class RobotMvpUiShell : MonoBehaviour
         polyInfo = root.Q<Label>("poly-info");
         bindInfo = root.Q<Label>("bind-info");
         resultsBody = root.Q<Label>("results-body");
+        resultsTitle = root.Q<Label>("results-title");
         arenaCaption = root.Q<Label>("arena-caption");
+        admitBadge = root.Q<Label>("admit-badge");
+        helpLine = root.Q<Label>("help-line");
+        fightPill = root.Q<Label>("fight-pill");
+        stepDesign = root.Q<Label>("step-design");
+        stepConfigure = root.Q<Label>("step-configure");
+        stepTest = root.Q<Label>("step-test");
+        stepFight = root.Q<Label>("step-fight");
         panelDesign = root.Q("panel-design");
         panelConfigure = root.Q("panel-configure");
         panelTest = root.Q("panel-test");
@@ -119,6 +135,9 @@ public sealed class RobotMvpUiShell : MonoBehaviour
             return;
 
         var mode = session.Mode;
+        var hasAdmit = session.LastAdmitBlueprint != null;
+        var fighting = app.FightRunning;
+
         SetActive(btnDesign, mode == WorkshopMode.Design);
         SetActive(btnConfigure, mode == WorkshopMode.Configure);
         SetActive(btnTest, mode == WorkshopMode.Test);
@@ -128,6 +147,17 @@ public sealed class RobotMvpUiShell : MonoBehaviour
 
         if (modeLabel != null)
             modeLabel.text = mode.ToString().ToUpperInvariant();
+
+        RefreshFlow(mode, hasAdmit, fighting);
+
+        if (admitBadge != null)
+        {
+            admitBadge.text = hasAdmit ? "ADMIT READY" : "NO ADMIT";
+            if (hasAdmit)
+                admitBadge.AddToClassList("ready");
+            else
+                admitBadge.RemoveFromClassList("ready");
+        }
 
         if (statusLabel != null)
             statusLabel.text = string.IsNullOrEmpty(app.FightStatus)
@@ -149,10 +179,10 @@ public sealed class RobotMvpUiShell : MonoBehaviour
         }
 
         if (btnAdmitTest != null)
-            btnAdmitTest.SetEnabled(session.LastAdmitBlueprint != null);
+            btnAdmitTest.SetEnabled(hasAdmit);
         if (btnFight != null)
-            btnFight.SetEnabled(!app.FightRunning &&
-                                (mode == WorkshopMode.Test || session.LastAdmitBlueprint != null || bp != null));
+            btnFight.SetEnabled(!fighting &&
+                                (mode == WorkshopMode.Test || hasAdmit || bp != null));
         if (btnReset != null)
             btnReset.SetEnabled(mode == WorkshopMode.Test);
 
@@ -165,6 +195,30 @@ public sealed class RobotMvpUiShell : MonoBehaviour
                     : "DESIGN · CHASSIS";
         }
 
+        if (helpLine != null)
+        {
+            helpLine.text = fighting
+                ? "Local fight running — wait for immobility result."
+                : mode == WorkshopMode.Test
+                    ? "Drive with WASD. Prepare Admit, then Local Fight when ready."
+                    : mode == WorkshopMode.Configure
+                        ? "Select Drive/Turn, Cycle binding, or apply TankSteer preset."
+                        : "Select polygon points and Nudge +X to reshape the chassis.";
+        }
+
+        if (fightPill != null)
+        {
+            if (fighting)
+            {
+                fightPill.text = "FIGHT LIVE";
+                fightPill.RemoveFromClassList("hidden");
+            }
+            else
+            {
+                fightPill.AddToClassList("hidden");
+            }
+        }
+
         if (!string.IsNullOrEmpty(app.PendingResultsText))
         {
             ShowResults(app.PendingResultsText);
@@ -172,10 +226,39 @@ public sealed class RobotMvpUiShell : MonoBehaviour
         }
     }
 
+    void RefreshFlow(WorkshopMode mode, bool hasAdmit, bool fighting)
+    {
+        var onDesign = mode == WorkshopMode.Design;
+        var onConfigure = mode == WorkshopMode.Configure;
+        var onTest = mode == WorkshopMode.Test && !fighting;
+        var pastDesign = onConfigure || onTest || fighting || hasAdmit;
+        var pastConfigure = onTest || fighting || hasAdmit;
+        var pastTest = fighting || hasAdmit;
+
+        SetFlow(stepDesign, onDesign, pastDesign && !onDesign);
+        SetFlow(stepConfigure, onConfigure, pastConfigure && !onConfigure);
+        SetFlow(stepTest, onTest, pastTest && !onTest);
+        SetFlow(stepFight, fighting, false);
+    }
+
+    static void SetFlow(Label step, bool active, bool done)
+    {
+        if (step == null)
+            return;
+        step.RemoveFromClassList("active");
+        step.RemoveFromClassList("done");
+        if (active)
+            step.AddToClassList("active");
+        else if (done)
+            step.AddToClassList("done");
+    }
+
     public void ShowResults(string body)
     {
         if (resultsBody != null)
             resultsBody.text = body ?? "";
+        if (resultsTitle != null)
+            resultsTitle.text = "Fight complete";
         SetVisible(resultsOverlay, true);
     }
 
