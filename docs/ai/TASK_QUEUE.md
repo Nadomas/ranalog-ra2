@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|--------|
-| **Current milestone** | **Post thin MVP polish spikes** — unified workshop chrome |
-| **Roadmap position** | Stages 0–8 **thin proofs PASS**; Stage 2 HARD GATE **GO**; S9–S11 thin + **S6-04** + **S7-04…14** + **S11-06** **PASS** |
-| **Queue status** | **Idle for agents** — Design/Configure tools in one workshop; `PIPE-T02` human-only |
+| **Current milestone** | **STAGE 11 MVP player** — first Windows playable build |
+| **Roadmap position** | Thin spine PASS; **S11-07 MVP Windows player PASS** |
+| **Queue status** | **Idle for agents** — first playable `.exe` shipped locally; `PIPE-T02` human-only |
 | **Last queue update** | 2026-09-21 |
 | **Autonomy recommendation** | Level **2–3** (see [`AI_WORKFLOW.md`](AI_WORKFLOW.md)) |
-| **Evidence snapshot** | [`S11_06_WORKSHOP_UNIFIED_CHROME.md`](../experiments/S11_06_WORKSHOP_UNIFIED_CHROME.md) |
+| **Evidence snapshot** | [`S11-07_MVP_PLAYER_BUILD.md`](../experiments/S11-07_MVP_PLAYER_BUILD.md) |
 
 ---
 
@@ -145,6 +145,7 @@
 | S11-T04 | Workshop Construction/Configure chrome (thin) | done | `S11_WORKSHOP_CHROME.md` |
 | S11-T05 | E2E smoke Design→Configure→Test→Fight→Results | done | `S11_E2E_LOOP.md` |
 | S11-T06 | Workshop unified Design polygon + Configure bindings | done | `S11_06_WORKSHOP_UNIFIED_CHROME.md` |
+| S11-T07 | First Windows MVP player build (playable) | done | `S11-07_MVP_PLAYER_BUILD.md` |
 
 ### Pipeline meta (this setup)
 
@@ -172,12 +173,14 @@
 
 Residual **non-blockers** (do not stop queue): Unity Dedicated Server Win module not installed (headless player used); custom UDP not frozen.
 
-Optional next agent polish (backlog — pull only when idle + human wants more touchable MVP): match history list UI; Fire binding group; freehand polygon gizmo.
+Optional next agent polish (backlog — pull only when idle + human wants more touchable MVP): product UI Toolkit; UDP fight in player shell; match history list.
 
 ---
 
 ## Backlog (do not pull forward early)
 
+- Product UI Toolkit construction/configure chrome  
+- UDP MP path inside Windows player shell  
 - Construction polygon freehand gizmo; full composite binding chrome  
 - Content catalog / economy / career  
 - NGO/NFE package freeze (only after experiment vs current UDP)  
@@ -185,7 +188,7 @@ Optional next agent polish (backlog — pull only when idle + human wants more t
 - Detach debris net replication; weapon formulae / chassis splash polish  
 - Geometric Ackermann toe tables / 4WS  
 - Ranked matchmaking, spectator, replay / match history list  
-- Reconnect window / bot replace  
+- Reconnect window / bot replace / installer  
 
 ---
 
