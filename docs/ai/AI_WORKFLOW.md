@@ -195,9 +195,10 @@ Honest limitation: full CI Test Runner filters / cover may need iteration; scrip
 2. Point agents at `docs/PROJECT_CONTEXT.md` + `docs/ai/AI_WORKFLOW.md`.  
 3. Ensure `.cursor/mcp.json` Unity MCP is enabled when Editor is up.
 
-### B. Automations (UI) — **create later, not now**
+### B. Automations (UI)
 
-Ready-to-paste prompts are in **Appendix B**. Do not expect agents to create Automations via API in this stage.
+Setup guide + full prompts + remaining UI clicks: [`AUTOMATIONS.md`](AUTOMATIONS.md).  
+Source prompt text also in **Appendix B** below. Agents can prefill the Automations editor; **Save** is always human.
 
 ### C. Git hygiene before heavy autonomy
 
@@ -246,9 +247,10 @@ Take the first open task in docs/ai/TASK_QUEUE.md. Implement the smallest change
 
 ---
 
-## Appendix B — Automation prompts (**create later, not now**)
+## Appendix B — Automation prompts
 
-Paste into Cursor Automations UI when you are ready. Do **not** treat these as already configured.
+Canonical setup (triggers, tools, UI steps): [`AUTOMATIONS.md`](AUTOMATIONS.md).  
+Short source prompts below (expanded copies live in AUTOMATIONS.md).
 
 ### B.1 Watchdog (queue stall)
 

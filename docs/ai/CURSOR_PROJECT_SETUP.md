@@ -67,7 +67,7 @@ Unity MCP must be running **locally** for Local Agent Play Mode / Editor verify:
 
 Cloud Agents can do code/docs/queue; they cannot honestly claim Play Mode pass without Local MCP or `scripts/ai/*.ps1` on a machine with Unity.
 
-**Automations** (watchdog, build guardian, etc.) — create later from **Appendix B** in [`AI_WORKFLOW.md`](AI_WORKFLOW.md). Do not block Project creation on Automations.
+**Automations** (watchdog, build guardian, code review, test coverage) — see [`AUTOMATIONS.md`](AUTOMATIONS.md). Do not block Project creation on Automations.
 
 ---
 
