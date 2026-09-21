@@ -6,7 +6,7 @@ namespace Ra2.Robot
     /// <summary>
     /// Thin actuator driver: BurstMotor/BurstPiston Fire (S7-05/06), ServoMotor/ServoPiston Analog (S7-07/08),
     /// SmartZone→Fire (S7-09), Steering hubs Analog (S7-10), BurstMotor electric draw (S7-11),
-    /// Air tank recharge via AirMaxInOutRate (S7-12).
+    /// Air tank recharge via AirMaxInOutRate (S7-12), electric recharge via ElectricMaxInOutRate (S7-13).
     /// SpinMotor continuous CW stays on <see cref="RobotMotorDrive"/>.
     /// Host/local authority: reads <see cref="PhysicsTestDrive.CurrentCommand"/> only.
     /// </summary>
@@ -184,6 +184,7 @@ namespace Ra2.Robot
             }
 
             TickAirRecharge();
+            TickElectricRecharge();
 
             if (commandSource == null)
                 commandSource = GetComponent<PhysicsTestDrive>();
@@ -260,6 +261,42 @@ namespace Ra2.Robot
                 return;
 
             airRemaining = Mathf.Min(cap, airRemaining + rate * Time.fixedDeltaTime);
+        }
+
+        void TickElectricRecharge()
+        {
+            if (blueprint == null)
+                return;
+
+            var cap = Mathf.Max(0f, blueprint.Power.ElectricTotal);
+            if (cap <= 1e-3f || electricRemaining >= cap - 1e-3f)
+                return;
+
+            var busRate = Mathf.Max(0f, blueprint.Power.ElectricMaxInOutRate);
+            if (busRate <= 1e-3f)
+                return;
+
+            // Thin: positive Battery component rates cap the bus refill.
+            var batteryRate = 0f;
+            var hasBattery = false;
+            if (blueprint.Components != null)
+            {
+                for (var i = 0; i < blueprint.Components.Length; i++)
+                {
+                    var c = blueprint.Components[i];
+                    if (c.ResolvedBase() != RobotComponentBase.Battery)
+                        continue;
+                    hasBattery = true;
+                    if (c.ElecMaxInOutRate > 0f)
+                        batteryRate += c.ElecMaxInOutRate;
+                }
+            }
+
+            var rate = hasBattery ? Mathf.Min(busRate, batteryRate) : busRate;
+            if (rate <= 1e-3f)
+                return;
+
+            electricRemaining = Mathf.Min(cap, electricRemaining + rate * Time.fixedDeltaTime);
         }
 
         void TriggerFire(string componentId)

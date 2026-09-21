@@ -995,6 +995,34 @@ namespace Ra2.Robot
             return bp;
         }
 
+        /// <summary>S7-13: BurstMotor with small electric budget + fast ElectricMaxInOutRate refill.</summary>
+        public static RobotBlueprint CreateRa2ElectricRechargeSample(Vector3 rootPosition, float yawDegrees)
+        {
+            var bp = CreateRa2BurstMotorElectricSample(rootPosition, yawDegrees);
+            bp.Name = "Ra2ElectricRechargeSample";
+            bp.Power = new RobotPowerBudgetDef
+            {
+                ElectricTotal = 100f,
+                ElectricMaxInOutRate = 250f,
+                AirTotal = bp.Power.AirTotal,
+                AirMaxInOutRate = bp.Power.AirMaxInOutRate
+            };
+
+            if (bp.Components != null)
+            {
+                for (var i = 0; i < bp.Components.Length; i++)
+                {
+                    if (bp.Components[i].ResolvedBase() != RobotComponentBase.Battery)
+                        continue;
+                    var bat = bp.Components[i];
+                    bat.ElecMaxInOutRate = 250f;
+                    bp.Components[i] = bat;
+                }
+            }
+
+            return bp;
+        }
+
         static void AppendDigitalSlot(
             RobotBlueprint bp,
             string id,
