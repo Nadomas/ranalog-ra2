@@ -22,11 +22,11 @@
 
         <ui:VisualElement name="body" class="body">
             <ui:VisualElement name="side-panel" class="side-panel">
-                <ui:Label text="WORKSHOP" class="section-title" />
+                <ui:Label text="BUILD / WIRE / DRIVE" class="section-title" />
                 <ui:VisualElement class="mode-row">
                     <ui:Button name="btn-design" text="Design" class="mode-btn" />
-                    <ui:Button name="btn-configure" text="Configure" class="mode-btn" />
-                    <ui:Button name="btn-test" text="Test" class="mode-btn mode-btn-end" />
+                    <ui:Button name="btn-configure" text="Wire" class="mode-btn" />
+                    <ui:Button name="btn-test" text="Drive" class="mode-btn mode-btn-end" />
                 </ui:VisualElement>
 
                 <ui:VisualElement name="panel-design" class="tool-panel">
@@ -65,11 +65,11 @@
                 </ui:VisualElement>
 
                 <ui:VisualElement class="divider" />
-                <ui:Label text="MATCH PIPELINE" class="section-title" />
-                <ui:Label text="Validate blueprint → optional admit clone → local 1v1." class="tool-help" />
-                <ui:Button name="btn-admit" text="1 · Prepare Admit" class="tool-btn wide" />
-                <ui:Button name="btn-admit-test" text="2 · Test Admit Clone" class="tool-btn wide" />
-                <ui:Button name="btn-fight" text="3 · Local Fight 1v1" class="tool-btn wide fight" />
+                <ui:Label text="FIGHT" class="section-title" />
+                <ui:Label text="Admit locks the blueprint, then start a local duel vs AI." class="tool-help" />
+                <ui:Button name="btn-admit" text="Prepare Admit" class="tool-btn wide" />
+                <ui:Button name="btn-admit-test" text="Test Admit Clone" class="tool-btn wide" />
+                <ui:Button name="btn-fight" text="Start Local Fight" class="tool-btn wide fight" />
 
                 <ui:VisualElement name="status-box" class="status-box">
                     <ui:Label text="STATUS" class="status-caption" />
@@ -79,12 +79,19 @@
 
             <ui:VisualElement name="arena-chrome" class="arena-chrome">
                 <ui:VisualElement class="arena-top">
-                    <ui:Label name="arena-caption" text="DESIGN · CHASSIS" class="arena-caption" />
+                    <ui:Label name="arena-caption" text="TEST ROOM · WASD" class="arena-caption" />
                     <ui:Label name="fight-pill" text="" class="fight-pill hidden" />
                 </ui:VisualElement>
+
+                <ui:VisualElement name="fight-hud" class="fight-hud hidden">
+                    <ui:Label name="fight-you" text="YOU" class="fight-side you" />
+                    <ui:Label name="fight-timer" text="0:00" class="fight-timer" />
+                    <ui:Label name="fight-ai" text="AI" class="fight-side ai" />
+                </ui:VisualElement>
+
                 <ui:VisualElement class="spacer-v" />
                 <ui:VisualElement name="bottom-bar" class="bottom-bar">
-                    <ui:Label name="help-line" text="Shape the chassis polygon, then Configure bindings." class="help-line" />
+                    <ui:Label name="help-line" text="WASD to drive · Local Fight when ready." class="help-line" />
                     <ui:Label name="build-tag" text="MVP · LOCAL" class="build-tag" />
                 </ui:VisualElement>
             </ui:VisualElement>

@@ -11,11 +11,11 @@
 | Field | Value |
 |-------|--------|
 | **Current milestone** | **STAGE 11 MVP player + UI Toolkit** |
-| **Roadmap position** | Thin spine PASS; **S11-10** playable fight feel in progress |
-| **Queue status** | **Active** — drive feel + chase AI for local fight |
+| **Roadmap position** | Thin spine PASS; **S11-10/11** fight feel + less-raw chrome **PASS** |
+| **Queue status** | **Idle for agents** — playable duel + Drive boot; `PIPE-T02` human-only |
 | **Last queue update** | 2026-09-21 |
 | **Autonomy recommendation** | Level **2–3** (see [`AI_WORKFLOW.md`](AI_WORKFLOW.md)) |
-| **Evidence snapshot** | [`S11-10_PLAYABLE_FIGHT_FEEL.md`](../experiments/S11-10_PLAYABLE_FIGHT_FEEL.md) |
+| **Evidence snapshot** | [`S11-11_MVP_FEEL_POLISH.md`](../experiments/S11-11_MVP_FEEL_POLISH.md) |
 
 ---
 
@@ -148,6 +148,8 @@
 | S11-T07 | First Windows MVP player build (playable) | done | `S11-07_MVP_PLAYER_BUILD.md` |
 | S11-T08 | UI Toolkit workshop shell (replace IMGUI) | done | `S11-08_MVP_UI_TOOLKIT.md` |
 | S11-T09 | Workshop UI polish (flow / HUD / results) | done | `S11-09_MVP_UI_POLISH.md` |
+| S11-T10 | Playable local fight feel (drive + chase AI) | done | `S11-10_PLAYABLE_FIGHT_FEEL.md` |
+| S11-T11 | MVP feel polish (boot Drive, camera, fight HUD) | done | `S11-11_MVP_FEEL_POLISH.md` |
 
 ### Pipeline meta (this setup)
 
@@ -163,7 +165,6 @@
 
 | ID | Task | Status | Acceptance (thin) |
 |----|------|--------|-------------------|
-| S11-T10 | Playable local fight feel (drive + chase AI) | open | Player WASD in fight; chase AI engages; TankSteer signs feel forward; smoke still PASS |
 | PIPE-T02 | Cursor Project + Automations (manual UI) | open | Human-only; see AI_WORKFLOW § Manual steps — **not** agent work |
 
 ---
@@ -176,7 +177,7 @@
 
 Residual **non-blockers** (do not stop queue): Unity Dedicated Server Win module not installed (headless player used); custom UDP not frozen.
 
-Optional next agent polish (backlog — pull only when idle + human wants more touchable MVP): wiring canvas UI; UDP fight in player shell; match history list.
+Optional next agent polish (backlog — pull only when idle + human wants more touchable MVP): wiring canvas UI; UDP fight in player shell; match history list; stronger arena art.
 
 ---
 

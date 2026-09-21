@@ -20,6 +20,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
 
     RobotWorkshopChrome chrome;
     MatchResultsView resultsView;
+    RobotMvpFollowCamera followCam;
     PhysicsMaterial runtimeSlide;
     PhysicsMaterial runtimeGrip;
     bool fightRunning;
@@ -27,6 +28,9 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
     string pendingResultsText;
     RobotSpawnedInstance wiredInput;
     bool smokeMode;
+    float fightEndsAt;
+    string fightYouLabel = "YOU";
+    string fightAiLabel = "AI";
 
     public bool Ready { get; private set; }
     public string FightStatus => fightStatus;
@@ -34,6 +38,9 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
     public RobotWorkshopChrome Chrome => chrome;
     public string PendingResultsText => pendingResultsText;
     public bool HasResultsOverlay => !string.IsNullOrEmpty(pendingResultsText);
+    public float FightSecondsLeft => fightRunning ? Mathf.Max(0f, fightEndsAt - Time.time) : 0f;
+    public string FightYouLabel => fightYouLabel;
+    public string FightAiLabel => fightAiLabel;
 
     void Awake()
     {
@@ -50,11 +57,45 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         smokeMode = HasCliFlag("-ra2-mvp-smoke");
         if (smokeMode)
             StartCoroutine(RunSmokeAndQuit());
+        else
+            StartCoroutine(BootIntoDriveRoom());
     }
 
     void Update()
     {
         WireTestInput();
+        UpdateFollowCamera();
+    }
+
+    IEnumerator BootIntoDriveRoom()
+    {
+        yield return null;
+        EnsureChrome();
+        // Land in Drive so the arena isn't an empty grey slab on first launch.
+        chrome.TrySetMode(WorkshopMode.Test, out _);
+        yield return new WaitForFixedUpdate();
+        UpdateFollowCamera();
+    }
+
+    void UpdateFollowCamera()
+    {
+        if (followCam == null)
+            followCam = GetComponent<RobotMvpFollowCamera>() ?? gameObject.AddComponent<RobotMvpFollowCamera>();
+
+        if (fightRunning && fightPlayer != null && fightOpponent != null)
+        {
+            followCam.SetTargets(fightPlayer.Drive.transform, fightOpponent.Drive.transform);
+            return;
+        }
+
+        var test = chrome?.Session?.TestInstance;
+        if (chrome?.Session != null && chrome.Session.Mode == WorkshopMode.Test && test?.Drive != null)
+        {
+            followCam.SetTargets(test.Drive.transform);
+            return;
+        }
+
+        followCam.Clear();
     }
 
     // IMGUI removed — S11-08 UI Toolkit owns chrome (RobotMvpUiShell).
@@ -128,9 +169,17 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
             var camGo = new GameObject("Main Camera");
             camGo.tag = "MainCamera";
             var cam = camGo.AddComponent<Camera>();
-            cam.transform.position = new Vector3(0f, 12f, -14f);
-            cam.transform.rotation = Quaternion.Euler(40f, 0f, 0f);
+            cam.transform.position = new Vector3(0f, 11f, -13f);
+            cam.transform.rotation = Quaternion.Euler(38f, 0f, 0f);
+            cam.clearFlags = CameraClearFlags.SolidColor;
+            cam.backgroundColor = new Color(0.07f, 0.08f, 0.1f);
             camGo.AddComponent<AudioListener>();
+        }
+        else
+        {
+            var cam = Camera.main;
+            cam.clearFlags = CameraClearFlags.SolidColor;
+            cam.backgroundColor = new Color(0.07f, 0.08f, 0.1f);
         }
 
         if (FindFirstObjectByType<Light>() == null)
@@ -138,7 +187,8 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
             var lightGo = new GameObject("Directional Light");
             var light = lightGo.AddComponent<Light>();
             light.type = LightType.Directional;
-            light.intensity = 1.1f;
+            light.intensity = 1.25f;
+            light.color = new Color(1f, 0.96f, 0.9f);
             lightGo.transform.rotation = Quaternion.Euler(50f, -30f, 0f);
         }
 
@@ -148,7 +198,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
             var floor = GameObject.CreatePrimitive(PrimitiveType.Plane);
             floor.name = "Floor";
             floor.transform.position = Vector3.zero;
-            floor.transform.localScale = new Vector3(2.5f, 1f, 2.5f);
+            floor.transform.localScale = new Vector3(2.6f, 1f, 2.6f);
             Object.Destroy(floor.GetComponent<MeshCollider>());
             var box = floor.AddComponent<BoxCollider>();
             box.size = new Vector3(10f, 0.1f, 10f);
@@ -157,7 +207,10 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
             var rb = floor.AddComponent<Rigidbody>();
             rb.isKinematic = true;
             rb.useGravity = false;
+            TintRenderer(floor, new Color(0.18f, 0.2f, 0.24f));
         }
+
+        EnsureArenaDressing();
 
         if (slideMaterial == null)
             slideMaterial = Resources.Load<PhysicsMaterial>("PhysicsTestSlide");
@@ -166,6 +219,47 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
             runtimeSlide ??= CreateRuntimeSlide();
             slideMaterial = runtimeSlide;
         }
+
+        if (followCam == null)
+            followCam = GetComponent<RobotMvpFollowCamera>() ?? gameObject.AddComponent<RobotMvpFollowCamera>();
+    }
+
+    void EnsureArenaDressing()
+    {
+        if (GameObject.Find("ArenaRing") != null)
+            return;
+
+        var ring = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        ring.name = "ArenaRing";
+        Object.Destroy(ring.GetComponent<Collider>());
+        ring.transform.position = new Vector3(0f, 0.02f, 0f);
+        ring.transform.localScale = new Vector3(22f, 0.02f, 22f);
+        TintRenderer(ring, new Color(0.35f, 0.28f, 0.14f, 1f));
+
+        // Center pad so spawns read as a pit, not bare plane.
+        var pad = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        pad.name = "ArenaPad";
+        Object.Destroy(pad.GetComponent<Collider>());
+        pad.transform.SetParent(ring.transform, false);
+        pad.transform.localPosition = Vector3.zero;
+        pad.transform.localScale = new Vector3(0.55f, 1.1f, 0.55f);
+        TintRenderer(pad, new Color(0.22f, 0.25f, 0.3f));
+    }
+
+    static void TintRenderer(GameObject go, Color color)
+    {
+        var rend = go.GetComponent<MeshRenderer>();
+        if (rend == null)
+            return;
+        var shader = Shader.Find("Universal Render Pipeline/Lit");
+        if (shader == null)
+            shader = Shader.Find("Standard");
+        var mat = new Material(shader) { name = "Runtime_" + go.name };
+        if (mat.HasProperty("_BaseColor"))
+            mat.SetColor("_BaseColor", color);
+        else
+            mat.color = color;
+        rend.sharedMaterial = mat;
     }
 
     void EnsureChrome()
@@ -216,6 +310,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
     }
 
     RobotSpawnedInstance fightPlayer;
+    RobotSpawnedInstance fightOpponent;
 
     public IEnumerator RunLocalFightFromWorkshop()
     {
@@ -309,6 +404,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
             yield return RunSmokeFight(a, b, bpA, bpB, s => summary = s);
 
         fightPlayer = null;
+        fightOpponent = null;
         wiredInput = null;
         onDone(summary);
     }
@@ -321,8 +417,12 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         System.Action<MatchSummary> onDone)
     {
         fightPlayer = a;
+        fightOpponent = b;
+        fightEndsAt = Time.time + interactiveFightSeconds;
         WireTestInput();
         fightStatus = "fight · WASD you · AI hunts";
+        fightYouLabel = "YOU";
+        fightAiLabel = "AI";
 
         var rules = new ImmobilityWinEvaluator(new[] { 0, 1 }, immobileSeconds: immobileNeed, speedThreshold: 0.25f);
         var positions = new Vector3[2];

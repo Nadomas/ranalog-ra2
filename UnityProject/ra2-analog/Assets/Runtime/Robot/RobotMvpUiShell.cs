@@ -28,6 +28,9 @@ public sealed class RobotMvpUiShell : MonoBehaviour
     Label admitBadge;
     Label helpLine;
     Label fightPill;
+    Label fightTimer;
+    Label fightYou;
+    Label fightAi;
     Label stepDesign;
     Label stepConfigure;
     Label stepTest;
@@ -36,6 +39,7 @@ public sealed class RobotMvpUiShell : MonoBehaviour
     VisualElement panelConfigure;
     VisualElement panelTest;
     VisualElement resultsOverlay;
+    VisualElement fightHud;
     Button btnDesign;
     Button btnConfigure;
     Button btnTest;
@@ -152,6 +156,10 @@ public sealed class RobotMvpUiShell : MonoBehaviour
         admitBadge = root.Q<Label>("admit-badge");
         helpLine = root.Q<Label>("help-line");
         fightPill = root.Q<Label>("fight-pill");
+        fightTimer = root.Q<Label>("fight-timer");
+        fightYou = root.Q<Label>("fight-you");
+        fightAi = root.Q<Label>("fight-ai");
+        fightHud = root.Q("fight-hud");
         stepDesign = root.Q<Label>("step-design");
         stepConfigure = root.Q<Label>("step-configure");
         stepTest = root.Q<Label>("step-test");
@@ -255,34 +263,57 @@ public sealed class RobotMvpUiShell : MonoBehaviour
 
         if (arenaCaption != null)
         {
-            arenaCaption.text = mode == WorkshopMode.Test
-                ? "TEST ROOM · WASD"
-                : mode == WorkshopMode.Configure
-                    ? "CONFIGURE · BINDINGS"
-                    : "DESIGN · CHASSIS";
+            arenaCaption.text = fighting
+                ? "ARENA · LOCAL DUEL"
+                : mode == WorkshopMode.Test
+                    ? "DRIVE ROOM · WASD"
+                    : mode == WorkshopMode.Configure
+                        ? "WIRE · BINDINGS"
+                        : "DESIGN · CHASSIS";
         }
 
         if (helpLine != null)
         {
             helpLine.text = fighting
-                ? "Local fight running — wait for immobility result."
+                ? "Ram the red AI. Stay in the ring. Immobile or out = loss."
                 : mode == WorkshopMode.Test
-                    ? "Drive with WASD. Prepare Admit, then Local Fight when ready."
+                    ? "Drive with WASD. Prepare Admit, then Start Local Fight."
                     : mode == WorkshopMode.Configure
-                        ? "Select Drive/Turn, Cycle binding, or apply TankSteer preset."
-                        : "Select polygon points and Nudge +X to reshape the chassis.";
+                        ? "Pick Drive/Turn, Cycle binding, or apply TankSteer."
+                        : "Nudge chassis points, then Wire bindings.";
         }
 
         if (fightPill != null)
         {
             if (fighting)
             {
-                fightPill.text = "FIGHT LIVE";
+                fightPill.text = "LIVE";
                 fightPill.RemoveFromClassList("hidden");
             }
             else
             {
                 fightPill.AddToClassList("hidden");
+            }
+        }
+
+        if (fightHud != null)
+        {
+            if (fighting)
+            {
+                fightHud.RemoveFromClassList("hidden");
+                if (fightYou != null)
+                    fightYou.text = app.FightYouLabel;
+                if (fightAi != null)
+                    fightAi.text = app.FightAiLabel;
+                if (fightTimer != null)
+                {
+                    var left = Mathf.CeilToInt(app.FightSecondsLeft);
+                    fightTimer.text = $"{left / 60}:{left % 60:00}";
+                }
+            }
+            else
+            {
+                fightHud.AddToClassList("hidden");
             }
         }
 

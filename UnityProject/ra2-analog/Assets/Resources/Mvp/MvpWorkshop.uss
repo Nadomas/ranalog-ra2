@@ -346,6 +346,46 @@
     letter-spacing: 1px;
 }
 
+.fight-hud {
+    margin-top: 10px;
+    flex-direction: row;
+    align-items: center;
+    align-self: center;
+    padding: 8px 16px;
+    background-color: rgba(14, 17, 22, 0.82);
+    border-radius: 6px;
+    border-width: 1px;
+    border-color: var(--edge);
+    min-width: 280px;
+}
+
+.fight-side {
+    font-size: 13px;
+    -unity-font-style: bold;
+    letter-spacing: 1px;
+    flex-grow: 1;
+}
+
+.fight-side.you {
+    color: #6eb6ff;
+    -unity-text-align: middle-left;
+}
+
+.fight-side.ai {
+    color: #ff8a6b;
+    -unity-text-align: middle-right;
+}
+
+.fight-timer {
+    font-size: 18px;
+    -unity-font-style: bold;
+    color: var(--accent);
+    margin-left: 16px;
+    margin-right: 16px;
+    min-width: 64px;
+    -unity-text-align: middle-center;
+}
+
 .spacer-v {
     flex-grow: 1;
 }

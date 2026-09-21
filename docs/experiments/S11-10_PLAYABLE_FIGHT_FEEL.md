@@ -1,6 +1,6 @@
 # S11-10 — Playable local fight feel (drive + chase AI)
 
-> **Status:** pending verify  
+> **Status:** **PASS** (2026-09-21)  
 > **Depends on:** S11-07/09 player shell
 
 ## Goal
@@ -22,3 +22,7 @@ Smoke (`-ra2-mvp-smoke`) keeps the fast disable→immobility path for CI.
 | `RobotMvpPlayableApp` | Interactive vs smoke fight paths |
 | `RobotControlConfigurer` TankSteer | forward/turn Sign -1 |
 | `RobotAssembler` | chassis grip + gravity damping |
+
+## Pass
+
+Editor UI verifier + player rebuild; smoke still exits 0.
