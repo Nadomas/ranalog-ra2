@@ -967,6 +967,34 @@ namespace Ra2.Robot
             return bp;
         }
 
+        /// <summary>S7-12: BurstPiston with small air tank + fast AirMaxInOutRate refill.</summary>
+        public static RobotBlueprint CreateRa2AirRechargeSample(Vector3 rootPosition, float yawDegrees)
+        {
+            var bp = CreateRa2BurstPistonFireSample(rootPosition, yawDegrees);
+            bp.Name = "Ra2AirRechargeSample";
+            bp.Power = new RobotPowerBudgetDef
+            {
+                ElectricTotal = bp.Power.ElectricTotal,
+                ElectricMaxInOutRate = bp.Power.ElectricMaxInOutRate,
+                AirTotal = 100f,
+                AirMaxInOutRate = 250f
+            };
+
+            if (bp.Components != null)
+            {
+                for (var i = 0; i < bp.Components.Length; i++)
+                {
+                    if (bp.Components[i].ResolvedBase() != RobotComponentBase.AirTank)
+                        continue;
+                    var tank = bp.Components[i];
+                    tank.AirMaxInOutRate = 250f;
+                    bp.Components[i] = tank;
+                }
+            }
+
+            return bp;
+        }
+
         static void AppendDigitalSlot(
             RobotBlueprint bp,
             string id,

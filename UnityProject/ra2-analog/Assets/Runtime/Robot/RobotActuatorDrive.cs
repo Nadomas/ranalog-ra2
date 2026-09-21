@@ -5,7 +5,8 @@ namespace Ra2.Robot
 {
     /// <summary>
     /// Thin actuator driver: BurstMotor/BurstPiston Fire (S7-05/06), ServoMotor/ServoPiston Analog (S7-07/08),
-    /// SmartZone→Fire (S7-09), Steering hubs Analog (S7-10), BurstMotor electric draw (S7-11).
+    /// SmartZone→Fire (S7-09), Steering hubs Analog (S7-10), BurstMotor electric draw (S7-11),
+    /// Air tank recharge via AirMaxInOutRate (S7-12).
     /// SpinMotor continuous CW stays on <see cref="RobotMotorDrive"/>.
     /// Host/local authority: reads <see cref="PhysicsTestDrive.CurrentCommand"/> only.
     /// </summary>
@@ -182,6 +183,8 @@ namespace Ra2.Robot
                 return;
             }
 
+            TickAirRecharge();
+
             if (commandSource == null)
                 commandSource = GetComponent<PhysicsTestDrive>();
             var cmd = commandSource != null ? commandSource.CurrentCommand : default;
@@ -221,6 +224,42 @@ namespace Ra2.Robot
             TickServoMotors();
             TickSteering();
             TickServoPistons();
+        }
+
+        void TickAirRecharge()
+        {
+            if (blueprint == null)
+                return;
+
+            var cap = Mathf.Max(0f, blueprint.Power.AirTotal);
+            if (cap <= 1e-3f || airRemaining >= cap - 1e-3f)
+                return;
+
+            var busRate = Mathf.Max(0f, blueprint.Power.AirMaxInOutRate);
+            if (busRate <= 1e-3f)
+                return;
+
+            // Thin: positive AirTank component rates cap the bus refill (generators/tanks).
+            var tankRate = 0f;
+            var hasTank = false;
+            if (blueprint.Components != null)
+            {
+                for (var i = 0; i < blueprint.Components.Length; i++)
+                {
+                    var c = blueprint.Components[i];
+                    if (c.ResolvedBase() != RobotComponentBase.AirTank)
+                        continue;
+                    hasTank = true;
+                    if (c.AirMaxInOutRate > 0f)
+                        tankRate += c.AirMaxInOutRate;
+                }
+            }
+
+            var rate = hasTank ? Mathf.Min(busRate, tankRate) : busRate;
+            if (rate <= 1e-3f)
+                return;
+
+            airRemaining = Mathf.Min(cap, airRemaining + rate * Time.fixedDeltaTime);
         }
 
         void TriggerFire(string componentId)

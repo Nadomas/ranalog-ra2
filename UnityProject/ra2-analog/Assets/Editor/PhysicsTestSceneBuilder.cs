@@ -42,6 +42,7 @@ using UnityEngine.SceneManagement;
 /// Menu: Tools/RA2/Build PhysicsTest Scene (S7-09 SmartZone Fire)
 /// Menu: Tools/RA2/Build PhysicsTest Scene (S7-10 Steering Hub)
 /// Menu: Tools/RA2/Build PhysicsTest Scene (S7-11 BurstMotor Electric)
+/// Menu: Tools/RA2/Build PhysicsTest Scene (S7-12 Air Recharge)
 /// </summary>
 public static class PhysicsTestSceneBuilder
 {
@@ -92,7 +93,8 @@ public static class PhysicsTestSceneBuilder
         ServoPistonAnalog,
         SmartZoneFire,
         SteeringHub,
-        BurstMotorElectric
+        BurstMotorElectric,
+        AirRecharge
     }
 
     [MenuItem("Tools/RA2/Build PhysicsTest Scene")]
@@ -372,6 +374,12 @@ public static class PhysicsTestSceneBuilder
         Build(Scenario.BurstMotorElectric);
     }
 
+    [MenuItem("Tools/RA2/Build PhysicsTest Scene (S7-12 Air Recharge)")]
+    public static void BuildAirRechargeFromMenu()
+    {
+        Build(Scenario.AirRecharge);
+    }
+
     [MenuItem("Tools/RA2/Force Script Compile")]
     public static void ForceScriptCompile()
     {
@@ -564,6 +572,9 @@ public static class PhysicsTestSceneBuilder
         AssetDatabase.ImportAsset(
             "Assets/Runtime/Robot/RobotBurstMotorElectricVerifier.cs",
             ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+        AssetDatabase.ImportAsset(
+            "Assets/Runtime/Robot/RobotAirRechargeVerifier.cs",
+            ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
         AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
         UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
         Debug.Log("[PhysicsTestSceneBuilder] Requested script compilation.");
@@ -722,6 +733,10 @@ public static class PhysicsTestSceneBuilder
         else if (scenario == Scenario.BurstMotorElectric)
         {
             BuildBurstMotorElectricScenario(floorMat);
+        }
+        else if (scenario == Scenario.AirRecharge)
+        {
+            BuildAirRechargeScenario(floorMat);
         }
         else if (scenario == Scenario.CollisionSmoke)
         {
@@ -1262,6 +1277,16 @@ public static class PhysicsTestSceneBuilder
         verifier.AutoRun = true;
 
         Debug.Log("[PhysicsTestSceneBuilder] S7-11 BurstMotor electric draw host ready.");
+    }
+
+    static void BuildAirRechargeScenario(PhysicsMaterial floor)
+    {
+        var hostGo = new GameObject("AirRechargeHost");
+        var verifier = hostGo.AddComponent<RobotAirRechargeVerifier>();
+        verifier.Configure(floor);
+        verifier.AutoRun = true;
+
+        Debug.Log("[PhysicsTestSceneBuilder] S7-12 Air recharge host ready.");
     }
 
     static void BuildMatchUdpLobbyScenario(PhysicsMaterial floor)
