@@ -1,0 +1,541 @@
+using System;
+using UnityEngine;
+
+namespace Ra2.Robot
+{
+    /// <summary>Data-only robot blueprint (S3-01). Serialization format provisional (U-SER / S3-02).</summary>
+    [Serializable]
+    public sealed class RobotBlueprint
+    {
+        public string Name;
+        public float RootYawDegrees;
+        public Vector3 RootPosition;
+        public RobotChassisDef Chassis;
+        public RobotPowerBudgetDef Power;
+        public RobotComponentDef[] Components = Array.Empty<RobotComponentDef>();
+        public RobotConnectionDef[] Connections = Array.Empty<RobotConnectionDef>();
+        public RobotControlSlotDef[] ControlSlots = Array.Empty<RobotControlSlotDef>();
+        public RobotWiringDef[] Wirings = Array.Empty<RobotWiringDef>();
+
+        /// <summary>True when blueprint carries v1 RA2 workshop fields (control/wiring/chassis).</summary>
+        public bool HasV1Fields =>
+            ControlSlots.Length > 0 ||
+            Wirings.Length > 0 ||
+            (Chassis.BaseplatePoints != null && Chassis.BaseplatePoints.Length > 0) ||
+            Power.ElectricTotal > 0f ||
+            Power.AirTotal > 0f ||
+            ContainsBase(RobotComponentBase.ControlBoard);
+
+        bool ContainsBase(RobotComponentBase b)
+        {
+            for (var i = 0; i < Components.Length; i++)
+            {
+                if (Components[i].ResolvedBase() == b)
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>Sample matching PhysicsTest Robot_A proportions (chassis + 4 wheels + nose + FL hinge).</summary>
+        public static RobotBlueprint CreatePhysicsTestSampleA(UnityEngine.Vector3 rootPosition, float yawDegrees)
+        {
+            return new RobotBlueprint
+            {
+                Name = "PhysicsTestSample_A",
+                RootPosition = rootPosition,
+                RootYawDegrees = yawDegrees,
+                Components = new[]
+                {
+                    new RobotComponentDef
+                    {
+                        Id = "chassis",
+                        Kind = RobotComponentKind.Chassis,
+                        LocalPosition = UnityEngine.Vector3.zero,
+                        LocalEuler = UnityEngine.Vector3.zero,
+                        Scale = new UnityEngine.Vector3(1.6f, 0.7f, 2.2f),
+                        Mass = 12f,
+                        HasRigidbody = true,
+                        IsRoot = true
+                    },
+                    new RobotComponentDef
+                    {
+                        Id = "wheel_fl",
+                        Kind = RobotComponentKind.Wheel,
+                        LocalPosition = new UnityEngine.Vector3(-0.85f, -0.35f, 0.7f),
+                        LocalEuler = new UnityEngine.Vector3(0f, 0f, 90f),
+                        Scale = new UnityEngine.Vector3(0.55f, 0.18f, 0.55f),
+                        Mass = 1.2f,
+                        HasRigidbody = true,
+                        IsRoot = false
+                    },
+                    new RobotComponentDef
+                    {
+                        Id = "wheel_fr",
+                        Kind = RobotComponentKind.Wheel,
+                        LocalPosition = new UnityEngine.Vector3(0.85f, -0.35f, 0.7f),
+                        LocalEuler = new UnityEngine.Vector3(0f, 0f, 90f),
+                        Scale = new UnityEngine.Vector3(0.55f, 0.18f, 0.55f),
+                        Mass = 0f,
+                        HasRigidbody = false,
+                        IsRoot = false
+                    },
+                    new RobotComponentDef
+                    {
+                        Id = "wheel_rl",
+                        Kind = RobotComponentKind.Wheel,
+                        LocalPosition = new UnityEngine.Vector3(-0.85f, -0.35f, -0.7f),
+                        LocalEuler = new UnityEngine.Vector3(0f, 0f, 90f),
+                        Scale = new UnityEngine.Vector3(0.55f, 0.18f, 0.55f),
+                        Mass = 0f,
+                        HasRigidbody = false,
+                        IsRoot = false
+                    },
+                    new RobotComponentDef
+                    {
+                        Id = "wheel_rr",
+                        Kind = RobotComponentKind.Wheel,
+                        LocalPosition = new UnityEngine.Vector3(0.85f, -0.35f, -0.7f),
+                        LocalEuler = new UnityEngine.Vector3(0f, 0f, 90f),
+                        Scale = new UnityEngine.Vector3(0.55f, 0.18f, 0.55f),
+                        Mass = 0f,
+                        HasRigidbody = false,
+                        IsRoot = false
+                    },
+                    new RobotComponentDef
+                    {
+                        Id = "nose",
+                        Kind = RobotComponentKind.NoseMarker,
+                        LocalPosition = new UnityEngine.Vector3(0f, 0.15f, 1.25f),
+                        LocalEuler = UnityEngine.Vector3.zero,
+                        Scale = new UnityEngine.Vector3(0.4f, 0.3f, 0.4f),
+                        Mass = 0f,
+                        HasRigidbody = false,
+                        IsRoot = false
+                    }
+                },
+                Connections = new[]
+                {
+                    new RobotConnectionDef
+                    {
+                        ParentId = "chassis",
+                        ChildId = "wheel_fl",
+                        Joint = RobotJointKind.Hinge,
+                        HingeAxis = UnityEngine.Vector3.up
+                    },
+                    new RobotConnectionDef
+                    {
+                        ParentId = "chassis",
+                        ChildId = "wheel_fr",
+                        Joint = RobotJointKind.FixedHierarchy,
+                        HingeAxis = UnityEngine.Vector3.zero
+                    },
+                    new RobotConnectionDef
+                    {
+                        ParentId = "chassis",
+                        ChildId = "wheel_rl",
+                        Joint = RobotJointKind.FixedHierarchy,
+                        HingeAxis = UnityEngine.Vector3.zero
+                    },
+                    new RobotConnectionDef
+                    {
+                        ParentId = "chassis",
+                        ChildId = "wheel_rr",
+                        Joint = RobotJointKind.FixedHierarchy,
+                        HingeAxis = UnityEngine.Vector3.zero
+                    },
+                    new RobotConnectionDef
+                    {
+                        ParentId = "chassis",
+                        ChildId = "nose",
+                        Joint = RobotJointKind.FixedHierarchy,
+                        HingeAxis = UnityEngine.Vector3.zero
+                    }
+                }
+            };
+        }
+
+        public static RobotBlueprint CreatePhysicsTestSampleB(UnityEngine.Vector3 rootPosition, float yawDegrees)
+        {
+            var bp = CreatePhysicsTestSampleA(rootPosition, yawDegrees);
+            bp.Name = "PhysicsTestSample_B";
+            // B: no hinged wheel — all wheels hierarchy-fixed (matches S2 Robot_B).
+            for (var i = 0; i < bp.Connections.Length; i++)
+            {
+                if (bp.Connections[i].ChildId != "wheel_fl")
+                    continue;
+                var c = bp.Connections[i];
+                c.Joint = RobotJointKind.FixedHierarchy;
+                bp.Connections[i] = c;
+            }
+
+            for (var i = 0; i < bp.Components.Length; i++)
+            {
+                if (bp.Components[i].Id != "wheel_fl")
+                    continue;
+                var c = bp.Components[i];
+                c.HasRigidbody = false;
+                c.Mass = 0f;
+                bp.Components[i] = c;
+            }
+
+            return bp;
+        }
+
+        /// <summary>RA2-aligned tank-steer sample: Control Board + battery + spin-motor axles + 4 wheels + wiring (v1/S4).</summary>
+        public static RobotBlueprint CreateRa2TankSteerSample(Vector3 rootPosition, float yawDegrees)
+        {
+            return CreateRa2ConstructionSampleA(rootPosition, yawDegrees);
+        }
+
+        /// <summary>Construction sample A: balanced lightweight tank (wheels on spin-motor axles).</summary>
+        public static RobotBlueprint CreateRa2ConstructionSampleA(Vector3 rootPosition, float yawDegrees)
+        {
+            var bp = CreatePhysicsTestSampleA(rootPosition, yawDegrees);
+            bp.Name = "Ra2ConstructionSample_A";
+            ApplyV1ChassisPowerControls(bp, RobotWeightClass.Lightweight, ballastMass: 0f, ballastZ: 0f);
+            InsertSpinMotorAxles(bp);
+            return bp;
+        }
+
+        /// <summary>Construction sample B: rear-heavy layout (different CoM) — still valid Lightweight.</summary>
+        public static RobotBlueprint CreateRa2ConstructionSampleB(Vector3 rootPosition, float yawDegrees)
+        {
+            var bp = CreatePhysicsTestSampleA(rootPosition, yawDegrees);
+            bp.Name = "Ra2ConstructionSample_B";
+            ApplyV1ChassisPowerControls(bp, RobotWeightClass.Lightweight, ballastMass: 8f, ballastZ: -0.95f);
+            InsertSpinMotorAxles(bp);
+            // Longer wheelbase / nose forward for distinct geometry.
+            for (var i = 0; i < bp.Components.Length; i++)
+            {
+                var c = bp.Components[i];
+                if (c.Id == "nose")
+                {
+                    c.LocalPosition = new Vector3(0f, 0.15f, 1.45f);
+                    bp.Components[i] = c;
+                }
+            }
+
+            return bp;
+        }
+
+        /// <summary>v1-shaped payload missing Control Board — host must reject.</summary>
+        public static RobotBlueprint CreateInvalidNoControlBoard(Vector3 rootPosition, float yawDegrees)
+        {
+            var bp = CreateRa2TankSteerSample(rootPosition, yawDegrees);
+            bp.Name = "InvalidNoControlBoard";
+            var kept = new System.Collections.Generic.List<RobotComponentDef>(bp.Components.Length);
+            for (var i = 0; i < bp.Components.Length; i++)
+            {
+                if (bp.Components[i].ResolvedBase() == RobotComponentBase.ControlBoard)
+                    continue;
+                kept.Add(bp.Components[i]);
+            }
+
+            bp.Components = kept.ToArray();
+            return bp;
+        }
+
+        /// <summary>Wheels parented to chassis (illegal attachment) — construction must reject.</summary>
+        public static RobotBlueprint CreateInvalidWheelOnChassis(Vector3 rootPosition, float yawDegrees)
+        {
+            var bp = CreateRa2ConstructionSampleA(rootPosition, yawDegrees);
+            bp.Name = "InvalidWheelOnChassis";
+            // Remove motors; reconnect wheels directly to chassis (illegal).
+            var kept = new System.Collections.Generic.List<RobotComponentDef>();
+            for (var i = 0; i < bp.Components.Length; i++)
+            {
+                if (bp.Components[i].ResolvedBase() == RobotComponentBase.SpinMotor)
+                    continue;
+                kept.Add(bp.Components[i]);
+            }
+
+            bp.Components = kept.ToArray();
+            var conns = new System.Collections.Generic.List<RobotConnectionDef>();
+            for (var i = 0; i < bp.Connections.Length; i++)
+            {
+                var c = bp.Connections[i];
+                if (c.ChildId != null && c.ChildId.StartsWith("motor_", StringComparison.Ordinal))
+                    continue;
+                if (c.ParentId != null && c.ParentId.StartsWith("motor_", StringComparison.Ordinal))
+                {
+                    conns.Add(new RobotConnectionDef
+                    {
+                        ParentId = "chassis",
+                        ChildId = c.ChildId,
+                        Joint = RobotJointKind.Hinge,
+                        HingeAxis = Vector3.up
+                    });
+                    continue;
+                }
+
+                conns.Add(c);
+            }
+
+            bp.Connections = conns.ToArray();
+            return bp;
+        }
+
+        /// <summary>Chassis polygon &gt;16 points — must reject.</summary>
+        public static RobotBlueprint CreateInvalidChassisPoints(Vector3 rootPosition, float yawDegrees)
+        {
+            var bp = CreateRa2ConstructionSampleA(rootPosition, yawDegrees);
+            bp.Name = "InvalidChassisPoints";
+            var pts = new Vector2[17];
+            for (var i = 0; i < pts.Length; i++)
+            {
+                var a = i * Mathf.PI * 2f / pts.Length;
+                pts[i] = new Vector2(Mathf.Cos(a) * 0.9f, Mathf.Sin(a) * 1.1f);
+            }
+
+            var chassis = bp.Chassis;
+            chassis.BaseplatePoints = pts;
+            bp.Chassis = chassis;
+            return bp;
+        }
+
+        /// <summary>Mass over Lightweight class cap — must reject.</summary>
+        public static RobotBlueprint CreateInvalidOvermass(Vector3 rootPosition, float yawDegrees)
+        {
+            var bp = CreateRa2ConstructionSampleA(rootPosition, yawDegrees);
+            bp.Name = "InvalidOvermass";
+            for (var i = 0; i < bp.Components.Length; i++)
+            {
+                if (bp.Components[i].Id != "chassis")
+                    continue;
+                var c = bp.Components[i];
+                c.Mass = 80f;
+                bp.Components[i] = c;
+                break;
+            }
+
+            return bp;
+        }
+
+        static void ApplyV1ChassisPowerControls(
+            RobotBlueprint bp,
+            RobotWeightClass weightClass,
+            float ballastMass,
+            float ballastZ)
+        {
+            bp.Chassis = new RobotChassisDef
+            {
+                BaseplatePoints = new[]
+                {
+                    new Vector2(-0.8f, -1.1f),
+                    new Vector2(0.8f, -1.1f),
+                    new Vector2(0.8f, 1.1f),
+                    new Vector2(-0.8f, 1.1f)
+                },
+                Height = 0.7f,
+                Armor = RobotArmorType.Aluminum,
+                WeightClass = weightClass
+            };
+            bp.Power = new RobotPowerBudgetDef
+            {
+                ElectricTotal = 24000f,
+                ElectricMaxInOutRate = 400f,
+                AirTotal = 0f,
+                AirMaxInOutRate = 0f
+            };
+
+            var components = new System.Collections.Generic.List<RobotComponentDef>(bp.Components);
+            for (var i = 0; i < components.Count; i++)
+            {
+                var c = components[i];
+                c.Base = c.ResolvedBase();
+                if (c.Id == "chassis")
+                {
+                    c.Base = RobotComponentBase.Chassis;
+                    c.CatalogId = "chassis_alum";
+                }
+                else if (c.Kind == RobotComponentKind.Wheel)
+                {
+                    c.Base = RobotComponentBase.Wheel;
+                    c.CatalogId = "wheel1";
+                }
+
+                components[i] = c;
+            }
+
+            components.Add(new RobotComponentDef
+            {
+                Id = "control_board",
+                Kind = RobotComponentKind.Module,
+                Base = RobotComponentBase.ControlBoard,
+                CatalogId = "controlboard",
+                LocalPosition = new Vector3(0f, -0.2f, 0f),
+                LocalEuler = Vector3.zero,
+                Scale = new Vector3(0.35f, 0.08f, 0.35f),
+                Mass = 0.2f,
+                HasRigidbody = false,
+                IsRoot = false
+            });
+            components.Add(new RobotComponentDef
+            {
+                Id = "battery",
+                Kind = RobotComponentKind.Module,
+                Base = RobotComponentBase.Battery,
+                CatalogId = "battery2",
+                LocalPosition = new Vector3(0.35f, -0.25f, -0.2f),
+                LocalEuler = Vector3.zero,
+                Scale = new Vector3(0.25f, 0.12f, 0.35f),
+                Mass = 1.5f,
+                HasRigidbody = false,
+                IsRoot = false,
+                ElecMaxInOutRate = 400f
+            });
+
+            if (ballastMass > 0f)
+            {
+                components.Add(new RobotComponentDef
+                {
+                    Id = "ballast_rear",
+                    Kind = RobotComponentKind.Module,
+                    Base = RobotComponentBase.Structural,
+                    CatalogId = "ballast",
+                    LocalPosition = new Vector3(0f, -0.1f, ballastZ),
+                    LocalEuler = Vector3.zero,
+                    Scale = new Vector3(0.5f, 0.2f, 0.35f),
+                    Mass = ballastMass,
+                    HasRigidbody = false,
+                    IsRoot = false
+                });
+            }
+
+            bp.Components = components.ToArray();
+
+            bp.ControlSlots = new[]
+            {
+                new RobotControlSlotDef
+                {
+                    Id = "forward_back",
+                    DisplayName = "Forward-Back",
+                    Kind = RobotControlKind.Analog,
+                    InputBinding = "W/S"
+                },
+                new RobotControlSlotDef
+                {
+                    Id = "left_right",
+                    DisplayName = "Left-Right",
+                    Kind = RobotControlKind.Analog,
+                    InputBinding = "A/D"
+                }
+            };
+
+            bp.Wirings = new[]
+            {
+                new RobotWiringDef { ControlSlotId = "forward_back", ComponentId = "wheel_fl", Channel = "CW", Sign = 1f },
+                new RobotWiringDef { ControlSlotId = "forward_back", ComponentId = "wheel_fr", Channel = "CW", Sign = 1f },
+                new RobotWiringDef { ControlSlotId = "forward_back", ComponentId = "wheel_rl", Channel = "CW", Sign = 1f },
+                new RobotWiringDef { ControlSlotId = "forward_back", ComponentId = "wheel_rr", Channel = "CW", Sign = 1f },
+                new RobotWiringDef { ControlSlotId = "left_right", ComponentId = "wheel_fl", Channel = "CCW", Sign = 1f },
+                new RobotWiringDef { ControlSlotId = "left_right", ComponentId = "wheel_fr", Channel = "CW", Sign = 1f },
+                new RobotWiringDef { ControlSlotId = "left_right", ComponentId = "wheel_rl", Channel = "CCW", Sign = 1f },
+                new RobotWiringDef { ControlSlotId = "left_right", ComponentId = "wheel_rr", Channel = "CW", Sign = 1f }
+            };
+        }
+
+        /// <summary>Insert spin-motor axles; wheels hinge off motors (construction attachment graph).</summary>
+        static void InsertSpinMotorAxles(RobotBlueprint bp)
+        {
+            var wheelIds = new[] { "wheel_fl", "wheel_fr", "wheel_rl", "wheel_rr" };
+            var components = new System.Collections.Generic.List<RobotComponentDef>(bp.Components);
+            var wheelPos = new System.Collections.Generic.Dictionary<string, Vector3>(StringComparer.Ordinal);
+
+            for (var i = 0; i < components.Count; i++)
+            {
+                var c = components[i];
+                if (c.Kind != RobotComponentKind.Wheel)
+                    continue;
+                c.HasRigidbody = true;
+                c.Mass = 1.2f;
+                c.Base = RobotComponentBase.Wheel;
+                components[i] = c;
+                wheelPos[c.Id] = c.LocalPosition;
+            }
+
+            foreach (var wid in wheelIds)
+            {
+                if (!wheelPos.TryGetValue(wid, out var pos))
+                    continue;
+                var mid = "motor_" + wid.Substring("wheel_".Length);
+                components.Add(new RobotComponentDef
+                {
+                    Id = mid,
+                    Kind = RobotComponentKind.Module,
+                    Base = RobotComponentBase.SpinMotor,
+                    CatalogId = "ztek",
+                    LocalPosition = pos + new Vector3(0f, 0.12f, 0f),
+                    LocalEuler = Vector3.zero,
+                    Scale = new Vector3(0.22f, 0.18f, 0.22f),
+                    Mass = 0.8f,
+                    HasRigidbody = false,
+                    IsRoot = false,
+                    ElecMaxInOutRate = 50f
+                });
+            }
+
+            bp.Components = components.ToArray();
+
+            var conns = new System.Collections.Generic.List<RobotConnectionDef>();
+            for (var i = 0; i < bp.Connections.Length; i++)
+            {
+                var c = bp.Connections[i];
+                if (c.ChildId != null && c.ChildId.StartsWith("wheel_", StringComparison.Ordinal))
+                    continue;
+                conns.Add(c);
+            }
+
+            foreach (var wid in wheelIds)
+            {
+                var mid = "motor_" + wid.Substring("wheel_".Length);
+                conns.Add(new RobotConnectionDef
+                {
+                    ParentId = "chassis",
+                    ChildId = mid,
+                    Joint = RobotJointKind.FixedHierarchy,
+                    HingeAxis = Vector3.zero
+                });
+                conns.Add(new RobotConnectionDef
+                {
+                    ParentId = mid,
+                    ChildId = wid,
+                    Joint = RobotJointKind.Hinge,
+                    HingeAxis = Vector3.up
+                });
+            }
+
+            conns.Add(new RobotConnectionDef
+            {
+                ParentId = "chassis",
+                ChildId = "control_board",
+                Joint = RobotJointKind.FixedHierarchy,
+                HingeAxis = Vector3.zero
+            });
+            conns.Add(new RobotConnectionDef
+            {
+                ParentId = "chassis",
+                ChildId = "battery",
+                Joint = RobotJointKind.FixedHierarchy,
+                HingeAxis = Vector3.zero
+            });
+
+            for (var i = 0; i < bp.Components.Length; i++)
+            {
+                if (bp.Components[i].Id != "ballast_rear")
+                    continue;
+                conns.Add(new RobotConnectionDef
+                {
+                    ParentId = "chassis",
+                    ChildId = "ballast_rear",
+                    Joint = RobotJointKind.FixedHierarchy,
+                    HingeAxis = Vector3.zero
+                });
+                break;
+            }
+
+            bp.Connections = conns.ToArray();
+        }
+    }
+}

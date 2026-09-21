@@ -10,21 +10,21 @@
 
 | Field | Value |
 |-------|--------|
-| **Current milestone** | **Stage 9 thin — Lobby / session → fight → MatchOutcome** (toward Stages 9–11 MVP glue) |
-| **Roadmap position** | Stages 0–8 **thin proofs PASS**; Stage 2 HARD GATE **GO** (provisional net stack); Stage 3 exit **PASS (thin)** |
-| **Queue status** | **Active** — first open task `S09-T01` |
+| **Current milestone** | **Stage 9–11 residuals complete** — deferred polish / human pipeline only |
+| **Roadmap position** | Stages 0–8 **thin proofs PASS**; Stage 2 HARD GATE **GO**; Stage 3 exit **PASS (thin)**; S9–S11 thin + disconnect/persist/chrome/ready/smoke **PASS**; S07-T02 weapon hit thin **PASS** |
+| **Queue status** | **Idle for agents** — no product open tasks; `PIPE-T02` human-only; `PIPE-T03` done (pushed) |
 | **Last queue update** | 2026-09-21 |
 | **Autonomy recommendation** | Level **2–3** (see [`AI_WORKFLOW.md`](AI_WORKFLOW.md)) |
-| **Evidence snapshot** | [`SESSION_2026-09-21_MVP_PROGRESS.md`](../experiments/SESSION_2026-09-21_MVP_PROGRESS.md) (~55–60% thin MVP loop) |
+| **Evidence snapshot** | [`SESSION_2026-09-21_MVP_PROGRESS.md`](../experiments/SESSION_2026-09-21_MVP_PROGRESS.md) (~80–85% thin MVP loop) + [`S7-02_WEAPON_HIT.md`](../experiments/S7-02_WEAPON_HIT.md) |
 
 ---
 
 ## Operating rules
 
 1. Work the **first open** task (`Status: open`) unless it is blocked — then see Blocked section / `BLOCKERS.md`.
-2. Do not skip ahead to Construction UI chrome, content catalog, or economy while Stage 9–11 thin path is unfinished.
+2. Do not skip ahead to content catalog or economy while Stage 9–11 thin residuals remain.
 3. Mark tasks `done` only after [`DEFINITION_OF_DONE.md`](DEFINITION_OF_DONE.md).
-4. After completing a task: update this file, commit on an allowed branch, take the next open task.
+4. After completing a task: update this file, commit on an allowed branch (when allowed), take the next open task.
 5. Spikes that already have PASS reports stay `done` even if product polish remains — polish is a **separate** later task.
 
 ---
@@ -100,35 +100,33 @@
 | ID | Task | Status | Evidence |
 |----|------|--------|----------|
 | S07-T01 | Functional disable damage service | done | `RobotDamageService`; `S8-01_COMBAT_IMMOBILITY.md` |
+| S07-T02 | Weapon hit apply thin (concussion/piercing) | done | `S7-02_WEAPON_HIT.md` |
 | S08-T01 | Immobility win evaluator (local 1v1) | done | `ImmobilityWinEvaluator`; `S8-01` PASS |
 | S08-T02 | Weapons catalog / arena art | deferred | Post thin MVP spine |
 
----
-
-## Open (ordered) — current milestone
-
 ### Stage 9 — Full MP battle (thin session)
 
-| ID | Task | Status | Acceptance (thin) |
-|----|------|--------|-------------------|
-| **S09-T01** | **Lobby/session thin over existing UDP:** admit two blueprints → host fight → emit shared `MatchOutcome` (Immobilized) to both peers | **open** | Play/cross-process verifier PASS; both peers agree on winner/reason; reuse Stage 2 UDP + Stage 8 immobility rules; no NGO; no Transform drive cheats; experiment report under `docs/experiments/` |
-| S09-T02 | Disconnect policy v0 (deterministic fail, no silent desync) | open | Documented policy + smoke when one peer drops mid-fight |
-| S09-T03 | Ready/lobby flow stub (LAN/listen-host OK) | open | Two roles can ready → start without manual scene hacking |
+| ID | Task | Status | Evidence |
+|----|------|--------|----------|
+| S09-T01 | Lobby/session thin UDP → MatchOutcome | done | `S9-01_MATCH_UDP_LOBBY.md` |
+| S09-T02 | Disconnect policy v0 | done | `S9-02_DISCONNECT_POLICY.md` |
+| S09-T03 | Ready/lobby flow stub (LAN/listen-host) | done | `S9-03_READY_LOBBY.md` |
 
 ### Stage 10 — Results (thin)
 
-| ID | Task | Status | Acceptance (thin) |
-|----|------|--------|-------------------|
-| S10-T01 | Results stub from authoritative `MatchOutcome` (reason + immobile seconds) | open | Console contract and/or minimal local UI; same payload both peers |
-| S10-T02 | Persist match summary locally (file/stub) | open | One JSON/summary file written after match |
+| ID | Task | Status | Evidence |
+|----|------|--------|----------|
+| S10-T01 | Results stub from MatchOutcome | done | `S10-01_RESULTS_STUB.md` |
+| S10-T02 | Persist match summary locally | done | `S10-02_RESULTS_PERSIST.md` |
 
 ### Stage 11 — MVP glue (thin)
 
-| ID | Task | Status | Acceptance (thin) |
-|----|------|--------|-------------------|
-| S11-T01 | Glue workshop session → combat admit path (one blessed **local** path) | open | Design→Configure→Test→Fight→Outcome without rebuilding a divergent robot format |
-| S11-T02 | One blessed **MP** path (UDP session from S09) using same blueprint | open | Same loadout format as local; server admit validation |
-| S11-T03 | MVP smoke checklist + known-issues list | open | Checklist in `docs/experiments/` or `docs/ai/`; critical desync class empty |
+| ID | Task | Status | Evidence |
+|----|------|--------|----------|
+| S11-T01 | Glue workshop → local combat admit | done | `S11_MVP_LOOP_GLUE.md` |
+| S11-T02 | One blessed MP path same blueprint | done | `S11_MVP_LOOP_GLUE.md` |
+| S11-T03 | MVP smoke checklist + known-issues | done | `MVP_SMOKE_CHECKLIST.md` |
+| S11-T04 | Workshop Construction/Configure chrome (thin) | done | `S11_WORKSHOP_CHROME.md` |
 
 ### Pipeline meta (this setup)
 
@@ -136,7 +134,17 @@
 |----|------|--------|-------|
 | PIPE-T01 | docs/ai + autonomous rules + scripts/ai | done | Created with this pipeline setup |
 | PIPE-T02 | Cursor Project + Automations (manual UI) | open | Human-only; see AI_WORKFLOW § Manual steps — **not** agent work |
-| PIPE-T03 | Commit / push outstanding Unity+experiment work on `agent/*` branch | open | Large uncommitted tree exists; human or Level-3 agent after branch cut |
+| PIPE-T03 | Commit / push outstanding Unity+experiment work on `agent/*` branch | done | Pushed Stage 2–11 thin MVP path on `agent/ai-pipeline` |
+
+---
+
+## Open (ordered) — current milestone
+
+| ID | Task | Status | Acceptance (thin) |
+|----|------|--------|-------------------|
+| PIPE-T02 | Cursor Project + Automations (manual UI) | open | Human-only; see AI_WORKFLOW § Manual steps — **not** agent work |
+| S04-T02 | Construction polygon editor UI | deferred | See completed table |
+| S05-T02 | Binding UI / composite groups UX | deferred | See completed table |
 
 ---
 
@@ -146,25 +154,26 @@
 |------|--------|-----|
 | — | None | [`BLOCKERS.md`](BLOCKERS.md) |
 
-Residual **non-blockers** (do not stop queue): Unity Dedicated Server Win module not installed (headless player used); custom UDP not frozen; Construction/Configure UI chrome deferred.
+Residual **non-blockers** (do not stop queue): Unity Dedicated Server Win module not installed (headless player used); custom UDP not frozen; polygon/binding polish deferred; heartbeat without goodbye still open.
 
 ---
 
 ## Backlog (do not pull forward early)
 
-- Construction polygon editor UI; Configure binding UI chrome  
+- Construction polygon editor UI; Configure binding UI chrome (beyond thin IMGUI)  
 - Content catalog / economy / career  
 - NGO/NFE package freeze (only after experiment vs current UDP)  
 - True Dedicated Server build target hardening  
 - Detach debris net replication; weapon formulae / chassis splash polish  
 - Ranked matchmaking, spectator, replay  
+- Reconnect window / bot replace  
 
 ---
 
 ## How to mark progress
 
 ```markdown
-| S09-T01 | … | done | `docs/experiments/S9-01_….md` + commit `abc1234` |
+| S09-T03 | … | done | `docs/experiments/S9-03_….md` + commit `abc1234` |
 ```
 
 Then set **Current milestone** / **first open** to the next `open` row.

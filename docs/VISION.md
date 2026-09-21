@@ -22,13 +22,14 @@
 
 Основная сложность сосредоточена в системах:
 
-- construction;
-- components;
-- control binding / groups;
+- construction (chassis polygon, attachment rules, weight class);
+- components (`base` taxonomy: motors, pistons, wheels, weapons…);
+- control wiring (Switch / Button / Analog → channels);
+- dual power (electric + air);
 - physics;
-- damage;
+- damage (chassis splash, concussion/piercing, immobility);
 - multiplayer;
-- battle simulation.
+- battle simulation (DM, Tabletop, KOTH…).
 
 Контент — относительно компактный, но **системно глубокий**.
 

@@ -2,7 +2,7 @@
 
 **Рабочее название:** ra2-analog  
 **Статус документа:** living design doc (решения без фиксации в Project Context остаются открытыми)  
-**Связанные документы:** [VISION](VISION.md) · [GAMEPLAY](GAMEPLAY.md) · [TECHNICAL_PRINCIPLES](TECHNICAL_PRINCIPLES.md) · [UNITY_ENGINE](UNITY_ENGINE.md)
+Связанные документы: [ORIGINAL_AS_IS](ORIGINAL_AS_IS.md) · [GAMEPLAY](GAMEPLAY.md) · [TECHNICAL_PRINCIPLES](TECHNICAL_PRINCIPLES.md) · [UNITY_ENGINE](UNITY_ENGINE.md)
 
 ---
 
@@ -179,51 +179,63 @@ Design — пространство, где игрок определяет **ч
 
 ### Корпус и границы конструкции
 
-- Игрок задаёт **границы/форму** корпуса (объём, в пределах которого строится машина).
-- Границы ограничивают размещение и помогают читать силуэт/габариты.
-- Точная модель редактора корпуса (воксели / поверхности / пресеты каркаса) — **open question**.
+**Целевая модель (RA2-aligned):** не «абстрактный bounding box», а **chassis editor** как у референса.
+
+| Требование | Деталь |
+|------------|--------|
+| Baseplate | Замкнутый 2D-контур на grid; **≤ 16** точек; без самопересечений; min distance между точками |
+| Extrude | Верхняя панель (редактируемый контур) + слайдер высоты → клин / wedge |
+| Armor | **Polymer, Aluminum, Titanium, Steel** — strength ↔ weight; влияет на weight class |
+| Freeze | После размещения компонентов смена формы chassis сбрасывает детали |
+| Placement | Детали baseplate-класса **внутри** объёма; invalid placement виден игроку |
+| Pass-through | Ось мотора / шток поршня может проходить через стенку; корпус детали — нет |
+
+Расширение сверх 16 точек — **не** цель MVP; возможно post-MVP при сохранении правил валидации.
 
 ### Материалы
 
-- Материалы влияют на массу, прочность, возможно трение/стоимость (если economy включена позже).
-- В MVP достаточно различимого влияния на массу и живучесть.
-- Богатая материаловедение — post-MVP / future.
+- Материалы chassis = **типы брони** (4 перечисленных выше), не отдельная «RPG-материаловедческая» система в MVP.
+- Влияние: масса, прочность корпуса, допуск в weight class.
+- Точные таблицы strength/mass — data-driven; числа — `[EXPERIMENT REQUIRED]`.
 
 ### Компоненты
 
-- Робот собирается из **компонентов** (двигатели, колёса, оружие, приводы, батареи и т.д.).
-- Каждый компонент — экземпляр data-driven определения (см. §6).
+- Робот собирается из **компонентов** data-driven определений (см. §6).
+- **Control Board** обязателен на baseplate — без него нет Configure/Wiring.
+- Категории UI/данных: Power, Mechanics, Treads, Weapons, Extenders, Extras (как RA2).
 
 ### Размещение
 
-- Игрок размещает компоненты в пространстве конструкции.
-- Важны коллизии между деталями, доступность соединений, влияние на CoM.
-- Снап/свободное размещение — open question на уровне UX, но свобода компоновки обязательна по духу.
+- Attachment points (как green boxes референса); Shift = yaw; Ctrl = подъём над baseplate.
+- Колёса крепятся **только к axle** spin/servo motor, не к baseplate.
+- Коллизии, CoM, weight class — first-class feedback в UI.
 
 ### Соединения
 
-- Компоненты **соединяются** друг с другом (жёстко / шарнирно / через приводы — по типу связи).
-- Соединения определяют структуру, передачу сил и точки отказа при damage.
+- Физика: **hinge** (motors), **prismatic** (pistons), **wheel** constraint (treads) — constraint-based, не kinematic drive.
+- Fracture/detach меняет топологию; MVP может ограничиться disable + позже detach в net после EXP.
 
 ### Ограничения
 
-Примеры классов ограничений (конкретные числа — не фиксируются здесь):
-
-- габариты / лимиты арены или режима;
-- максимальная масса (если режим задаёт);
-- требования к питанию / суммарной мощности;
-- недопустимые пересечения;
-- лимиты на число определённых компонентов (режимные, не обязательно глобальные).
+- **Weight class:** Lightweight / Middleweight / Heavyweight (лимиты кг — EXP).
+- Суммарная mass + armor + ballast.
+- Electric budget (`electotal`) и air budget (`airtotal`) — см. §6.
+- Недопустимые пересечения chassis / других деталей.
+- Perf: много moving parts бьёт FPS (как ReadMe RA2) — UX-предупреждение, не hard ban в sandbox.
 
 ### Масса и центр масс
 
-- Суммарная масса и **центр масс** — первоклассные параметры дизайна.
-- Игрок должен иметь возможность видеть/чувствовать последствия смещения CoM (крен, переворот, нестабильность).
+- Суммарная mass и **CoM** — first-class; weight class отображается явно.
 
-### Мощность
+### Мощность (dual resource)
 
-- Источники энергии/приводы ограничены; потребители (моторы, оружие) конкурируют за бюджет.
-- Нехватка мощности — частая «гипотеза, которую ломает Test».
+| Ресурс | Питает | Повреждение |
+|--------|--------|-------------|
+| **Battery / electricity** | Spin, Burst, Servo motors | Degrade draw / cap |
+| **Air tank** | Burst / Servo pistons | Degrade pressure / cap |
+| Гибрид | Оба источника на одном боте | Независимые бюджеты |
+
+Нехватка бюджета — частая «гипотеза, которую ломает Test».
 
 ### Физические ограничения
 
@@ -234,11 +246,12 @@ Design — пространство, где игрок определяет **ч
 
 | Обязательно для MVP | После MVP | Future |
 |---------------------|-----------|--------|
-| Размещение базовых компонентов | Расширенные материалы | Продвинутый редактор корпуса |
-| Базовые соединения (достаточные для езды/удара) | Больше типов joints/приводов | Процедурная прочность/усталость |
-| Масса и читаемый CoM | Тонкая настройка инерции | Детальная аэродинамика и т.п. |
-| Простые лимиты мощности | Сложные энергосети | Тепло / перегрев как система |
-| Сборка, пригодная к Test и Battle | Режимные лимиты турниров | Командные «шасси-правила» |
+| Chassis polygon editor (≤16) + 4 armor types | Paint shop / custom textures | >16 points, advanced shapes |
+| Control Board + battery + базовый motor/wheel | Air tank + burst piston | Full mechanics catalog |
+| Placement + attachment rules (axle, pass-through) | SmartZone, car steering | Procedural armor |
+| Mass, CoM, weight class display | All 3 weight classes enforced in ranked | Fatigue / heat |
+| Electric budget (motors) | Dual electric + air on hybrid bots | Full RA2 component parity |
+| Сборка → Test → Battle | Tabletop / KOTH arenas | Career events |
 
 ---
 
@@ -246,104 +259,94 @@ Design — пространство, где игрок определяет **ч
 
 ### Универсальный компонент
 
-Компонент — единица конструкции и поведения. Добавление нового типа должно опираться на **данные и декларацию capabilities**, а не на уникальную ветку «всей игры».
+Компонент — единица конструкции и поведения. Поле **`base`** (runtime class) задаёт физику и wiring channels — по аналогии с RA2 defs.
+
+### Таксономия `base` (целевая)
+
+| `base` | Роль | Wiring / power |
+|--------|------|----------------|
+| `ControlBoard` | Обязательный hub; без него нет Configure | — |
+| `Battery` | `electotal`, rates | Питает motors |
+| `AirTank` | `airtotal`, rates | Питает pistons |
+| `SpinMotor` | Free rotation CW/CCW | Electric |
+| `BurstMotor` | Cock → Fire → partial arc (<180°) | Electric; Button **Fire** |
+| `ServoMotor` | Slow rotation, lock at stop | Electric; Analog |
+| `BurstPiston` | Extend burst → slow retract | Air; Button **Fire** |
+| `ServoPiston` | Extend / retract, lock mid-stroke | Air; Analog |
+| `Wheel` | Traction on surface | На axle motor |
+| `Weapon` | Melee head; `concussion`, `piercing` | На motor/piston/extender |
+| `SmartZone` | Contact sensor zone | Optional triggers |
+| `Steering` | Car-steer hubs | Electric |
+| `Component` | Structure, extenders, ballast, wedge | — |
+
+Полный каталог RA2 (~68 parts) — **не** цель MVP; достаточно короткого набора, покрывающего каждый `base` хотя бы раз.
 
 ### Модель свойств (дизайн-уровень)
 
 | Аспект | Содержание |
 |--------|------------|
-| **Физические свойства** | Масса, размеры, коллизия, прочность, (опц.) трение, точки крепления |
-| **Функциональные свойства** | Роль: движение, привод, оружие, энергия, структура… |
-| **Входы** | Энергия, управляющие команды, сигналы от связанных частей |
-| **Выходы** | Сила/крутящий момент, движение, снаряды/эффекты, статус |
-| **Actions** | Дискретный набор действий, доступных Configure |
-| **Ограничения** | Max скорость, угол, расход энергии, кулдауны (если нужны) |
-| **Зависимости** | Требует батарею / опору / соединение определённого типа |
-| **Состояние** | Intact / damaged / disabled / detached / destroyed (уточняется damage-моделью) |
+| **Физические** | mass, collider, `hitpoints`, `fracture`, attach nodes |
+| **Power** | `power`, `burst`, `elecMaxInOutRate`, `airmaxinoutrate` |
+| **Weapon** | `concussion`, `piercing`, strike `normal`, decals |
+| **Wheel** | `grip`, `resistance`, `contact` |
+| **Wiring channels** | Declared per `base` (CW/CCW, Fire, Extend, Retract, …) |
+| **Состояние** | intact → damaged (degraded) → disabled → detached |
 
-### Примеры компонентов
+### Примеры (сжато)
 
-**Колесо**  
-Физика: контакт с поверхностью, трение, нагрузка.  
-Actions: вперёд, назад, (опц.) steer.  
-Зависимости: привод/мощность, крепление к корпусу.
+**SpinMotor + Wheel** — tank drive; wiring Forward/LeftRight или per-wheel analog.  
+**BurstMotor + Weapon** — flipper/spinner arc; Button Fire.  
+**BurstPiston + spike** — pneumatic jab; requires AirTank.  
+**ServoPiston + hammer** — analog extend/retract weapon arm.
 
-**Ротор / мотор**  
-Actions: вращение +, вращение −, стоп/фиксация, тормоз.  
-Выход: крутящий момент на соединённый элемент.
-
-**Поршень**  
-Actions: выдвинуть, задвинуть, остановить.  
-Использование: подвеска, щит, «толкатель», экзотические кинематические сборки.
-
-**Оружие (простое)**  
-Actions: activate / deactivate (или fire).  
-Состояние: перегрев/боезапас — по необходимости горизонта.
-
-**Батарея / источник энергии**  
-Функция: бюджет мощности.  
-Повреждение батареи → деградация всей машины.
-
-**Структурный блок**  
-Мало actions, много роли в массе, броне и топологии соединений.
-
-Список стартовых компонентов для MVP должен быть **коротким, но достаточным** для езды, базового оружия и хотя бы одного «интересного» привода (ротор/поршень) — точный каталог open question.
+Стартовый MVP-каталог: ControlBoard, 1 battery, 1 spin motor, 2 wheels, 1 simple weapon, 1 structural extender — расширять после Stage 3+ gates.
 
 ---
 
 ## 7. CONTROL / CONFIGURATION SYSTEM
 
-Одна из ключевых механик: игрок проектирует **систему управления**.
+Одна из ключевых механик: игрок проектирует **систему управления** отдельно от геометрии (RA2 **Wiring**).
 
-### Actions
+### Модель UI (целевая, RA2-aligned)
 
-- Атомарные команды компонента (`Wheel.Forward`, `Rotor.Brake`, `Gun.Fire`…).
-- Имеют смысл только в контексте экземпляра или группы.
+1. **Controller grid** — слоты для controls.  
+2. **Control types:** Switch, Button, Analog (−100…+100).  
+3. **Wiring:** control (selected) → click component → pick **channel**.  
+4. Сохраняется в blueprint вместе с роботом.
+
+### Actions (runtime)
+
+Actions — то, что wiring **активирует** на компоненте (`CW`, `CCW`, `Fire`, `Extend`, `Retract`, `Forward`, `LeftRight`, …).  
+Не путать с control types: Button control может Fire burst motor.
 
 ### Bindings
 
-- Связь: **вход игрока → action** (или composite action).
-- Bindings сохраняются вместе с роботом/пресетом управления.
+- **Player input → control slot** (key / gamepad button / axis).  
+- **Control slot → component channel(s)** via wiring graph.  
+- Один control → many components; many controls → one component — допустимо.
 
-### Groups
+### Groups и composite actions (implementation layer)
 
-- Несколько компонентов объединяются в группу.
-- Группа — единица назначения поведения (например, «левые колёса», «вся ходовая»).
-
-### Composite actions
-
-- Одно нажатие → набор действий по членам группы (возможно с разными знаками/режимами).
-- Пример танкового руления на 4 колёсах:
-
-| Ввод | Composite |
-|------|-----------|
-| W | все вперёд |
-| S | все назад |
-| A | левые назад + правые вперёд |
-| D | левые вперёд + правые назад |
+Groups/composites — **удобная абстракция** над множественным wiring (пример: один Analog «Forward-Back» → 4 wheels).  
+Tank-steer (Forward + LeftRight analogs) — **рекомендуемый онбординг**, не единственная схема.  
+Запрещено: единственный hardcoded WASD path в simulation code.
 
 ### Аналоговый и цифровой ввод
 
-- Цифровой: on/off actions.
-- Аналоговый: величина газа/поворота, если компонент это поддерживает.
-- Какие устройства ввода в MVP (клавиатура / геймпад) — open question; принцип поддержки обоих желателен.
+- **Analog controls** обязательны для tank drive и servo actuators (MVP).  
+- Keyboard: ±100% на analog; gamepad: partial power.  
+- Button/Switch для burst Fire и toggles.
 
-### Конфликты, приоритеты, одновременность
+### Конфликты ввода
 
-Дизайн должен определить политику (детали реализации — не здесь):
+Предсказуемая политика W+S, overlapping wires — с подсказками в Configure/Test (`[EXPERIMENT REQUIRED]` на exact rules).
 
-- два биндинга на одно действие;
-- противоположные команды одной оси (W+S);
-- одновременная активация движения и оружия;
-- приоритет group composite vs прямой binding на член группы.
+### Примеры схем (из референса)
 
-Пока фиксируется **требование**: поведение при конфликтах должно быть предсказуемым и объяснимым игроку (подсказки/отладка в Configure/Test).
-
-### Примеры схем управления
-
-1. **Классический драйв:** WASD = composite ходовой, ЛКМ = оружие.  
-2. **Двойное назначение:** Q/E = поворот башни/ротора, Space = поршень-толкатель.  
-3. **Экзотика:** одна кнопка = «сложить» кинематическую раму + активировать шип.
+1. **Tank 2/4 wheel:** Analog «Forward-Back» + Analog «Left-Right» → spin motors.  
+2. **Spinner:** Button → Spin CW; optional SmartZone trigger.  
+3. **Flipper:** Button → BurstMotor Fire.  
+4. **Thrust spike:** Button → BurstPiston Fire (needs air).
 
 ---
 
@@ -406,15 +409,16 @@ Actions: activate / deactivate (или fire).
 
 ### Победа / поражение / уничтожение
 
-Возможные условия (не все обязательны сразу):
+**Целевое правило (RA2-aligned):**
 
-- уничтожение критических систем / «смерть» робота;
-- elimination (выбыл — проиграл);
-- набор очков урона за время;
-- последний выживший;
-- сдача / disconnect по правилам матча.
+| Исход | Условие | Приоритет |
+|-------|---------|-----------|
+| **Immobilized** | Робот не может двигаться N сек (countdown UI) | **Primary** для MVP deathmatch |
+| **Eliminated** | Pit / tabletop edge / `y` threshold | Tabletop modes |
+| **KOTH win** | Очки за удержание зоны | KOTH mode |
+| **Timer tie-break** | Больше урона / последний mobile | Если матч не решён |
 
-Точный набор win conditions для MVP — см. §17 и Open Questions.
+Точные N секунд и tie-break — `[EXPERIMENT REQUIRED]`; **immobility как главный путь** — design requirement.
 
 ### Damage в бою
 
@@ -447,7 +451,20 @@ Damage — часть боя, не отдельный мини-режим. По�
 
 ### Концепция
 
-Повреждения меняют **функцию и физику** робота, а не только полоску HP. Идеал: попал в колесо — потерял мобильность; оторвал оружие — потерял огневую мощь; разрушил соединение — отвалился модуль.
+Повреждения меняют **функцию и физику**, не только abstract HP. Референс RA2: внутренние детали **деградируют**, редко мгновенно «выключаются» полностью.
+
+### Модель урона (целевая)
+
+| Механизм | Требование |
+|----------|------------|
+| **Chassis splash** | Hit по корпусу → damage внутренним компонентам по **дистанции** от точки удара |
+| **Weapon strike** | `concussion` + `piercing` (0–1) × impact physics; direction via strike normal |
+| **Component HP** | `hitpoints`, `fracture` на структурах/оружии |
+| **Degradation** | Снижение motor power, battery cap, air pressure — не только on/off |
+| **Fracture / detach** | Модуль отрывается → topology change; net sync — после EXP |
+| **Critical hits** | Feedback (SFX/UI); optional stat |
+
+Immobility detection: loss of drive / stuck → countdown → defeat (связь с §9).
 
 ### Слои повреждений
 
@@ -464,9 +481,10 @@ Damage — часть боя, не отдельный мини-режим. По�
 
 | MVP | Post-MVP | Future |
 |-----|----------|--------|
-| Урон по компонентам с отключением ключевых функций | Частичная деградация (не только on/off) | Детальная локальная деформация |
-| Базовое «уничтожен / выведен из строя» | Отрыв модулей с сохранением обломков | Усталость материалов, пожары и т.п. |
-| Читаемая причина потери функции | Каскадные энерго-отказы | Детальный pen/armor model |
+| Chassis splash + weapon concussion/piercing (простая формула) | Partial degradation curves | Exact RA2 parity formula |
+| Immobility win path | Fracture/detach with debris | Chassis visual deformation |
+| Component disable on heavy damage | SmartZone-triggered weapons | Fire / hazard chains |
+| Читаемая причина поражения в Results | Critical hits stat | Fatigue |
 
 ---
 
@@ -560,15 +578,19 @@ Results должны **подталкивать** возврат в Design, а �
 
 ### MVP
 
-- Один понятный способ сразиться (ориентир: **1v1 physics fight** или локальный/онлайн прототип того же правила).
-- Test Room как обязательный «режим работы», даже если не считается match mode.
-- Sandbox/Practice в Test — часть MVP опыта.
+- **1v1 Deathmatch** с **immobility** win (или eliminate on critical failure).  
+- **Test Room / Practice garage** — обязательный режим работы; optional obstacles (barrels, blocks).  
+- Sandbox: все parts доступны для творчества (без economy).
 
-### Post-MVP
+### Post-MVP (целевой набор как RA2)
 
-- Дополнительные PvP-форматы из списка §9.
-- Турнирные оболочки.
-- Более богатые арены и rule variants.
+| Mode | Rule hook |
+|------|-----------|
+| Deathmatch | Last standing / most damage |
+| Battle Royal | FFA elimination |
+| Team Match | Teams + shared spawn rules |
+| **Tabletop** | Edge push → pit eliminate |
+| **King of the Hill** | Zone control → points |
 
 ### Experimental
 
@@ -645,12 +667,12 @@ MVP — уже **настоящий Robot Arena-like продукт**, а не �
 
 ### Игрок в MVP должен уметь
 
-1. Собрать робота из небольшого набора компонентов с массой, соединениями и бюджетом мощности.  
-2. Настроить управление: actions + хотя бы groups/composite для ходовой.  
-3. Мгновенно (по ощущению) гонять машину в Test Room, reset, править, повторять.  
-4. Вывести двух роботов в физический бой с читаемым исходом (уничтожение / неработоспособность / таймер — выбрать одно ясное правило).  
-5. Увидеть базовые results и вернуться в Design.  
-6. Иметь задел multiplayer-aware: даже если онлайн хрупкий, путь «два игрока → бой» проверяет главный риск жанра.
+1. Собрать робота: chassis + Control Board + drive (spin motor + wheels) + минимум weapon/extender.  
+2. Настроить **wiring**: ≥2 analog или эквивалент composite для tank-steer; burst/servo — post-MVP spike.  
+3. Мгновенно гонять в Test Room (practice garage), reset, править.  
+4. Физический бой 1v1 с исходом **immobilized** (или согласованный tie-break).  
+5. Results с причиной поражения и списком повреждённых компонентов.  
+6. Multiplayer-aware path: remote input → host sim (Stage 2+).
 
 ### MVP не обязан иметь
 
@@ -681,20 +703,20 @@ MVP — уже **настоящий Robot Arena-like продукт**, а не �
 
 1. ~~Финальный игровой движок~~ — **закрыто: Unity** (см. [UNITY_ENGINE.md](UNITY_ENGINE.md)).  
 2. Pin версии Unity и набор packages (physics/netcode/server) — `[EXPERIMENT REQUIRED]`.  
-3. Модель редактора корпуса (как именно задаются границы/форма).  
-4. Стартовый каталог компонентов и их точные характеристики.  
-5. Точная win condition MVP-боя.  
-6. Политика конфликтов ввода и приоритетов bindings.  
+3. ~~Модель редактора корпуса~~ — **закрыто: RA2-style polygon chassis (≤16) + extrude + 4 armor types**.  
+4. Стартовый каталог компонентов (какие `base` в MVP) — уточняется roadmap Stage 6+.  
+5. ~~Win condition MVP~~ — **кандидат: immobility countdown**; tie-break EXP.  
+6. Политика конфликтов wiring/input — EXP.  
 7. Нужен ли ranked сразу или сначала lobby-only.  
 8. Видимость робота оппонента в lobby.  
 9. Правила disconnect/reconnect.  
-10. Аналоговый ввод в MVP или только digital.  
-11. Насколько разрушаемы соединения в MVP vs «только disable».  
-12. Лимиты массы/точек в матчах как спорт-правила.  
+10. ~~Analog в MVP~~ — **да**, для tank-steer / servo.  
+11. Detach depth in MVP vs post-MVP net — EXP (functional disable first).  
+12. Weight class kg limits — EXP / data tables.  
 13. Нужен ли PvE вообще.  
 14. Cosmetics-only прогрессия vs полная sandbox для ranked.  
-15. Платформы и схемы ввода по умолчанию.  
-16. Окончательный список PvP-режимов.
+15. Платформы и схемы ввода — keyboard + gamepad target.  
+16. ~~PvP mode list~~ — **целевой набор: DM, Battle Royal, Team, Tabletop, KOTH**; MVP = 1v1 DM + immobility.
 
 ---
 
@@ -720,21 +742,29 @@ MVP — уже **настоящий Robot Arena-like продукт**, а не �
 |---------|:---:|:--------:|:------:|:-------------:|
 | Модульная сборка робота | ✓ | | | |
 | Базовые материалы (влияние на массу/живучесть) | ✓ | расширенные | | точная модель |
-| Редактор корпуса / границы | базовый | продвинутый | | форма редактора |
+| Редактор корпуса (polygon ≤16 + armor) | ✓ | paint | | закрыто |
+| Control Board + wiring (Switch/Button/Analog) | ✓ | | | |
+| Dual power (elec + air) | motors MVP | full hybrid | | |
+| Spin/Burst/Servo actuators | spin MVP | burst/servo | full | |
+| Weight class (LW/MW/HW) | display | enforce ranked | | kg EXP |
+| Immobility win | ✓ | | | seconds EXP |
+| Chassis splash + concussion/piercing | базовый | tuned | | formula EXP |
+| PvP modes (DM/BR/Team/TT/KOTH) | 1v1 DM | ✓ | | |
+| Analog input (tank-steer) | ✓ | | | закрыто |
 | Соединения компонентов | ✓ | больше типов | | |
 | Масса + CoM feedback | ✓ | | | |
 | Бюджет мощности | ✓ | энергосети | тепло/перегрев | |
 | Data-driven компоненты | ✓ | | | стартовый каталог |
 | Actions + bindings | ✓ | | | |
 | Groups + composite actions | ✓ | | | политика конфликтов |
-| Analog input | опц. | ✓ | | нужен ли в MVP |
+| Analog input | ✓ | | | tank-steer |
 | Test Room | ✓ | | | |
 | Бесшовный Design↔Configure↔Test | ✓ | | | |
 | Reset / spawn tools | ✓ | | | |
 | Control debug visualization | базовый | ✓ | | |
 | Physics battle | ✓ | | | |
-| 1v1 PvP (или эквивалент) | ✓ | | | точные rules |
-| Доп. PvP форматы | | ✓ | ✓ | список режимов |
+| 1v1 PvP (или эквивалент) | ✓ | | | immobility win |
+| Доп. PvP форматы | | ✓ | ✓ | DM/BR/Team/TT/KOTH |
 | Time limit матча | желательно | ✓ | | правило по истечении |
 | Component disable damage | ✓ | | | |
 | Partial degradation damage | | ✓ | | |

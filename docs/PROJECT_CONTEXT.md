@@ -63,6 +63,26 @@ REFERENCE
 
 Игра должна позволять множество разных решений даже при одинаковом наборе деталей.
 
+### RA2 mechanics target (gameplay)
+
+Детальная расшифровка оригинала: [`ORIGINAL_AS_IS.md`](ORIGINAL_AS_IS.md).  
+Игровые требования в духе референса: [`GAMEPLAY.md`](GAMEPLAY.md).
+
+| Область | Целевое поведение (не 1:1 clone) |
+|---------|----------------------------------|
+| Chassis | Полигон ≤16 точек, extrude, 4 брони, weight class |
+| Parts | Control Board обязателен; категории Power/Mechanics/Treads/Weapons/… |
+| Actuators | Spin / Burst / Servo × motor; Burst / Servo × piston |
+| Power | Dual: **electricity** (motors) + **air** (pistons) |
+| Configure | Controller: Switch / Button / Analog → **wiring** → channels |
+| Drive | Tank-steer как эталон, не hardcode в коде |
+| Damage | Chassis splash + concussion/piercing; degradation |
+| Win | **Immobility** primary; tabletop pit; KOTH — post-MVP |
+| Modes | DM, Battle Royal, Team, Tabletop, KOTH — целевой набор |
+| Test | Practice garage = та же физика, что бой |
+
+Числа (кг классов, формула урона, секунды immobility) — только после эксперимента или калибровки; **форма систем** — требование продукта.
+
 ---
 
 ==================================================
@@ -110,11 +130,11 @@ DESIGN ↔ CONFIGURE ↔ TEST
 
 Возможные действия (концептуально):
 
-- границы / форма корпуса;
-- материалы;
-- размещение компонентов (двигатели, колёса, оружие, приводы, батареи и т.д.);
-- соединения и механические отношения;
-- учёт массы, центра масс, мощности, физических ограничений.
+- chassis: полигон ≤16 точек, extrude, 4 типа брони, weight class;
+- размещение компонентов (Control Board обязателен; категории Power/Mechanics/Treads/Weapons/…);
+- attachment rules (axle, pass-through shaft, wheels on axles only);
+- dual power: battery (motors) + air tank (pistons);
+- учёт массы, CoM, electric/air budgets.
 
 Архитектуру нельзя строить вокруг заранее созданных фиксированных роботов.
 
@@ -124,28 +144,16 @@ DESIGN ↔ CONFIGURE ↔ TEST
 2. CONFIGURE
 ==================================================
 
-После конструкции игрок настраивает управление.
+После конструкции игрок настраивает **controller + wiring** (как RA2).
 
-Каждый тип компонента предоставляет **actions** (data-driven).
+Control types: **Switch**, **Button**, **Analog** (−100…+100) на сетке слотов.  
+Wiring: control → component → channel (CW/CCW, Fire, Extend/Retract, Forward/LeftRight…).  
+Без Control Board wiring недоступен.
 
-Примеры:
+Runtime **actions** — каналы actuators (data-driven per `base`).
 
-| Компонент | Actions |
-|-----------|---------|
-| Rotor | rotate_forward, rotate_backward, brake, lock/stop |
-| Piston | extend, retract, stop |
-| Wheel | forward, reverse, steering_left, steering_right |
-| Weapon | activate, deactivate |
-
-Actions назначаются на input. Система должна быть гибче пресета WASD.
-
-### GROUPS
-
-Компоненты объединяются в группы. Группы дают **composite actions**.
-
-Пример — четыре колеса → группа DRIVE → танковое руление на WASD.
-
-Конкретную схему WASD **нельзя** жёстко зашивать в код как единственную модель управления.
+**Groups / composite actions** — наша абстракция над множественным wiring (tank-steer = 2 analog → 4 wheels).  
+Эталон — differential/tank steer; hardcode только WASD в simulation **нельзя**.
 
 ---
 
@@ -171,10 +179,13 @@ Test Room: движение, управление, оружие, механик�
 
 Физические бои. Перспективный фокус — **PvP**.
 
-Возможные форматы (набор **не** фиксирован): 1v1, FFA, elimination, tournament, timed, team, experimental.
+**Win path (RA2-aligned):** primary — **immobility countdown**; также eliminate (pit/tabletop), KOTH points.
 
-Бой использует **ту же базовую физическую модель**, что и Test Room.  
-Не делать отдельную «фейковую» PvP-физику.
+**Damage:** chassis splash по дистанции; оружие — concussion + piercing; degradation, не только HP bar.
+
+Целевые режимы: Deathmatch, Battle Royal, Team, Tabletop, KOTH. MVP — **1v1 Deathmatch + immobility**.
+
+Бой использует **ту же базовую физическую модель**, что и Test Room.
 
 ---
 
@@ -295,8 +306,13 @@ CURSOR RULES
 | `unity.mdc` | Unity/MonoBehaviour/package habits |
 | `csharp.mdc` | C# standards (`*.cs`) |
 | `ra2-analog.mdc` | Short index → this file + rules |
+| `autonomous-development.mdc` | TASK_QUEUE / stop conditions / autonomy |
+| `ai-testing.mdc` | Unity MCP + scripts verification loop |
+| `ai-git.mdc` | `agent/*` branches, commit/PR policy |
 
 **Unity MCP:** `.cursor/mcp.json` connects Cursor to Unity Editor MCP at `http://localhost:8080/` (`com.emeryporter.unitymcp`). Start the server from **Window → Unity MCP** while the Editor is open.
+
+**Autonomous AI pipeline:** `docs/ai/` (`AI_WORKFLOW.md`, `TASK_QUEUE.md`, `DEFINITION_OF_DONE.md`, `BLOCKERS.md`) + `scripts/ai/`.
 
 ==================================================
 AI / MULTI-AGENT RULES
@@ -311,9 +327,11 @@ AI / MULTI-AGENT RULES
 5. Для порядка доказательств и gates → `docs/TECHNICAL_ROADMAP.md`.
 6. Для Unity/experiments → `docs/UNITY_ENGINE.md`.
 7. Для известных архитектурных рисков → `docs/ARCHITECTURE_REVIEW.md`.
-8. Не выдумывать финальные числа, win conditions, package choices и net strategy, если они помечены open / experiment.
-9. Не предлагать смену production engine на Unreal/Godot, пока product lock на Unity не снят явно.
-10. Предпочитать маленькие проверяемые шаги огромным незадокументированным подсистемам.
+8. Для «как устроен оригинал RA2» → `docs/ORIGINAL_AS_IS.md`.
+9. Для автономного пайплайна агентов → `docs/ai/AI_WORKFLOW.md` + `TASK_QUEUE.md`.
+10. Не выдумывать финальные числа, win conditions, package choices и net strategy, если они помечены open / experiment.
+11. Не предлагать смену production engine на Unreal/Godot, пока product lock на Unity не снят явно.
+12. Предпочитать маленькие проверяемые шаги огромным незадокументированным подсистемам.
 
 ---
 
@@ -325,14 +343,16 @@ DOCUMENT MAP
 |----------|------|
 | **`docs/PROJECT_CONTEXT.md`** (этот файл) | Стабильный shared context |
 | `docs/VISION.md` | Цель и scope |
-| `docs/GAMEPLAY.md` | Краткий loop |
+| `docs/GAMEPLAY.md` | Loop + RA2-aligned mechanics requirements |
 | `docs/GDD.md` | Полный game design |
 | `docs/TECHNICAL_PRINCIPLES.md` | Техпринципы |
 | `docs/UNITY_ENGINE.md` | Unity + experiments |
 | `docs/TECHNICAL_ROADMAP.md` | Этапы и gates |
 | `docs/SDS.md` | Technical / software design |
 | `docs/ARCHITECTURE_REVIEW.md` | Найденные риски |
+| `docs/ORIGINAL_AS_IS.md` | Расшифровка оригинального RA2 (референс AS-IS) |
 | `docs/experiments/` | Отчёты экспериментов |
+| `docs/ai/` | Autonomous coordinator pipeline (workflow, queue, DoD, blockers) |
 | `README.md` | Входная точка репозитория |
 
 Путь `Docs/` и `docs/` на Windows могут указывать на одну папку; канон в репозитории — **`docs/`**.

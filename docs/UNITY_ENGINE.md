@@ -111,7 +111,7 @@ Listen-server допустим как **временный** инструмен�
 |--|--|
 | **Требование** | Сохранение робота (geometry/components/joints/bindings); передача в матч; версионирование; анти-tamper на уровне валидации схемы |
 | **Кандидаты** | ScriptableObject + asset; JSON/MessagePack/бит-пакет; Unity Serialization; custom binary blueprint |
-| **Статус** | `[EXPERIMENT REQUIRED]` |
+| **Статус** | `[EXPERIMENT REQUIRED]` — v0 PASS (S3-02); **v1 RA2-aligned** spike S3-04 (`ra2.robot_blueprint.v1`); format not frozen |
 
 Должен обслуживать: Design → Test → Battle без «ручной» пересборки сцены.
 
@@ -122,6 +122,8 @@ Listen-server допустим как **временный** инструмен�
 - **Метрики:** bit size; время ser/deser; число расхождений; устойчивость к version bump поля.  
 - **Успех:** 100% критичных полей восстанавливаются; робот проходит тот же smoke-тест движения.  
 - **Провал:** nondeterministic hierarchy, потеря joints/bindings, неприемлемый размер для net transfer.
+- **Thin result (S3-02):** sample A/B JSON file round-trip, 0 critical mismatches, assemble+drive smoke PASS; versioning/binary/net admit still open.
+- **Thin result (S3-03):** same schema as loopback spawn request/event payload; host fail-closes unknown schema; **cross-process admit PASS** via S2-09 (`RobotHostSpawnerUdp`).
 
 ---
 
@@ -203,8 +205,8 @@ Listen-server допустим как **временный** инструмен�
 
 ### 5.1 Runtime создание сложного модульного робота
 
-**ID:** EXP-01 · **Теги:** construction, physics, serialization  
-**Статус:** `[EXPERIMENT REQUIRED]`
+**ID:** EXP-01 · **Теги:** construction, physics, serialization
+**Статус:** thin PASS (STAGE 1 PhysicsTest builder + STAGE 3 S3-01..03 modular assemble/serialize/loopback spawn) — detach lifecycle + cross-process admit still `[EXPERIMENT REQUIRED]` (see `docs/experiments/EXP-01-runtime-build-thin.md`, STAGE3_EXIT)
 
 | | |
 |--|--|
@@ -218,8 +220,8 @@ Listen-server допустим как **временный** инструмен�
 
 ### 5.2 Большое количество rigid bodies и joints
 
-**ID:** EXP-02 · **Теги:** physics, performance  
-**Статус:** `[EXPERIMENT REQUIRED]`
+**ID:** EXP-02 · **Теги:** physics, performance
+**Статус:** baseline provisional (S1-03 counts) — stress ladder still `[EXPERIMENT REQUIRED]` (see `docs/experiments/EXP-02-bodies-joints-budget.md`)
 
 | | |
 |--|--|
@@ -233,8 +235,8 @@ Listen-server допустим как **временный** инструмен�
 
 ### 5.3 Физическое взаимодействие двух роботов
 
-**ID:** EXP-03 · **Теги:** physics, gameplay feel  
-**Статус:** `[EXPERIMENT REQUIRED]`
+**ID:** EXP-03 · **Теги:** physics, gameplay feel
+**Статус:** local thin PASS (PhysicsTest A vs B) — see `docs/experiments/EXP-03-two-robot-local.md`
 
 | | |
 |--|--|
@@ -264,7 +266,7 @@ Listen-server допустим как **временный** инструмен�
 ### 5.5 Синхронизация физики по сети
 
 **ID:** EXP-05 · **Теги:** netcode, physics  
-**Статус:** `[EXPERIMENT REQUIRED]`
+**Статус:** Provisional PASS (S2-06) — custom UDP cross-process; package still `[EXPERIMENT REQUIRED]`
 
 | | |
 |--|--|
@@ -279,7 +281,7 @@ Listen-server допустим как **временный** инструмен�
 ### 5.6 Server-authoritative simulation
 
 **ID:** EXP-06 · **Теги:** netcode, authority  
-**Статус:** `[EXPERIMENT REQUIRED]`
+**Статус:** PASS (thin — S2-01/03 + host combat authority S2-07)
 
 | | |
 |--|--|
@@ -362,11 +364,22 @@ Net spike можно начинать на упрощённом роботе, н
 | Дата | Тема | Решение | Основание (experiment ID) | Статус |
 |------|------|---------|---------------------------|--------|
 | — | Unity как production engine | **Принято** | Product decision | Fixed |
-| | Unity version pin | | U-VER | Open |
-| | Physics stack | | EXP-01..04 / U-PHY | Open |
-| | Networking solution | | EXP-05..08 | Open |
-| | Dedicated server approach | | EXP-09 | Open |
-| | Serialization format | | U-SER | Open |
+| 2026-08-21 | Local PhysX demo + 1× HingeJoint wheel | Sufficient base for STAGE 2 net spike; upright freeze + slide friction remain known hacks | S1-01..03, EXP-01 thin, EXP-02 baseline, EXP-03 local | Provisional |
+| 2026-08-21 | STAGE 2 command path (local) | In-process host authority bus over PhysicsTestDriveCommand; no net package yet | S2-00 plan, S2-01 | Provisional |
+| 2026-08-21 | STAGE 2 provisional transport | In-process listen-host loopback (commands + thin poses) over S2-01 authority; NGO not required for this slice | S2-02, EXP-05/07 thin | Provisional |
+| 2026-08-21 | STAGE 2 host state authority (illegal client force) | Host commit/reconcile overwrites client impulse, velocity write, and teleport on PhysicsTest bodies; no net package | S2-03, EXP-06 thin | Provisional |
+| 2026-08-21 | STAGE 2 latency / predict | Loopback RTT 60–100 ms + jitter/loss playable; **prediction OFF**; interp optional for remote presentation later | S2-04, EXP-08 | Provisional |
+| 2026-08-21 | STAGE 2 dedicated tick (thin) | Editor presentation-disabled host tick OK for 1v1 PhysicsTest; true Dedicated Server build still open | S2-05, EXP-09 thin | Provisional |
+| 2026-08-21 | STAGE 2 HARD GATE | **PROVISIONAL GO** → Stage 3 thin; HARD GATE not fully closed (no cross-process / no NGO freeze / no thin combat) | STAGE2_GO_NOGO | Provisional |
+| 2026-08-21 | STAGE 3 modular assembly (thin) | Blueprint + RobotAssembler builds PhysicsTest-like A/B; drive via PhysicsTestDrive; no catalog/economy | S3-01, EXP-01 | Provisional |
+| 2026-08-21 | STAGE 3 blueprint serialize (U-SER thin) | JSON envelope `ra2.robot_blueprint.v0` via JsonUtility; file round-trip 0 critical mismatches; format not frozen | S3-02, U-SER | Provisional |
+| 2026-08-21 | STAGE 3 host net spawn (thin) | Shared `RobotSpawnService`; loopback spawn request/event; host validate+assemble; client logical graph; despawn smoke | S3-03 | Provisional |
+| 2026-08-21 | STAGE 3 EXIT | **PARTIAL** thin GO for Stage 4/5 spikes; lifecycle detach + cross-process spawn open; Stage 2 HARD GATE still provisional | STAGE3_EXIT | Provisional |
+| | Unity version pin | 6000.5.9f1 in use (not formal pin) | U-VER | Open |
+| | Physics stack | PhysX candidate OK locally; not frozen | EXP-01..04 / U-PHY | Open |
+| | Networking solution | Loopback host pattern provisional; package undecided | EXP-05..08 | Open |
+| | Dedicated server approach | Editor headless smoke only | EXP-09 | Open |
+| | Serialization format | JSON v0 provisional (~2 KB sample); unknown schema fail-closed; versioning/binary still open | U-SER / S3-02 | Provisional |
 | | Scene architecture | | U-SCN | Open |
 
 ---
