@@ -40,6 +40,8 @@ using UnityEngine.SceneManagement;
 /// Menu: Tools/RA2/Build PhysicsTest Scene (S7-07 ServoMotor Analog)
 /// Menu: Tools/RA2/Build PhysicsTest Scene (S7-08 ServoPiston Analog)
 /// Menu: Tools/RA2/Build PhysicsTest Scene (S7-09 SmartZone Fire)
+/// Menu: Tools/RA2/Build PhysicsTest Scene (S7-10 Steering Hub)
+/// Menu: Tools/RA2/Build PhysicsTest Scene (S7-11 BurstMotor Electric)
 /// </summary>
 public static class PhysicsTestSceneBuilder
 {
@@ -88,7 +90,9 @@ public static class PhysicsTestSceneBuilder
         BurstMotorFire,
         ServoMotorAnalog,
         ServoPistonAnalog,
-        SmartZoneFire
+        SmartZoneFire,
+        SteeringHub,
+        BurstMotorElectric
     }
 
     [MenuItem("Tools/RA2/Build PhysicsTest Scene")]
@@ -356,6 +360,18 @@ public static class PhysicsTestSceneBuilder
         Build(Scenario.SmartZoneFire);
     }
 
+    [MenuItem("Tools/RA2/Build PhysicsTest Scene (S7-10 Steering Hub)")]
+    public static void BuildSteeringHubFromMenu()
+    {
+        Build(Scenario.SteeringHub);
+    }
+
+    [MenuItem("Tools/RA2/Build PhysicsTest Scene (S7-11 BurstMotor Electric)")]
+    public static void BuildBurstMotorElectricFromMenu()
+    {
+        Build(Scenario.BurstMotorElectric);
+    }
+
     [MenuItem("Tools/RA2/Force Script Compile")]
     public static void ForceScriptCompile()
     {
@@ -542,6 +558,12 @@ public static class PhysicsTestSceneBuilder
         AssetDatabase.ImportAsset(
             "Assets/Runtime/Robot/RobotSmartZoneFireVerifier.cs",
             ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+        AssetDatabase.ImportAsset(
+            "Assets/Runtime/Robot/RobotSteeringHubVerifier.cs",
+            ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+        AssetDatabase.ImportAsset(
+            "Assets/Runtime/Robot/RobotBurstMotorElectricVerifier.cs",
+            ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
         AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
         UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
         Debug.Log("[PhysicsTestSceneBuilder] Requested script compilation.");
@@ -692,6 +714,14 @@ public static class PhysicsTestSceneBuilder
         else if (scenario == Scenario.SmartZoneFire)
         {
             BuildSmartZoneFireScenario(floorMat);
+        }
+        else if (scenario == Scenario.SteeringHub)
+        {
+            BuildSteeringHubScenario(floorMat);
+        }
+        else if (scenario == Scenario.BurstMotorElectric)
+        {
+            BuildBurstMotorElectricScenario(floorMat);
         }
         else if (scenario == Scenario.CollisionSmoke)
         {
@@ -1212,6 +1242,26 @@ public static class PhysicsTestSceneBuilder
         verifier.AutoRun = true;
 
         Debug.Log("[PhysicsTestSceneBuilder] S7-09 SmartZone→Fire host ready.");
+    }
+
+    static void BuildSteeringHubScenario(PhysicsMaterial floor)
+    {
+        var hostGo = new GameObject("SteeringHubHost");
+        var verifier = hostGo.AddComponent<RobotSteeringHubVerifier>();
+        verifier.Configure(floor);
+        verifier.AutoRun = true;
+
+        Debug.Log("[PhysicsTestSceneBuilder] S7-10 Steering hub Analog host ready (±35° + lock).");
+    }
+
+    static void BuildBurstMotorElectricScenario(PhysicsMaterial floor)
+    {
+        var hostGo = new GameObject("BurstMotorElectricHost");
+        var verifier = hostGo.AddComponent<RobotBurstMotorElectricVerifier>();
+        verifier.Configure(floor);
+        verifier.AutoRun = true;
+
+        Debug.Log("[PhysicsTestSceneBuilder] S7-11 BurstMotor electric draw host ready.");
     }
 
     static void BuildMatchUdpLobbyScenario(PhysicsMaterial floor)

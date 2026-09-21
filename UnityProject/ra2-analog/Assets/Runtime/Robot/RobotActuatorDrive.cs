@@ -5,7 +5,8 @@ namespace Ra2.Robot
 {
     /// <summary>
     /// Thin actuator driver: BurstMotor/BurstPiston Fire (S7-05/06), ServoMotor/ServoPiston Analog (S7-07/08),
-    /// optional SmartZone→Fire (S7-09). SpinMotor continuous CW stays on <see cref="RobotMotorDrive"/>.
+    /// SmartZone→Fire (S7-09), Steering hubs Analog (S7-10), BurstMotor electric draw (S7-11).
+    /// SpinMotor continuous CW stays on <see cref="RobotMotorDrive"/>.
     /// Host/local authority: reads <see cref="PhysicsTestDrive.CurrentCommand"/> only.
     /// </summary>
     [DisallowMultipleComponent]
@@ -15,6 +16,7 @@ namespace Ra2.Robot
         const float BurstMotorArcSeconds = 0.18f;
         const float BurstMotorTargetDegPerSec = 720f;
         const float BurstMotorForce = 220f;
+        const float BurstMotorElecCost = 70f;
         const float BurstPistonImpulse = 18f;
         const float BurstPistonAirCost = 80f;
         const float RetractSpring = 140f;
@@ -24,6 +26,11 @@ namespace Ra2.Robot
         const float ServoMotorDriveForce = 90f;
         const float ServoMotorLockForce = 320f;
         const float ServoDeadzone = 0.05f;
+
+        const float SteerMaxDeg = 35f;
+        const float SteerSlowDegPerSec = 120f;
+        const float SteerDriveForce = 110f;
+        const float SteerLockForce = 280f;
 
         const float ServoPistonTravel = 0.45f;
         const float ServoPistonAirPerSec = 55f;
@@ -36,6 +43,7 @@ namespace Ra2.Robot
         RobotBlueprint blueprint;
         readonly Dictionary<string, HingeJoint> burstMotors = new Dictionary<string, HingeJoint>(4);
         readonly Dictionary<string, HingeJoint> servoMotors = new Dictionary<string, HingeJoint>(4);
+        readonly Dictionary<string, HingeJoint> steeringHubs = new Dictionary<string, HingeJoint>(4);
         readonly Dictionary<string, ConfigurableJoint> pistons = new Dictionary<string, ConfigurableJoint>(4);
         readonly Dictionary<string, Rigidbody> pistonBodies = new Dictionary<string, Rigidbody>(4);
         readonly Dictionary<string, Vector3> pistonRestLocal = new Dictionary<string, Vector3>(4);
@@ -50,17 +58,22 @@ namespace Ra2.Robot
 
         float prevFire;
         float airRemaining;
+        float electricRemaining;
 
         public float AirRemaining => airRemaining;
+        public float ElectricRemaining => electricRemaining;
         public int BurstMotorCount => burstMotors.Count;
         public int ServoMotorCount => servoMotors.Count;
+        public int SteeringCount => steeringHubs.Count;
         public int PistonCount => pistons.Count;
         public int ServoPistonCount => servoPistons.Count;
         public int SmartZoneCount => smartZones.Count;
         public int LastFireCount { get; private set; }
         public int LastZoneFireCount { get; private set; }
         public int LastAirDenied { get; private set; }
+        public int LastElecDenied { get; private set; }
         public int LastServoLocked { get; private set; }
+        public int LastSteerLocked { get; private set; }
 
         public void Bind(RobotBlueprint source, Dictionary<string, GameObject> parts, PhysicsTestDrive drive, int robotId = 0)
         {
@@ -68,6 +81,7 @@ namespace Ra2.Robot
             commandSource = drive;
             burstMotors.Clear();
             servoMotors.Clear();
+            steeringHubs.Clear();
             pistons.Clear();
             pistonBodies.Clear();
             pistonRestLocal.Clear();
@@ -77,11 +91,14 @@ namespace Ra2.Robot
             smartZones.Clear();
             burstMotorUntil.Clear();
             airRemaining = source != null ? Mathf.Max(0f, source.Power.AirTotal) : 0f;
+            electricRemaining = source != null ? Mathf.Max(0f, source.Power.ElectricTotal) : 0f;
             prevFire = 0f;
             LastFireCount = 0;
             LastZoneFireCount = 0;
             LastAirDenied = 0;
+            LastElecDenied = 0;
             LastServoLocked = 0;
+            LastSteerLocked = 0;
 
             if (parts == null || source?.Components == null)
                 return;
@@ -104,6 +121,12 @@ namespace Ra2.Robot
                     var hinge = go.GetComponent<HingeJoint>();
                     if (hinge != null)
                         servoMotors[def.Id] = hinge;
+                }
+                else if (baseKind == RobotComponentBase.Steering)
+                {
+                    var hinge = go.GetComponent<HingeJoint>();
+                    if (hinge != null)
+                        steeringHubs[def.Id] = hinge;
                 }
                 else if (baseKind == RobotComponentBase.BurstPiston)
                 {
@@ -154,6 +177,7 @@ namespace Ra2.Robot
             {
                 IdleBurstMotors();
                 IdleServos();
+                IdleSteering();
                 prevFire = 0f;
                 return;
             }
@@ -165,6 +189,7 @@ namespace Ra2.Robot
             {
                 IdleBurstMotors();
                 IdleServos();
+                IdleSteering();
                 prevFire = cmd.Fire;
                 return;
             }
@@ -194,6 +219,7 @@ namespace Ra2.Robot
 
             RobotWiringDriveResolver.ResolveMotorEfforts(blueprint, cmd, efforts);
             TickServoMotors();
+            TickSteering();
             TickServoPistons();
         }
 
@@ -201,6 +227,13 @@ namespace Ra2.Robot
         {
             if (burstMotors.TryGetValue(componentId, out var hinge) && hinge != null)
             {
+                if (electricRemaining + 1e-3f < BurstMotorElecCost)
+                {
+                    LastElecDenied++;
+                    return;
+                }
+
+                electricRemaining = Mathf.Max(0f, electricRemaining - BurstMotorElecCost);
                 burstMotorUntil[componentId] = Time.time + BurstMotorArcSeconds;
                 var motor = hinge.motor;
                 motor.targetVelocity = BurstMotorTargetDegPerSec;
@@ -309,6 +342,44 @@ namespace Ra2.Robot
             }
         }
 
+        void TickSteering()
+        {
+            LastSteerLocked = 0;
+            foreach (var kv in steeringHubs)
+            {
+                var hinge = kv.Value;
+                if (hinge == null)
+                    continue;
+                efforts.TryGetValue(kv.Key, out var effort);
+                effort = Mathf.Clamp(effort, -1f, 1f);
+
+                if (Mathf.Abs(effort) < ServoDeadzone)
+                {
+                    var lockMotor = hinge.motor;
+                    lockMotor.targetVelocity = 0f;
+                    lockMotor.force = SteerLockForce;
+                    lockMotor.freeSpin = false;
+                    hinge.motor = lockMotor;
+                    hinge.useMotor = true;
+                    LastSteerLocked++;
+                    continue;
+                }
+
+                var targetAngle = effort * SteerMaxDeg;
+                var angle = hinge.angle;
+                if (float.IsNaN(angle) || float.IsInfinity(angle))
+                    angle = 0f;
+                var error = targetAngle - angle;
+                var speed = Mathf.Clamp(error * 6f, -SteerSlowDegPerSec, SteerSlowDegPerSec);
+                var motor = hinge.motor;
+                motor.targetVelocity = speed;
+                motor.force = SteerDriveForce;
+                motor.freeSpin = false;
+                hinge.motor = motor;
+                hinge.useMotor = true;
+            }
+        }
+
         void TickServoPistons()
         {
             var dt = Time.fixedDeltaTime;
@@ -398,6 +469,21 @@ namespace Ra2.Robot
                 var axis = kv.Value.axis.sqrMagnitude > 1e-6f ? kv.Value.axis.normalized : Vector3.forward;
                 var cur = Vector3.Dot(body.transform.localPosition - rest, axis);
                 ApplyServoPistonDrive(kv.Value, Mathf.Clamp(cur, 0f, ServoPistonTravel));
+            }
+        }
+
+        void IdleSteering()
+        {
+            foreach (var kv in steeringHubs)
+            {
+                var hinge = kv.Value;
+                if (hinge == null)
+                    continue;
+                var motor = hinge.motor;
+                motor.targetVelocity = 0f;
+                motor.force = SteerLockForce;
+                hinge.motor = motor;
+                hinge.useMotor = true;
             }
         }
     }

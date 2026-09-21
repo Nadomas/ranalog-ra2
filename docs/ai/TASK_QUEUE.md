@@ -11,11 +11,11 @@
 | Field | Value |
 |-------|--------|
 | **Current milestone** | **Post thin MVP polish spikes** — actuator taxonomy coverage |
-| **Roadmap position** | Stages 0–8 **thin proofs PASS**; Stage 2 HARD GATE **GO**; Stage 3 exit **PASS (thin)**; S9–S11 thin + S4-02 / S5-02 / S11-E2E + S7-03 / S6-02 / S10-03 + **S7-04…09 actuators** **PASS** |
-| **Queue status** | **Idle for agents** — Servo + SmartZone taxonomy thin done; `PIPE-T02` human-only |
+| **Roadmap position** | Stages 0–8 **thin proofs PASS**; Stage 2 HARD GATE **GO**; Stage 3 exit **PASS (thin)**; S9–S11 thin + S4-02 / S5-02 / S11-E2E + S7-03 / S6-02 / S10-03 + **S7-04…11 actuators** **PASS** |
+| **Queue status** | **Idle for agents** — Steering + BurstMotor elec thin done; `PIPE-T02` human-only |
 | **Last queue update** | 2026-09-21 |
 | **Autonomy recommendation** | Level **2–3** (see [`AI_WORKFLOW.md`](AI_WORKFLOW.md)) |
-| **Evidence snapshot** | [`S7-07_SERVO_MOTOR_ANALOG.md`](../experiments/S7-07_SERVO_MOTOR_ANALOG.md) + [`S7-08_SERVO_PISTON_ANALOG.md`](../experiments/S7-08_SERVO_PISTON_ANALOG.md) + [`S7-09_SMARTZONE_FIRE.md`](../experiments/S7-09_SMARTZONE_FIRE.md) |
+| **Evidence snapshot** | [`S7-10_STEERING_HUB.md`](../experiments/S7-10_STEERING_HUB.md) + [`S7-11_BURST_MOTOR_ELECTRIC.md`](../experiments/S7-11_BURST_MOTOR_ELECTRIC.md) |
 
 ---
 
@@ -109,6 +109,8 @@
 | S07-T07 | ServoMotor Analog slow + lock | done | `S7-07_SERVO_MOTOR_ANALOG.md` |
 | S07-T08 | ServoPiston Analog Extend/Retract (air) | done | `S7-08_SERVO_PISTON_ANALOG.md` |
 | S07-T09 | SmartZone contact → optional Fire | done | `S7-09_SMARTZONE_FIRE.md` |
+| S07-T10 | Steering hub Analog Turn ±35° + lock | done | `S7-10_STEERING_HUB.md` |
+| S07-T11 | BurstMotor Fire electric draw + deny | done | `S7-11_BURST_MOTOR_ELECTRIC.md` |
 | S08-T01 | Immobility win evaluator (local 1v1) | done | `ImmobilityWinEvaluator`; `S8-01` PASS |
 | S08-T02 | Weapons catalog / arena art | deferred | Post thin MVP spine |
 
@@ -165,7 +167,7 @@
 
 Residual **non-blockers** (do not stop queue): Unity Dedicated Server Win module not installed (headless player used); custom UDP not frozen.
 
-Optional next agent polish (backlog — pull only when idle + human wants more touchable MVP): Steering hubs thin; workshop admit→test flow polish beyond reset; electric draw on BurstMotor Fire.
+Optional next agent polish (backlog — pull only when idle + human wants more touchable MVP): workshop admit→test flow polish beyond reset; air recharge rates; Ackermann steering+wheel admit.
 
 ---
 
@@ -176,7 +178,7 @@ Optional next agent polish (backlog — pull only when idle + human wants more t
 - NGO/NFE package freeze (only after experiment vs current UDP)  
 - True Dedicated Server build target hardening  
 - Detach debris net replication; weapon formulae / chassis splash polish  
-- Steering hubs; air recharge rates  
+- Ackermann steering + wheel-on-axle; air recharge rates  
 - Ranked matchmaking, spectator, replay  
 - Reconnect window / bot replace  
 

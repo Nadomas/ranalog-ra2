@@ -173,7 +173,9 @@ namespace Ra2.Robot
                 if (!string.Equals(blueprint.Components[i].Id, componentId, StringComparison.Ordinal))
                     continue;
                 var b = blueprint.Components[i].ResolvedBase();
-                return b == RobotComponentBase.ServoMotor || b == RobotComponentBase.ServoPiston;
+                return b == RobotComponentBase.ServoMotor ||
+                       b == RobotComponentBase.ServoPiston ||
+                       b == RobotComponentBase.Steering;
             }
 
             return false;

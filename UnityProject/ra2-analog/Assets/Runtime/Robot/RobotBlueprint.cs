@@ -911,6 +911,62 @@ namespace Ra2.Robot
             return bp;
         }
 
+        /// <summary>S7-10: tank + Steering hub Analog (Turn / left_right) ±35° + lock at center.</summary>
+        public static RobotBlueprint CreateRa2SteeringHubSample(Vector3 rootPosition, float yawDegrees)
+        {
+            var bp = CreateRa2ConstructionSampleA(rootPosition, yawDegrees);
+            bp.Name = "Ra2SteeringHubSample";
+
+            var components = new System.Collections.Generic.List<RobotComponentDef>(bp.Components)
+            {
+                new RobotComponentDef
+                {
+                    Id = "steer_hub",
+                    Kind = RobotComponentKind.Module,
+                    Base = RobotComponentBase.Steering,
+                    CatalogId = "steering_hub",
+                    LocalPosition = new Vector3(0.55f, -0.15f, 0.85f),
+                    LocalEuler = Vector3.zero,
+                    Scale = new Vector3(0.2f, 0.25f, 0.2f),
+                    Mass = 0.9f,
+                    HasRigidbody = true,
+                    IsRoot = false,
+                    ElecMaxInOutRate = 25f
+                }
+            };
+            bp.Components = components.ToArray();
+
+            var conns = new System.Collections.Generic.List<RobotConnectionDef>(bp.Connections)
+            {
+                new RobotConnectionDef
+                {
+                    ParentId = "chassis",
+                    ChildId = "steer_hub",
+                    Joint = RobotJointKind.Hinge,
+                    HingeAxis = Vector3.up
+                }
+            };
+            bp.Connections = conns.ToArray();
+
+            AppendWiring(bp, "left_right", "steer_hub", "CW", 1f);
+            return bp;
+        }
+
+        /// <summary>S7-11: BurstMotor Fire with tight electric budget (draw + deny).</summary>
+        public static RobotBlueprint CreateRa2BurstMotorElectricSample(Vector3 rootPosition, float yawDegrees)
+        {
+            var bp = CreateRa2BurstMotorFireSample(rootPosition, yawDegrees);
+            bp.Name = "Ra2BurstMotorElectricSample";
+            bp.Power = new RobotPowerBudgetDef
+            {
+                ElectricTotal = 100f,
+                ElectricMaxInOutRate = bp.Power.ElectricMaxInOutRate,
+                AirTotal = bp.Power.AirTotal,
+                AirMaxInOutRate = bp.Power.AirMaxInOutRate
+            };
+            return bp;
+        }
+
         static void AppendDigitalSlot(
             RobotBlueprint bp,
             string id,

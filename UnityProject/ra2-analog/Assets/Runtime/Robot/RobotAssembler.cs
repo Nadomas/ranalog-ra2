@@ -99,10 +99,13 @@ namespace Ra2.Robot
                 }
                 else if (baseKind == RobotComponentBase.SpinMotor || baseKind == RobotComponentBase.BurstMotor ||
                          baseKind == RobotComponentBase.ServoMotor || baseKind == RobotComponentBase.BurstPiston ||
-                         baseKind == RobotComponentBase.ServoPiston)
+                         baseKind == RobotComponentBase.ServoPiston || baseKind == RobotComponentBase.Steering)
                 {
                     // Dynamic actuators need a collider so joints / impulses have a body; visual only when no RB.
-                    part = CreatePartVisual(def, new Color(0.75f, 0.25f, 0.2f), slideMaterial, useBoxCollider: def.HasRigidbody);
+                    var tint = baseKind == RobotComponentBase.Steering
+                        ? new Color(0.35f, 0.55f, 0.85f)
+                        : new Color(0.75f, 0.25f, 0.2f);
+                    part = CreatePartVisual(def, tint, slideMaterial, useBoxCollider: def.HasRigidbody);
                     part.name = def.Id;
                 }
                 else if (baseKind == RobotComponentBase.SmartZone)
@@ -180,7 +183,7 @@ namespace Ra2.Robot
                     hinge.useMotor = false;
                     hinge.enableCollision = false;
 
-                    // BurstMotor Fire arc: limited hinge (<180°). ServoMotor Analog sweep ±90°. SpinMotor free.
+                    // BurstMotor Fire arc: limited hinge (<180°). ServoMotor ±90°. Steering hub ±35°. SpinMotor free.
                     if (childDef.ResolvedBase() == RobotComponentBase.BurstMotor)
                     {
                         hinge.useLimits = true;
@@ -190,6 +193,11 @@ namespace Ra2.Robot
                     {
                         hinge.useLimits = true;
                         hinge.limits = new JointLimits { min = -90f, max = 90f, bounciness = 0f, bounceMinVelocity = 0.1f };
+                    }
+                    else if (childDef.ResolvedBase() == RobotComponentBase.Steering)
+                    {
+                        hinge.useLimits = true;
+                        hinge.limits = new JointLimits { min = -35f, max = 35f, bounciness = 0f, bounceMinVelocity = 0.1f };
                     }
                     else
                         hinge.useLimits = false;
