@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|--------|
-| **Current milestone** | **Post thin MVP polish spikes** — touchable residuals |
-| **Roadmap position** | Stages 0–8 **thin proofs PASS**; Stage 2 HARD GATE **GO**; Stage 3 exit **PASS (thin)**; S9–S11 thin + S4-02 polygon + S5-02 groups + S11-E2E **PASS** |
-| **Queue status** | **Idle for agents** — product polish spikes done; `PIPE-T02` human-only |
+| **Current milestone** | **Post thin MVP polish spikes** — weapons depth + product chrome |
+| **Roadmap position** | Stages 0–8 **thin proofs PASS**; Stage 2 HARD GATE **GO**; Stage 3 exit **PASS (thin)**; S9–S11 thin + S4-02 / S5-02 / S11-E2E + S7-03 / S6-02 / S10-03 **PASS** |
+| **Queue status** | **Idle for agents** — polish spikes done; `PIPE-T02` human-only; optional BurstPiston backlog |
 | **Last queue update** | 2026-09-21 |
 | **Autonomy recommendation** | Level **2–3** (see [`AI_WORKFLOW.md`](AI_WORKFLOW.md)) |
-| **Evidence snapshot** | [`SESSION_2026-09-21_MVP_PROGRESS.md`](../experiments/SESSION_2026-09-21_MVP_PROGRESS.md) + [`S4-02_CHASSIS_POLYGON_EDITOR.md`](../experiments/S4-02_CHASSIS_POLYGON_EDITOR.md) + [`S5-02_BINDING_GROUPS.md`](../experiments/S5-02_BINDING_GROUPS.md) + [`S11_E2E_LOOP.md`](../experiments/S11_E2E_LOOP.md) |
+| **Evidence snapshot** | [`S7-03_CONTACT_WEAPON_HIT.md`](../experiments/S7-03_CONTACT_WEAPON_HIT.md) + [`S6-02_TEST_RESET.md`](../experiments/S6-02_TEST_RESET.md) + [`S10-03_RESULTS_READABLE.md`](../experiments/S10-03_RESULTS_READABLE.md) + [`SESSION_2026-09-21_MVP_PROGRESS.md`](../experiments/SESSION_2026-09-21_MVP_PROGRESS.md) |
 
 ---
 
@@ -93,7 +93,8 @@
 | ID | Task | Status | Evidence |
 |----|------|--------|----------|
 | S06-T01 | Seamless Design↔Configure↔Test (S6-01) | done | `S6-01_SEAMLESS_LOOP.md` |
-| S06-T02 | Additive multi-scene U-SCN polish | deferred | Not required for thin MVP path |
+| S06-T02 | Test Room reset UX thin | done | `S6-02_TEST_RESET.md` |
+| S06-T03 | Additive multi-scene U-SCN polish | deferred | Not required for thin MVP path |
 
 ### Stage 7 / 8 — Damage + combat spine (thin)
 
@@ -101,6 +102,7 @@
 |----|------|--------|----------|
 | S07-T01 | Functional disable damage service | done | `RobotDamageService`; `S8-01_COMBAT_IMMOBILITY.md` |
 | S07-T02 | Weapon hit apply thin (concussion/piercing) | done | `S7-02_WEAPON_HIT.md` |
+| S07-T03 | Contact/collision weapon hit thin | done | `S7-03_CONTACT_WEAPON_HIT.md` |
 | S08-T01 | Immobility win evaluator (local 1v1) | done | `ImmobilityWinEvaluator`; `S8-01` PASS |
 | S08-T02 | Weapons catalog / arena art | deferred | Post thin MVP spine |
 
@@ -119,6 +121,7 @@
 |----|------|--------|----------|
 | S10-T01 | Results stub from MatchOutcome | done | `S10-01_RESULTS_STUB.md` |
 | S10-T02 | Persist match summary locally | done | `S10-02_RESULTS_PERSIST.md` |
+| S10-T03 | Results screen readable thin | done | `S10-03_RESULTS_READABLE.md` |
 
 ### Stage 11 — MVP glue (thin)
 
@@ -156,6 +159,8 @@
 
 Residual **non-blockers** (do not stop queue): Unity Dedicated Server Win module not installed (headless player used); custom UDP not frozen.
 
+Optional next agent polish (backlog — pull only when idle + human wants more touchable MVP): BurstPiston Fire channel thin; spinner/flipper Fire; workshop admit→test flow polish beyond reset.
+
 ---
 
 ## Backlog (do not pull forward early)
@@ -165,6 +170,7 @@ Residual **non-blockers** (do not stop queue): Unity Dedicated Server Win module
 - NGO/NFE package freeze (only after experiment vs current UDP)  
 - True Dedicated Server build target hardening  
 - Detach debris net replication; weapon formulae / chassis splash polish  
+- BurstPiston / spinner Fire channel thin (optional next polish)  
 - Ranked matchmaking, spectator, replay  
 - Reconnect window / bot replace  
 

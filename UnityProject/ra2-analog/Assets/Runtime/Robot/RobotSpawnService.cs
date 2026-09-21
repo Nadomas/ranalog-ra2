@@ -63,7 +63,7 @@ namespace Ra2.Robot
                     drive.SuppressChassisForce = true;
             }
 
-            return new RobotSpawnedInstance
+            var instance = new RobotSpawnedInstance
             {
                 RobotId = robotId,
                 AllowedSourceId = allowedSourceId,
@@ -74,6 +74,14 @@ namespace Ra2.Robot
                 DisableFlag = disable,
                 AssembleMs = sw.Elapsed.TotalMilliseconds
             };
+
+            // S7-03: tag root so contact probes can resolve victims without client trust.
+            var tag = assembly.Root.GetComponent<RobotInstanceTag>();
+            if (tag == null)
+                tag = assembly.Root.AddComponent<RobotInstanceTag>();
+            tag.Bind(instance);
+
+            return instance;
         }
 
         public static void SetDisabled(RobotSpawnedInstance instance, bool disabled)

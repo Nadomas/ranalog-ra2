@@ -54,7 +54,7 @@ public sealed class RobotResultsPersistVerifier : MonoBehaviour
         var viewOk = view.Visible &&
                      !string.IsNullOrEmpty(view.Body) &&
                      view.Body.Contains("Immobilized") &&
-                     view.Body.Contains("winner=1");
+                     (view.Body.Contains("winner=1") || view.Body.Contains("Winner: 1"));
 
         var pass = fileOk && viewOk && !string.IsNullOrEmpty(presented);
 

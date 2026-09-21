@@ -28,6 +28,9 @@ using UnityEngine.SceneManagement;
 /// Menu: Tools/RA2/Build PhysicsTest Scene (S6-01 Seamless Loop)
 /// Menu: Tools/RA2/Build PhysicsTest Scene (S8-01 Combat Immobility)
 /// Menu: Tools/RA2/Build PhysicsTest Scene (S7-02 Weapon Hit)
+/// Menu: Tools/RA2/Build PhysicsTest Scene (S7-03 Contact Weapon Hit)
+/// Menu: Tools/RA2/Build PhysicsTest Scene (S6-02 Test Reset)
+/// Menu: Tools/RA2/Build PhysicsTest Scene (S10-03 Results Readable)
 /// Menu: Tools/RA2/Build PhysicsTest Scene (S4-02 Chassis Polygon Editor)
 /// Menu: Tools/RA2/Build PhysicsTest Scene (S5-02 Binding Groups)
 /// Menu: Tools/RA2/Build PhysicsTest Scene (S11 E2E Loop)
@@ -70,7 +73,10 @@ public static class PhysicsTestSceneBuilder
         ReadyLobby,
         ChassisPolygonEditor,
         BindingGroups,
-        MvpE2E
+        MvpE2E,
+        ContactWeaponHit,
+        TestReset,
+        ResultsReadable
     }
 
     [MenuItem("Tools/RA2/Build PhysicsTest Scene")]
@@ -215,6 +221,24 @@ public static class PhysicsTestSceneBuilder
     public static void BuildWeaponHitFromMenu()
     {
         Build(Scenario.WeaponHit);
+    }
+
+    [MenuItem("Tools/RA2/Build PhysicsTest Scene (S7-03 Contact Weapon Hit)")]
+    public static void BuildContactWeaponHitFromMenu()
+    {
+        Build(Scenario.ContactWeaponHit);
+    }
+
+    [MenuItem("Tools/RA2/Build PhysicsTest Scene (S6-02 Test Reset)")]
+    public static void BuildTestResetFromMenu()
+    {
+        Build(Scenario.TestReset);
+    }
+
+    [MenuItem("Tools/RA2/Build PhysicsTest Scene (S10-03 Results Readable)")]
+    public static void BuildResultsReadableFromMenu()
+    {
+        Build(Scenario.ResultsReadable);
     }
 
     [MenuItem("Tools/RA2/Build PhysicsTest Scene (S9-01 Match UDP Lobby)")]
@@ -390,6 +414,24 @@ public static class PhysicsTestSceneBuilder
             "Assets/Runtime/Robot/RobotWeaponHitVerifier.cs",
             ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
         AssetDatabase.ImportAsset(
+            "Assets/Runtime/Robot/RobotContactWeaponHit.cs",
+            ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+        AssetDatabase.ImportAsset(
+            "Assets/Runtime/Robot/RobotContactWeaponProbe.cs",
+            ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+        AssetDatabase.ImportAsset(
+            "Assets/Runtime/Robot/RobotContactWeaponHitVerifier.cs",
+            ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+        AssetDatabase.ImportAsset(
+            "Assets/Runtime/Robot/RobotInstanceTag.cs",
+            ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+        AssetDatabase.ImportAsset(
+            "Assets/Runtime/Robot/RobotTestResetVerifier.cs",
+            ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+        AssetDatabase.ImportAsset(
+            "Assets/Runtime/Robot/RobotResultsReadableVerifier.cs",
+            ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+        AssetDatabase.ImportAsset(
             "Assets/Runtime/Robot/MatchSummary.cs",
             ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
         AssetDatabase.ImportAsset(
@@ -502,6 +544,18 @@ public static class PhysicsTestSceneBuilder
         else if (scenario == Scenario.WeaponHit)
         {
             BuildWeaponHitScenario(floorMat);
+        }
+        else if (scenario == Scenario.ContactWeaponHit)
+        {
+            BuildContactWeaponHitScenario(floorMat);
+        }
+        else if (scenario == Scenario.TestReset)
+        {
+            BuildTestResetScenario(floorMat);
+        }
+        else if (scenario == Scenario.ResultsReadable)
+        {
+            BuildResultsReadableScenario();
         }
         else if (scenario == Scenario.MatchUdpLobby)
         {
@@ -975,6 +1029,35 @@ public static class PhysicsTestSceneBuilder
         Debug.Log("[PhysicsTestSceneBuilder] S7-02 weapon hit host ready (concussion/piercing → degrade/disable).");
     }
 
+    static void BuildContactWeaponHitScenario(PhysicsMaterial floor)
+    {
+        var hostGo = new GameObject("ContactWeaponHitHost");
+        var verifier = hostGo.AddComponent<RobotContactWeaponHitVerifier>();
+        verifier.Configure(floor);
+        verifier.AutoRun = true;
+
+        Debug.Log("[PhysicsTestSceneBuilder] S7-03 contact weapon hit host ready (collision → impact → degrade).");
+    }
+
+    static void BuildTestResetScenario(PhysicsMaterial floor)
+    {
+        var hostGo = new GameObject("TestResetHost");
+        var verifier = hostGo.AddComponent<RobotTestResetVerifier>();
+        verifier.Configure(floor);
+        verifier.AutoRun = true;
+
+        Debug.Log("[PhysicsTestSceneBuilder] S6-02 Test Room reset host ready.");
+    }
+
+    static void BuildResultsReadableScenario()
+    {
+        var hostGo = new GameObject("ResultsReadableHost");
+        var verifier = hostGo.AddComponent<RobotResultsReadableVerifier>();
+        verifier.AutoRun = true;
+
+        Debug.Log("[PhysicsTestSceneBuilder] S10-03 results readable host ready.");
+    }
+
     static void BuildMatchUdpLobbyScenario(PhysicsMaterial floor)
     {
         var hostGo = new GameObject("MatchUdpLobbyHost");
@@ -1083,6 +1166,8 @@ public static class PhysicsTestSceneBuilder
             || scenario == Scenario.SeamlessLoop
             || scenario == Scenario.CombatImmobility
             || scenario == Scenario.WeaponHit
+            || scenario == Scenario.ContactWeaponHit
+            || scenario == Scenario.TestReset
             || scenario == Scenario.MatchUdpLobby
             || scenario == Scenario.MvpLoopGlue
             || scenario == Scenario.DisconnectPolicy

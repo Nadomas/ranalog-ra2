@@ -73,6 +73,20 @@ public sealed class RobotWorkshopChrome : MonoBehaviour
         return ok;
     }
 
+    /// <summary>S6-02: despawn+respawn Test instance from the same working blueprint (local-only chrome).</summary>
+    public bool TryResetTest(out string error)
+    {
+        EnsureSession();
+        if (slideMaterial == null)
+            slideMaterial = Resources.Load<PhysicsMaterial>("PhysicsTestSlide");
+
+        var ok = session.TryResetTest(transform, slideMaterial, bodyColor, out error);
+        status = ok
+            ? $"reset ms={session.LastResetMs:F1}"
+            : $"reset_fail={error}";
+        return ok;
+    }
+
     void Start() => EnsureSession();
 
     void OnGUI()
@@ -80,7 +94,7 @@ public sealed class RobotWorkshopChrome : MonoBehaviour
         EnsureSession();
         const float w = 280f;
         var y = 12f;
-        GUI.Box(new Rect(12f, y, w, 210f), "Workshop (thin)");
+        GUI.Box(new Rect(12f, y, w, 250f), "Workshop (thin)");
         y += 28f;
         GUI.Label(new Rect(22f, y, w - 20f, 20f), $"Mode: {session.Mode}  switches={session.SwitchCount}");
         y += 24f;
@@ -95,6 +109,12 @@ public sealed class RobotWorkshopChrome : MonoBehaviour
 
         if (GUI.Button(new Rect(22f, y, 160f, 28f), "Apply TankSteer"))
             TryApplyTankPreset(out _);
+        y += 36f;
+
+        GUI.enabled = session.Mode == WorkshopMode.Test;
+        if (GUI.Button(new Rect(22f, y, 160f, 28f), "Reset Test"))
+            TryResetTest(out _);
+        GUI.enabled = true;
         y += 36f;
 
         if (GUI.Button(new Rect(22f, y, 160f, 28f), "Prepare Admit"))

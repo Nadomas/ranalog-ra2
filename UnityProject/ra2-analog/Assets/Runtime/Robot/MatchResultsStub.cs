@@ -27,6 +27,24 @@ namespace Ra2.Robot
             return sb.ToString();
         }
 
+        /// <summary>S10-03 multiline readable panel text (host payload only; no recomputed winner).</summary>
+        public static string FormatReadable(MatchSummary summary, string sideLabel = "client")
+        {
+            var o = summary.Outcome;
+            var sb = new StringBuilder(256);
+            sb.Append("Side: ").Append(sideLabel).Append('\n');
+            sb.Append("Session: ").Append(summary.SessionId ?? "").Append('\n');
+            sb.Append("Finished: ").Append(o.Finished).Append('\n');
+            sb.Append("Reason: ").Append(o.Reason).Append('\n');
+            sb.Append("Winner: ").Append(o.WinnerRobotId).Append('\n');
+            sb.Append("Loser: ").Append(o.LoserRobotId).Append('\n');
+            sb.Append("Duration: ").Append(F2(summary.MatchDurationSeconds)).Append(" s\n");
+            sb.Append("Immobile loser: ").Append(F2(summary.ImmobileSecondsLoser)).Append(" s\n");
+            sb.Append("Immobile winner: ").Append(F2(summary.ImmobileSecondsWinner)).Append(" s\n");
+            sb.Append("Loser disabled: ").Append(summary.LoserWasDisabled);
+            return sb.ToString();
+        }
+
         /// <summary>Present results (local-only chrome). Optionally persist + push to a view.</summary>
         public static string Present(
             MatchSummary summary,

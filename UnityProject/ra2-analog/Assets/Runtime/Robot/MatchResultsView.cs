@@ -19,7 +19,8 @@ namespace Ra2.Robot
         {
             if (!string.IsNullOrEmpty(side))
                 sideLabel = side;
-            body = MatchResultsStub.Format(summary, sideLabel);
+            // S10-03: readable multiline panel; log line remains Format() in Present().
+            body = MatchResultsStub.FormatReadable(summary, sideLabel);
             visible = true;
         }
 
@@ -33,11 +34,11 @@ namespace Ra2.Robot
             if (!visible)
                 return;
 
-            const float w = 520f;
-            const float h = 110f;
+            const float w = 420f;
+            const float h = 220f;
             var rect = new Rect(12f, 12f, w, h);
-            GUI.Box(rect, "Match Results (thin)");
-            GUI.Label(new Rect(rect.x + 10f, rect.y + 28f, w - 20f, h - 40f), body);
+            GUI.Box(rect, "Match Results");
+            GUI.Label(new Rect(rect.x + 12f, rect.y + 26f, w - 24f, h - 36f), body);
         }
     }
 }

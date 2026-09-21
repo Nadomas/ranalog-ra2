@@ -18,6 +18,9 @@
 | **S4-02** Chassis polygon editor thin | **PASS** | `docs/experiments/S4-02_CHASSIS_POLYGON_EDITOR.md` |
 | **S5-02** Binding groups UX thin | **PASS** | `docs/experiments/S5-02_BINDING_GROUPS.md` |
 | **S11-E2E** Design→Fight→Results one scene | **PASS** | `docs/experiments/S11_E2E_LOOP.md` |
+| **S7-03** Contact collision weapon hit | **PASS** | `docs/experiments/S7-03_CONTACT_WEAPON_HIT.md` |
+| **S6-02** Test Room reset UX | **PASS** | `docs/experiments/S6-02_TEST_RESET.md` |
+| **S10-03** Results readable multiline | **PASS** | `docs/experiments/S10-03_RESULTS_READABLE.md` |
 
 ## Thin MVP loop status
 
@@ -25,28 +28,28 @@
 |-----------|------------|----------------|
 | Design | Validator + dual samples + CoM + polygon editor thin + chrome | Product polygon UX polish |
 | Configure | Preset rebind + binding groups thin + JSON + chrome | Full composite chrome |
-| Test | Workshop session + chrome | Gizmo polish |
-| Fight | Local 1v1 + UDP lobby + Immobilized + disconnect forfeit | Weapons depth |
-| Results | Console + JSON persist + thin IMGUI view | History list / polish |
-| Integration | Workshop → local + MP + E2E one-scene + smoke checklist | Soak / product chrome |
+| Test | Workshop session + chrome + **reset UX** | Gizmo polish |
+| Fight | Local 1v1 + UDP lobby + Immobilized + disconnect forfeit + **contact weapon hit** | Spinner/flipper Fire; BurstPiston; catalog |
+| Results | Console + JSON persist + **readable multiline IMGUI** | History list polish |
+| Integration | Workshop → local + MP + E2E one-scene + smoke checklist | Soak / more product chrome |
 
-**Estimated % toward playable GDD MVP:** ~90% (thin Design→Configure→Test→Battle→Results + polygon/groups + E2E scene; weapons/product chrome remain).
+**Estimated % toward playable GDD MVP:** ~92% (thin Design→Configure→Test→Battle→Results + contact weapons + reset/results chrome).
 
 ## Latest Play PASS logs (this residual pass)
 
 ```
-[S4-02] VERIFIER_DONE pass=True before=4 nudged=True/ at_max=True reject17=True/chassis_points:17>16 ...
-[S5-02] VERIFIER_DONE pass=True apply=True/ drive=Up/Down cycle=True/ ... bind_json=True ...
-[S11-E2E] VERIFIER_DONE pass=True poly=True/ pts_ok=True group=True/ fight=True reason=Immobilized winner=1 results=True ...
+[S7-03] VERIFIER_DONE pass=True soft=True unit_degrade=True physics=True hits=1 last_speed=28.42 last_impact=2.50 last_out=Disabled ...
+[S6-02] VERIFIER_DONE pass=True reject_design=True new_inst=True reset_ms=2.4 mode=Test drove=True status_ok=True ...
+[S10-03] VERIFIER_DONE pass=True visible=True multiline=True reason=True winner=True loser=True duration=True session=True format_ok=True
 ```
 
 ## Stop condition
 
-**(a) met** for Stages 9–11 thin + S4-02 / S5-02 / S11-E2E playability polish. Next open: **PIPE-T02** (human-only) or backlog product chrome.
+**(a) met** for S7-03 / S6-02 / S10-03. Next open: **PIPE-T02** (human-only) or optional BurstPiston / spinner Fire backlog.
 
 ## Exact next remaining work
 
 1. PIPE-T02 human Cursor Automations (not agent).  
-2. Product polygon/binding chrome polish (backlog).  
-3. Weapons depth / arena art (deferred).  
-4. Results history list polish (backlog).
+2. Optional: BurstPiston Fire / spinner Fire thin.  
+3. Product polygon/binding chrome polish (backlog).  
+4. Weapons catalog / arena art (deferred).
