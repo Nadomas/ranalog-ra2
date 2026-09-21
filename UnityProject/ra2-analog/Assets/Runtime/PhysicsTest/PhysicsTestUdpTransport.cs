@@ -22,6 +22,13 @@ public sealed class PhysicsTestUdpTransport : MonoBehaviour
     IPEndPoint remoteEndpoint;
     bool peerReady;
     bool started;
+    bool heartbeatEnabled;
+    bool heartbeatWatchArmed;
+    bool sendHeartbeats;
+    float heartbeatSendInterval = 0.2f;
+    float lastHeartbeatSentRealtime;
+    bool peerLostByHeartbeat;
+    MatchPeerHeartbeat peerHeartbeat = new MatchPeerHeartbeat(1.5f);
 
     readonly Queue<PhysicsTestCommandEnvelope> readyCommands = new Queue<PhysicsTestCommandEnvelope>(64);
     readonly Queue<PhysicsTestPoseSnapshot[]> readySnapshots = new Queue<PhysicsTestPoseSnapshot[]>(16);
@@ -53,6 +60,8 @@ public sealed class PhysicsTestUdpTransport : MonoBehaviour
 
     public PhysicsTestNetRole Role => role;
     public bool PeerReady => peerReady;
+    public bool PeerLostByHeartbeat => peerLostByHeartbeat;
+    public int HeartbeatTimeoutCount => peerHeartbeat?.TimeoutCount ?? 0;
     public int EnqueuedCommands => enqueuedCommands;
     public int DeliveredCommands => deliveredCommands;
     public int PublishedSnapshots => publishedSnapshots;
@@ -81,6 +90,33 @@ public sealed class PhysicsTestUdpTransport : MonoBehaviour
         remoteHost = string.IsNullOrEmpty(host) ? "127.0.0.1" : host;
         hostPort = port > 0 ? port : 7777;
         clientPort = bindClientPort;
+    }
+
+    /// <summary>
+    /// S9-04: enable silence timeout. When <paramref name="sendHeartbeats"/> is true (typical client),
+    /// emit MsgHeartbeat on an interval so idle lobby/fight does not false-timeout.
+    /// </summary>
+    public void ConfigureHeartbeat(float timeoutSeconds, bool sendHeartbeats = false, float sendIntervalSeconds = 0.2f)
+    {
+        peerHeartbeat = new MatchPeerHeartbeat(timeoutSeconds);
+        heartbeatEnabled = true;
+        heartbeatWatchArmed = false;
+        this.sendHeartbeats = sendHeartbeats;
+        heartbeatSendInterval = sendIntervalSeconds > 0.05f ? sendIntervalSeconds : 0.05f;
+        peerLostByHeartbeat = false;
+    }
+
+    /// <summary>
+    /// Begin silence detection (call after fight starts so lobby handshake cannot false-timeout).
+    /// Stamps receive clock so the full timeout window starts from arm time.
+    /// </summary>
+    public void ArmHeartbeatWatch()
+    {
+        if (!heartbeatEnabled)
+            return;
+        heartbeatWatchArmed = true;
+        peerLostByHeartbeat = false;
+        peerHeartbeat.RecordReceive(Time.realtimeSinceStartup);
     }
 
     public void StartTransport()
@@ -130,11 +166,27 @@ public sealed class PhysicsTestUdpTransport : MonoBehaviour
             // ignore
         }
 
+        CloseSocketLocal();
+    }
+
+    /// <summary>
+    /// S9-04 crash-style drop: close socket without MsgGoodbye so peer must detect via heartbeat.
+    /// </summary>
+    public void AbortTransport()
+    {
+        if (!started)
+            return;
+        CloseSocketLocal();
+    }
+
+    void CloseSocketLocal()
+    {
         try { socket?.Close(); } catch { /* ignore */ }
         socket = null;
         started = false;
         peerReady = false;
         remoteEndpoint = null;
+        sendHeartbeats = false;
     }
 
     void OnEnable()
@@ -147,9 +199,39 @@ public sealed class PhysicsTestUdpTransport : MonoBehaviour
 
     void OnDestroy() => StopTransport();
 
-    void Update() => PumpReceive();
+    void Update()
+    {
+        PumpReceive();
+        TickHeartbeat(Time.realtimeSinceStartup);
+    }
 
-    void FixedUpdate() => PumpReceive();
+    void FixedUpdate()
+    {
+        PumpReceive();
+        TickHeartbeat(Time.realtimeSinceStartup);
+    }
+
+    void TickHeartbeat(float now)
+    {
+        if (!started || !heartbeatEnabled)
+            return;
+
+        if (sendHeartbeats && peerReady && remoteEndpoint != null)
+        {
+            if (now - lastHeartbeatSentRealtime >= heartbeatSendInterval)
+            {
+                lastHeartbeatSentRealtime = now;
+                SendRaw(PhysicsTestUdpCodec.WriteHeartbeat());
+            }
+        }
+
+        if (heartbeatWatchArmed && peerReady && peerHeartbeat.TryMarkTimedOut(now, peerReady))
+        {
+            peerReady = false;
+            peerLostByHeartbeat = true;
+            Debug.Log($"[PhysicsTestUdpTransport] peer lost by heartbeat timeout={peerHeartbeat.TimeoutSeconds:F2}s tag={MatchPeerHeartbeat.PolicyTag}");
+        }
+    }
 
     public void EnqueueCommand(PhysicsTestCommandEnvelope envelope)
     {
@@ -352,6 +434,9 @@ public sealed class PhysicsTestUdpTransport : MonoBehaviour
         helloReceived = 0;
         bytesSent = 0;
         bytesReceived = 0;
+        peerLostByHeartbeat = false;
+        heartbeatWatchArmed = false;
+        peerHeartbeat?.Reset();
         readyCommands.Clear();
         readySnapshots.Clear();
         readyCombatRequests.Clear();
@@ -379,6 +464,8 @@ public sealed class PhysicsTestUdpTransport : MonoBehaviour
                     continue;
 
                 bytesReceived += data.Length;
+                if (heartbeatEnabled)
+                    peerHeartbeat.RecordReceive(Time.realtimeSinceStartup);
                 HandlePacket(data, data.Length, from);
             }
             catch (SocketException se) when (se.SocketErrorCode == SocketError.WouldBlock ||
@@ -457,6 +544,11 @@ public sealed class PhysicsTestUdpTransport : MonoBehaviour
 
             case PhysicsTestUdpCodec.MsgGoodbye:
                 peerReady = false;
+                peerLostByHeartbeat = false;
+                break;
+
+            case PhysicsTestUdpCodec.MsgHeartbeat:
+                // Receive clock already stamped in PumpReceive; keepalive only.
                 break;
         }
     }

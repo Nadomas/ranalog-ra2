@@ -10,9 +10,9 @@
 
 | Field | Value |
 |-------|--------|
-| **Current milestone** | **Stage 9–11 residuals complete** — deferred polish / human pipeline only |
-| **Roadmap position** | Stages 0–8 **thin proofs PASS**; Stage 2 HARD GATE **GO**; Stage 3 exit **PASS (thin)**; S9–S11 thin + disconnect/persist/chrome/ready/smoke **PASS**; S07-T02 weapon hit thin **PASS** |
-| **Queue status** | **Idle for agents** — no product open tasks; `PIPE-T02` human-only; `PIPE-T03` done (pushed) |
+| **Current milestone** | **Post thin MVP polish spikes** — touchable residuals |
+| **Roadmap position** | Stages 0–8 **thin proofs PASS**; Stage 2 HARD GATE **GO**; Stage 3 exit **PASS (thin)**; S9–S11 thin + disconnect/persist/chrome/ready/smoke **PASS**; S07-T02 weapon hit thin **PASS**; S09-T04 heartbeat disconnect **PASS** |
+| **Queue status** | **Idle for agents** — no product open tasks; `PIPE-T02` human-only |
 | **Last queue update** | 2026-09-21 |
 | **Autonomy recommendation** | Level **2–3** (see [`AI_WORKFLOW.md`](AI_WORKFLOW.md)) |
 | **Evidence snapshot** | [`SESSION_2026-09-21_MVP_PROGRESS.md`](../experiments/SESSION_2026-09-21_MVP_PROGRESS.md) (~80–85% thin MVP loop) + [`S7-02_WEAPON_HIT.md`](../experiments/S7-02_WEAPON_HIT.md) |
@@ -111,6 +111,7 @@
 | S09-T01 | Lobby/session thin UDP → MatchOutcome | done | `S9-01_MATCH_UDP_LOBBY.md` |
 | S09-T02 | Disconnect policy v0 | done | `S9-02_DISCONNECT_POLICY.md` |
 | S09-T03 | Ready/lobby flow stub (LAN/listen-host) | done | `S9-03_READY_LOBBY.md` |
+| S09-T04 | Heartbeat disconnect without goodbye | done | `S9-04_HEARTBEAT_DISCONNECT.md` |
 
 ### Stage 10 — Results (thin)
 
@@ -154,7 +155,7 @@
 |------|--------|-----|
 | — | None | [`BLOCKERS.md`](BLOCKERS.md) |
 
-Residual **non-blockers** (do not stop queue): Unity Dedicated Server Win module not installed (headless player used); custom UDP not frozen; polygon/binding polish deferred; heartbeat without goodbye still open.
+Residual **non-blockers** (do not stop queue): Unity Dedicated Server Win module not installed (headless player used); custom UDP not frozen; polygon/binding polish deferred.
 
 ---
 

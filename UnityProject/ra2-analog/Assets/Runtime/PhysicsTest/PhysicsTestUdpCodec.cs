@@ -19,6 +19,8 @@ public static class PhysicsTestUdpCodec
     public const byte MsgSpawnRequest = 7;
     public const byte MsgSpawnEvent = 8;
     public const byte MsgMatchOutcome = 9;
+    /// <summary>S9-04 keepalive; any inbound packet also refreshes receive clock.</summary>
+    public const byte MsgHeartbeat = 10;
 
     public const int ProtocolVersion = 1;
     /// <summary>Localhost UDP can carry large datagrams; still cap so a bad JSON cannot flood the socket.</summary>
@@ -194,6 +196,13 @@ public static class PhysicsTestUdpCodec
     }
 
     public static byte[] WriteGoodbye() => new[] { MsgGoodbye };
+
+    public static byte[] WriteHeartbeat() => new[] { MsgHeartbeat };
+
+    public static bool TryReadHeartbeat(byte[] data, int length)
+    {
+        return length >= 1 && data != null && data[0] == MsgHeartbeat;
+    }
 
     public static byte[] WriteMatchOutcome(MatchSummary summary)
     {

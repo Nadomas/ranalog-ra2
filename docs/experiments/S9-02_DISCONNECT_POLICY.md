@@ -35,10 +35,10 @@ Prove mid-fight peer drop ends the match deterministically (no silent desync). D
 ## Not in this spike
 
 - Reconnect window / bot replace  
-- Heartbeat timeout without goodbye  
+- Heartbeat timeout without goodbye → see **S9-04**  
 - Ranked grief scoring beyond forfeit loss  
 - Dedicated soak (EXP-09)
 
 ## Next
 
-S10-02 results persist + thin view; S09-T03 ready/lobby stub optional.
+S9-04 heartbeat disconnect; S10-02 results persist + thin view; S09-T03 ready/lobby stub optional.

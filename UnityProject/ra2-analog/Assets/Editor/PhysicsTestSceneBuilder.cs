@@ -61,6 +61,7 @@ public static class PhysicsTestSceneBuilder
         MatchUdpLobby,
         MvpLoopGlue,
         DisconnectPolicy,
+        HeartbeatDisconnect,
         ResultsPersist,
         WorkshopChrome,
         ReadyLobby
@@ -233,6 +234,12 @@ public static class PhysicsTestSceneBuilder
     public static void BuildDisconnectPolicyFromMenu()
     {
         Build(Scenario.DisconnectPolicy);
+    }
+
+    [MenuItem("Tools/RA2/Build PhysicsTest Scene (S9-04 Heartbeat Disconnect)")]
+    public static void BuildHeartbeatDisconnectFromMenu()
+    {
+        Build(Scenario.HeartbeatDisconnect);
     }
 
     [MenuItem("Tools/RA2/Build PhysicsTest Scene (S10-02 Results Persist)")]
@@ -465,6 +472,10 @@ public static class PhysicsTestSceneBuilder
         else if (scenario == Scenario.DisconnectPolicy)
         {
             BuildDisconnectPolicyScenario(floorMat);
+        }
+        else if (scenario == Scenario.HeartbeatDisconnect)
+        {
+            BuildHeartbeatDisconnectScenario(floorMat);
         }
         else if (scenario == Scenario.ResultsPersist)
         {
@@ -940,6 +951,16 @@ public static class PhysicsTestSceneBuilder
         Debug.Log("[PhysicsTestSceneBuilder] S9-02 disconnect policy host ready (goodbye→DisconnectForfeit).");
     }
 
+    static void BuildHeartbeatDisconnectScenario(PhysicsMaterial floor)
+    {
+        var hostGo = new GameObject("HeartbeatDisconnectHost");
+        var verifier = hostGo.AddComponent<RobotHeartbeatDisconnectVerifier>();
+        verifier.Configure(floor);
+        verifier.AutoRun = true;
+
+        Debug.Log("[PhysicsTestSceneBuilder] S9-04 heartbeat disconnect host ready (abort→silence→DisconnectForfeit).");
+    }
+
     static void BuildResultsPersistScenario()
     {
         var hostGo = new GameObject("ResultsPersistHost");
@@ -982,6 +1003,7 @@ public static class PhysicsTestSceneBuilder
             || scenario == Scenario.MatchUdpLobby
             || scenario == Scenario.MvpLoopGlue
             || scenario == Scenario.DisconnectPolicy
+            || scenario == Scenario.HeartbeatDisconnect
             || scenario == Scenario.WorkshopChrome;
     }
 
