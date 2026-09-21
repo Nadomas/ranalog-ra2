@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Ra2.Robot;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -39,9 +40,12 @@ public sealed class RobotMvpUiShell : MonoBehaviour
     VisualElement panelConfigure;
     VisualElement panelTest;
     VisualElement resultsOverlay;
+    VisualElement historyOverlay;
     VisualElement fightHud;
     VisualElement wireList;
+    VisualElement historyList;
     TextField lanHostField;
+    Label historyDetail;
     Button btnDesign;
     Button btnConfigure;
     Button btnTest;
@@ -51,7 +55,9 @@ public sealed class RobotMvpUiShell : MonoBehaviour
     Button btnLanHost;
     Button btnLanJoin;
     Button btnReset;
+    Button btnHistory;
     int lastWireFingerprint = int.MinValue;
+    readonly List<MatchSummaryStore.Dto> historyBuffer = new List<MatchSummaryStore.Dto>(16);
 
     bool bound;
 
@@ -174,6 +180,9 @@ public sealed class RobotMvpUiShell : MonoBehaviour
         panelConfigure = root.Q("panel-configure");
         panelTest = root.Q("panel-test");
         resultsOverlay = root.Q("results-overlay");
+        historyOverlay = root.Q("history-overlay");
+        historyList = root.Q("history-list");
+        historyDetail = root.Q<Label>("history-detail");
         wireList = root.Q("wire-list");
         lanHostField = root.Q<TextField>("lan-host-field");
         btnDesign = root.Q<Button>("btn-design");
@@ -185,6 +194,7 @@ public sealed class RobotMvpUiShell : MonoBehaviour
         btnLanHost = root.Q<Button>("btn-lan-host");
         btnLanJoin = root.Q<Button>("btn-lan-join");
         btnReset = root.Q<Button>("btn-reset");
+        btnHistory = root.Q<Button>("btn-history");
 
         Wire(btnDesign, () => app.TryUiSetMode(WorkshopMode.Design));
         Wire(btnConfigure, () => app.TryUiSetMode(WorkshopMode.Configure));
@@ -208,6 +218,8 @@ public sealed class RobotMvpUiShell : MonoBehaviour
         Wire(btnLanHost, () => app.TryUiLanHost(lanHostField != null ? lanHostField.value : "127.0.0.1"));
         Wire(btnLanJoin, () => app.TryUiLanJoin(lanHostField != null ? lanHostField.value : "127.0.0.1"));
         Wire(root.Q<Button>("btn-results-close"), () => HideResults());
+        Wire(btnHistory, () => ShowHistory());
+        Wire(root.Q<Button>("btn-history-close"), () => HideHistory());
 
         bound = true;
         lastWireFingerprint = int.MinValue;
@@ -456,6 +468,7 @@ public sealed class RobotMvpUiShell : MonoBehaviour
 
     public void ShowResults(string body)
     {
+        HideHistory();
         if (resultsBody != null)
             resultsBody.text = body ?? "";
         if (resultsTitle != null)
@@ -467,6 +480,55 @@ public sealed class RobotMvpUiShell : MonoBehaviour
     {
         SetVisible(resultsOverlay, false);
         app?.ClearPendingResults();
+    }
+
+    public void ShowHistory()
+    {
+        HideResults();
+        RebuildHistoryList();
+        SetVisible(historyOverlay, true);
+    }
+
+    public void HideHistory()
+    {
+        SetVisible(historyOverlay, false);
+    }
+
+    void RebuildHistoryList()
+    {
+        if (historyList == null)
+            return;
+
+        historyList.Clear();
+        var count = MatchSummaryStore.TryListRecent(historyBuffer, 12);
+        if (count <= 0)
+        {
+            var empty = new Label("No saved matches yet — finish a fight first.");
+            empty.AddToClassList("tool-help");
+            historyList.Add(empty);
+            if (historyDetail != null)
+                historyDetail.text = "";
+            return;
+        }
+
+        if (historyDetail != null)
+            historyDetail.text = MatchSummaryStore.FormatHistoryDetail(historyBuffer[0]);
+
+        for (var i = 0; i < historyBuffer.Count; i++)
+        {
+            var dto = historyBuffer[i];
+            var row = new Button(() =>
+            {
+                if (historyDetail != null)
+                    historyDetail.text = MatchSummaryStore.FormatHistoryDetail(dto);
+            })
+            {
+                text = MatchSummaryStore.FormatHistoryLine(dto)
+            };
+            row.AddToClassList("history-row");
+            row.AddToClassList("history-row-label");
+            historyList.Add(row);
+        }
     }
 
     static void SetActive(Button button, bool on)

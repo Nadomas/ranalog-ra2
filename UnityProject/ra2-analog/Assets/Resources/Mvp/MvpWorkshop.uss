@@ -524,3 +524,51 @@
     min-height: 110px;
     font-size: 13px;
 }
+
+.history-btn {
+    margin-left: 10px;
+    min-width: 72px;
+    height: 28px;
+    padding: 2px 10px;
+    font-size: 11px;
+}
+
+.history-card {
+    width: 520px;
+    max-height: 86%;
+}
+
+.history-list {
+    height: 180px;
+    margin-bottom: 10px;
+    background-color: rgba(0, 0, 0, 0.22);
+    border-radius: 4px;
+    border-width: 1px;
+    border-color: var(--edge);
+    padding: 4px;
+}
+
+.history-row {
+    flex-direction: row;
+    align-items: center;
+    padding: 6px 8px;
+    margin-bottom: 2px;
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.history-row:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.history-row-label {
+    flex-grow: 1;
+    font-size: 12px;
+    color: var(--text);
+    white-space: normal;
+}
+
+.history-detail {
+    min-height: 90px;
+    margin-bottom: 12px;
+    font-size: 12px;
+}

@@ -18,6 +18,7 @@
             <ui:VisualElement class="spacer" />
             <ui:Label name="mode-label" text="DESIGN" class="mode-pill" />
             <ui:Label name="admit-badge" text="NO ADMIT" class="admit-badge" />
+            <ui:Button name="btn-history" text="History" class="tool-btn history-btn" />
         </ui:VisualElement>
 
         <ui:VisualElement name="body" class="body">
@@ -116,6 +117,18 @@
                 <ui:VisualElement class="results-rule" />
                 <ui:Label name="results-body" text="" class="results-body" />
                 <ui:Button name="btn-results-close" text="Back to Workshop" class="tool-btn wide accent" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="history-overlay" class="results-overlay hidden">
+            <ui:VisualElement class="results-card history-card">
+                <ui:Label text="MATCH HISTORY" class="results-kicker" />
+                <ui:Label text="Local saved fights" class="results-title" />
+                <ui:Label text="Newest first · from this machine only." class="tool-help" />
+                <ui:VisualElement class="results-rule" />
+                <ui:ScrollView name="history-list" class="history-list" />
+                <ui:Label name="history-detail" text="" class="results-body history-detail" />
+                <ui:Button name="btn-history-close" text="Close" class="tool-btn wide accent" />
             </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>

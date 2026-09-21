@@ -853,12 +853,15 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         yield return new WaitForSecondsRealtime(0.2f);
         var lanOk = fightStatus != null && fightStatus.StartsWith("done lan");
 
-        var pass = okDesign && okCfg && okTest && hasInst && okAdmit && wireOk && localOk && udpOk && lanOk;
+        var historyOk = MatchSummaryStore.TryListRecent(new System.Collections.Generic.List<MatchSummaryStore.Dto>(8), 8) > 0;
+        Debug.Log($"[S11-15] HISTORY_LIST_SMOKE pass={historyOk}");
+
+        var pass = okDesign && okCfg && okTest && hasInst && okAdmit && wireOk && localOk && udpOk && lanOk && historyOk;
         var marker = Path.Combine(Application.persistentDataPath, "ra2-mvp-smoke.txt");
         try
         {
             File.WriteAllText(marker,
-                $"pass={pass}\nstatus={fightStatus}\nlocal_ok={localOk}\nudp_ok={udpOk}\nlan_ok={lanOk}\nwire_ok={wireOk}\nunity={Application.unityVersion}\n");
+                $"pass={pass}\nstatus={fightStatus}\nlocal_ok={localOk}\nudp_ok={udpOk}\nlan_ok={lanOk}\nwire_ok={wireOk}\nhistory_ok={historyOk}\nunity={Application.unityVersion}\n");
         }
         catch
         {
@@ -868,7 +871,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         Debug.Log(
             $"[S11-07] SMOKE_DONE pass={pass} design={okDesign} cfg={okCfg} test={okTest} " +
             $"inst={hasInst} admit={okAdmit} wire={wireOk} local={localOk} udp={udpOk} lan={lanOk} " +
-            $"fight={fightStatus} marker={marker}");
+            $"history={historyOk} fight={fightStatus} marker={marker}");
 
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
