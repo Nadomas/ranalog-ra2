@@ -15,6 +15,7 @@ namespace Ra2.Robot
         public RobotAssemblyResult Assembly;
         public PhysicsTestDrive Drive;
         public RobotMotorDrive MotorDrive;
+        public RobotActuatorDrive ActuatorDrive;
         public PhysicsTestDisableFlag DisableFlag;
         public double AssembleMs;
     }
@@ -55,12 +56,16 @@ namespace Ra2.Robot
                 disable = assembly.Root.AddComponent<PhysicsTestDisableFlag>();
             var drive = assembly.Root.AddComponent<PhysicsTestDrive>();
             RobotMotorDrive motor = null;
+            RobotActuatorDrive actuators = null;
             if (blueprint.Wirings != null && blueprint.Wirings.Length > 0)
             {
                 motor = assembly.Root.AddComponent<RobotMotorDrive>();
                 motor.Bind(blueprint, assembly.Parts, drive);
                 if (motor.MotorCount > 0)
                     drive.SuppressChassisForce = true;
+
+                actuators = assembly.Root.AddComponent<RobotActuatorDrive>();
+                actuators.Bind(blueprint, assembly.Parts, drive);
             }
 
             var instance = new RobotSpawnedInstance
@@ -71,6 +76,7 @@ namespace Ra2.Robot
                 Assembly = assembly,
                 Drive = drive,
                 MotorDrive = motor,
+                ActuatorDrive = actuators,
                 DisableFlag = disable,
                 AssembleMs = sw.Elapsed.TotalMilliseconds
             };
@@ -154,6 +160,7 @@ namespace Ra2.Robot
             instance.Assembly = null;
             instance.Drive = null;
             instance.MotorDrive = null;
+            instance.ActuatorDrive = null;
             instance.DisableFlag = null;
         }
     }

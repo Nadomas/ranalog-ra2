@@ -92,7 +92,8 @@ public sealed class PhysicsTestLoopbackTransport : MonoBehaviour
             {
                 Move = envelope.Command.Move,
                 Turn = envelope.Command.Turn,
-                Brake = envelope.Command.Brake
+                Brake = envelope.Command.Brake,
+                Fire = envelope.Command.Fire
             });
 
         enqueuedCommands++;

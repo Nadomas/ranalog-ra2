@@ -11,11 +11,11 @@
 | Field | Value |
 |-------|--------|
 | **Current milestone** | **Post thin MVP polish spikes** — weapons depth + product chrome |
-| **Roadmap position** | Stages 0–8 **thin proofs PASS**; Stage 2 HARD GATE **GO**; Stage 3 exit **PASS (thin)**; S9–S11 thin + S4-02 / S5-02 / S11-E2E + S7-03 / S6-02 / S10-03 **PASS** |
-| **Queue status** | **Idle for agents** — polish spikes done; `PIPE-T02` human-only; optional BurstPiston backlog |
+| **Roadmap position** | Stages 0–8 **thin proofs PASS**; Stage 2 HARD GATE **GO**; Stage 3 exit **PASS (thin)**; S9–S11 thin + S4-02 / S5-02 / S11-E2E + S7-03 / S6-02 / S10-03 + **S7-04/05/06 actuator Fire** **PASS** |
+| **Queue status** | **Idle for agents** — actuator Fire polish done; `PIPE-T02` human-only |
 | **Last queue update** | 2026-09-21 |
 | **Autonomy recommendation** | Level **2–3** (see [`AI_WORKFLOW.md`](AI_WORKFLOW.md)) |
-| **Evidence snapshot** | [`S7-03_CONTACT_WEAPON_HIT.md`](../experiments/S7-03_CONTACT_WEAPON_HIT.md) + [`S6-02_TEST_RESET.md`](../experiments/S6-02_TEST_RESET.md) + [`S10-03_RESULTS_READABLE.md`](../experiments/S10-03_RESULTS_READABLE.md) + [`SESSION_2026-09-21_MVP_PROGRESS.md`](../experiments/SESSION_2026-09-21_MVP_PROGRESS.md) |
+| **Evidence snapshot** | [`S7-04_SPINNER_FIRE.md`](../experiments/S7-04_SPINNER_FIRE.md) + [`S7-05_BURST_PISTON_FIRE.md`](../experiments/S7-05_BURST_PISTON_FIRE.md) + [`S7-06_BURST_MOTOR_FIRE.md`](../experiments/S7-06_BURST_MOTOR_FIRE.md) + [`S7-03_CONTACT_WEAPON_HIT.md`](../experiments/S7-03_CONTACT_WEAPON_HIT.md) |
 
 ---
 
@@ -103,6 +103,9 @@
 | S07-T01 | Functional disable damage service | done | `RobotDamageService`; `S8-01_COMBAT_IMMOBILITY.md` |
 | S07-T02 | Weapon hit apply thin (concussion/piercing) | done | `S7-02_WEAPON_HIT.md` |
 | S07-T03 | Contact/collision weapon hit thin | done | `S7-03_CONTACT_WEAPON_HIT.md` |
+| S07-T04 | Spinner SpinMotor Fire/CW via Button/Switch | done | `S7-04_SPINNER_FIRE.md` |
+| S07-T05 | BurstPiston Fire air budget thin | done | `S7-05_BURST_PISTON_FIRE.md` |
+| S07-T06 | BurstMotor Fire arc thin | done | `S7-06_BURST_MOTOR_FIRE.md` |
 | S08-T01 | Immobility win evaluator (local 1v1) | done | `ImmobilityWinEvaluator`; `S8-01` PASS |
 | S08-T02 | Weapons catalog / arena art | deferred | Post thin MVP spine |
 
@@ -159,7 +162,7 @@
 
 Residual **non-blockers** (do not stop queue): Unity Dedicated Server Win module not installed (headless player used); custom UDP not frozen.
 
-Optional next agent polish (backlog — pull only when idle + human wants more touchable MVP): BurstPiston Fire channel thin; spinner/flipper Fire; workshop admit→test flow polish beyond reset.
+Optional next agent polish (backlog — pull only when idle + human wants more touchable MVP): ServoPiston Extend/Retract; workshop admit→test flow polish beyond reset; electric draw on BurstMotor Fire.
 
 ---
 
@@ -170,7 +173,7 @@ Optional next agent polish (backlog — pull only when idle + human wants more t
 - NGO/NFE package freeze (only after experiment vs current UDP)  
 - True Dedicated Server build target hardening  
 - Detach debris net replication; weapon formulae / chassis splash polish  
-- BurstPiston / spinner Fire channel thin (optional next polish)  
+- ServoPiston / ServoMotor channels; air recharge rates  
 - Ranked matchmaking, spectator, replay  
 - Reconnect window / bot replace  
 

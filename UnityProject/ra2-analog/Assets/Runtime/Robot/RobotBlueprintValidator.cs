@@ -201,6 +201,13 @@ namespace Ra2.Robot
 
             if (blueprint.Power.AirTotal > 0f && !ContainsBase(blueprint, RobotComponentBase.AirTank))
                 result.Errors.Add("air_tank_required");
+
+            if (ContainsBase(blueprint, RobotComponentBase.BurstPiston) && blueprint.Power.AirTotal <= 0f)
+                result.Errors.Add("air_budget_required_for_burst_piston");
+
+            if (ContainsBase(blueprint, RobotComponentBase.BurstPiston) &&
+                !ContainsBase(blueprint, RobotComponentBase.AirTank))
+                result.Errors.Add("air_tank_required_for_burst_piston");
         }
 
         static void ValidateMassBudgets(RobotBlueprint blueprint, Result result)

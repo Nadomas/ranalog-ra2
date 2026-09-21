@@ -40,6 +40,9 @@ namespace Ra2.Robot
                 var id = source.Wirings[i].ComponentId;
                 if (string.IsNullOrEmpty(id) || motors.ContainsKey(id))
                     continue;
+                // Burst* Fire is edge-driven by RobotActuatorDrive (not continuous hinge effort).
+                if (RobotWiringDriveResolver.IsBurstActuator(source, id))
+                    continue;
                 if (!parts.TryGetValue(id, out var go) || go == null)
                     continue;
                 var hinge = go.GetComponent<HingeJoint>();

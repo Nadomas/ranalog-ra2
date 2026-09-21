@@ -537,5 +537,245 @@ namespace Ra2.Robot
 
             bp.Connections = conns.ToArray();
         }
+
+        /// <summary>S7-04: tank + SpinMotor spinner blade wired to Button Fire (continuous CW while held).</summary>
+        public static RobotBlueprint CreateRa2SpinnerFireSample(Vector3 rootPosition, float yawDegrees)
+        {
+            var bp = CreateRa2ConstructionSampleA(rootPosition, yawDegrees);
+            bp.Name = "Ra2SpinnerFireSample";
+
+            var components = new System.Collections.Generic.List<RobotComponentDef>(bp.Components)
+            {
+                new RobotComponentDef
+                {
+                    Id = "spinner_motor",
+                    Kind = RobotComponentKind.Module,
+                    Base = RobotComponentBase.SpinMotor,
+                    CatalogId = "spinner_ztek",
+                    LocalPosition = new Vector3(0f, 0.35f, 0.85f),
+                    LocalEuler = Vector3.zero,
+                    Scale = new Vector3(0.28f, 0.2f, 0.28f),
+                    Mass = 1.2f,
+                    HasRigidbody = true,
+                    IsRoot = false,
+                    ElecMaxInOutRate = 60f
+                },
+                new RobotComponentDef
+                {
+                    Id = "spinner_blade",
+                    Kind = RobotComponentKind.Module,
+                    Base = RobotComponentBase.Weapon,
+                    CatalogId = "blade_thin",
+                    LocalPosition = new Vector3(0.55f, 0f, 0f),
+                    LocalEuler = Vector3.zero,
+                    Scale = new Vector3(1.1f, 0.08f, 0.18f),
+                    Mass = 0.6f,
+                    HasRigidbody = false,
+                    IsRoot = false,
+                    Concussion = 0.5f,
+                    Piercing = 0.2f
+                }
+            };
+            bp.Components = components.ToArray();
+
+            var conns = new System.Collections.Generic.List<RobotConnectionDef>(bp.Connections)
+            {
+                new RobotConnectionDef
+                {
+                    ParentId = "chassis",
+                    ChildId = "spinner_motor",
+                    Joint = RobotJointKind.Hinge,
+                    HingeAxis = Vector3.up
+                },
+                new RobotConnectionDef
+                {
+                    ParentId = "spinner_motor",
+                    ChildId = "spinner_blade",
+                    Joint = RobotJointKind.FixedHierarchy,
+                    HingeAxis = Vector3.zero
+                }
+            };
+            bp.Connections = conns.ToArray();
+
+            AppendDigitalSlot(bp, "fire_spin", "Spin Fire", RobotControlKind.Button, "Space");
+            AppendWiring(bp, "fire_spin", "spinner_motor", "CW", 1f);
+            return bp;
+        }
+
+        /// <summary>S7-05: tank + AirTank + BurstPiston Fire (air budget).</summary>
+        public static RobotBlueprint CreateRa2BurstPistonFireSample(Vector3 rootPosition, float yawDegrees)
+        {
+            var bp = CreateRa2ConstructionSampleA(rootPosition, yawDegrees);
+            bp.Name = "Ra2BurstPistonFireSample";
+            bp.Power = new RobotPowerBudgetDef
+            {
+                ElectricTotal = bp.Power.ElectricTotal,
+                ElectricMaxInOutRate = bp.Power.ElectricMaxInOutRate,
+                AirTotal = 800f,
+                AirMaxInOutRate = 120f
+            };
+
+            var components = new System.Collections.Generic.List<RobotComponentDef>(bp.Components)
+            {
+                new RobotComponentDef
+                {
+                    Id = "air_tank",
+                    Kind = RobotComponentKind.Module,
+                    Base = RobotComponentBase.AirTank,
+                    CatalogId = "airtank",
+                    LocalPosition = new Vector3(-0.35f, -0.2f, -0.15f),
+                    LocalEuler = Vector3.zero,
+                    Scale = new Vector3(0.3f, 0.2f, 0.4f),
+                    Mass = 1.5f,
+                    HasRigidbody = false,
+                    IsRoot = false,
+                    AirMaxInOutRate = 120f
+                },
+                new RobotComponentDef
+                {
+                    Id = "burst_piston",
+                    Kind = RobotComponentKind.Module,
+                    Base = RobotComponentBase.BurstPiston,
+                    CatalogId = "burstpiston",
+                    LocalPosition = new Vector3(0f, 0.15f, 1.15f),
+                    LocalEuler = Vector3.zero,
+                    Scale = new Vector3(0.22f, 0.22f, 0.55f),
+                    Mass = 1.4f,
+                    HasRigidbody = true,
+                    IsRoot = false,
+                    AirMaxInOutRate = -80f
+                }
+            };
+            bp.Components = components.ToArray();
+
+            var conns = new System.Collections.Generic.List<RobotConnectionDef>(bp.Connections)
+            {
+                new RobotConnectionDef
+                {
+                    ParentId = "chassis",
+                    ChildId = "air_tank",
+                    Joint = RobotJointKind.FixedHierarchy,
+                    HingeAxis = Vector3.zero
+                },
+                new RobotConnectionDef
+                {
+                    ParentId = "chassis",
+                    ChildId = "burst_piston",
+                    Joint = RobotJointKind.Slider,
+                    HingeAxis = Vector3.forward
+                }
+            };
+            bp.Connections = conns.ToArray();
+
+            AppendDigitalSlot(bp, "fire_piston", "Piston Fire", RobotControlKind.Button, "F");
+            AppendWiring(bp, "fire_piston", "burst_piston", "Fire", 1f);
+            return bp;
+        }
+
+        /// <summary>S7-06: tank + BurstMotor Fire arc (&lt;180°) on Button.</summary>
+        public static RobotBlueprint CreateRa2BurstMotorFireSample(Vector3 rootPosition, float yawDegrees)
+        {
+            var bp = CreateRa2ConstructionSampleA(rootPosition, yawDegrees);
+            bp.Name = "Ra2BurstMotorFireSample";
+
+            var components = new System.Collections.Generic.List<RobotComponentDef>(bp.Components)
+            {
+                new RobotComponentDef
+                {
+                    Id = "burst_motor",
+                    Kind = RobotComponentKind.Module,
+                    Base = RobotComponentBase.BurstMotor,
+                    CatalogId = "burstmotor",
+                    LocalPosition = new Vector3(0f, 0.25f, 0.7f),
+                    LocalEuler = Vector3.zero,
+                    Scale = new Vector3(0.25f, 0.2f, 0.25f),
+                    Mass = 1.3f,
+                    HasRigidbody = true,
+                    IsRoot = false,
+                    ElecMaxInOutRate = 70f
+                },
+                new RobotComponentDef
+                {
+                    Id = "flipper_pad",
+                    Kind = RobotComponentKind.Module,
+                    Base = RobotComponentBase.Weapon,
+                    CatalogId = "flipper_pad",
+                    LocalPosition = new Vector3(0f, 0f, 0.55f),
+                    LocalEuler = Vector3.zero,
+                    Scale = new Vector3(0.7f, 0.1f, 0.35f),
+                    Mass = 0.8f,
+                    HasRigidbody = false,
+                    IsRoot = false,
+                    Concussion = 0.8f,
+                    Piercing = 0.1f
+                }
+            };
+            bp.Components = components.ToArray();
+
+            var conns = new System.Collections.Generic.List<RobotConnectionDef>(bp.Connections)
+            {
+                new RobotConnectionDef
+                {
+                    ParentId = "chassis",
+                    ChildId = "burst_motor",
+                    Joint = RobotJointKind.Hinge,
+                    HingeAxis = Vector3.right
+                },
+                new RobotConnectionDef
+                {
+                    ParentId = "burst_motor",
+                    ChildId = "flipper_pad",
+                    Joint = RobotJointKind.FixedHierarchy,
+                    HingeAxis = Vector3.zero
+                }
+            };
+            bp.Connections = conns.ToArray();
+
+            AppendDigitalSlot(bp, "fire_burst", "Burst Fire", RobotControlKind.Button, "Mouse0");
+            AppendWiring(bp, "fire_burst", "burst_motor", "Fire", 1f);
+            return bp;
+        }
+
+        static void AppendDigitalSlot(
+            RobotBlueprint bp,
+            string id,
+            string displayName,
+            RobotControlKind kind,
+            string binding)
+        {
+            var slots = new System.Collections.Generic.List<RobotControlSlotDef>(
+                bp.ControlSlots ?? System.Array.Empty<RobotControlSlotDef>())
+            {
+                new RobotControlSlotDef
+                {
+                    Id = id,
+                    DisplayName = displayName,
+                    Kind = kind,
+                    InputBinding = binding
+                }
+            };
+            bp.ControlSlots = slots.ToArray();
+        }
+
+        static void AppendWiring(
+            RobotBlueprint bp,
+            string slotId,
+            string componentId,
+            string channel,
+            float sign)
+        {
+            var wires = new System.Collections.Generic.List<RobotWiringDef>(
+                bp.Wirings ?? System.Array.Empty<RobotWiringDef>())
+            {
+                new RobotWiringDef
+                {
+                    ControlSlotId = slotId,
+                    ComponentId = componentId,
+                    Channel = channel,
+                    Sign = sign
+                }
+            };
+            bp.Wirings = wires.ToArray();
+        }
     }
 }

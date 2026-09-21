@@ -55,7 +55,7 @@ public static class PhysicsTestUdpCodec
 
     public static byte[] WriteCommand(PhysicsTestCommandEnvelope envelope)
     {
-        using var ms = new MemoryStream(32);
+        using var ms = new MemoryStream(36);
         using var w = new BinaryWriter(ms, Encoding.UTF8, true);
         w.Write(MsgCommand);
         w.Write(envelope.RobotId);
@@ -63,6 +63,8 @@ public static class PhysicsTestUdpCodec
         w.Write(envelope.Command.Move);
         w.Write(envelope.Command.Turn);
         w.Write(envelope.Command.Brake);
+        // S7-04+: digital Fire (Button/Switch). Always written; readers tolerate older 18-byte packets.
+        w.Write(envelope.Command.Fire);
         return ms.ToArray();
     }
 
@@ -79,10 +81,13 @@ public static class PhysicsTestUdpCodec
         var move = r.ReadSingle();
         var turn = r.ReadSingle();
         var brake = r.ReadBoolean();
+        var fire = 0f;
+        if (ms.Position + 4 <= length)
+            fire = r.ReadSingle();
         envelope = new PhysicsTestCommandEnvelope(
             robotId,
             sourceId,
-            new PhysicsTestDriveCommand { Move = move, Turn = turn, Brake = brake });
+            new PhysicsTestDriveCommand { Move = move, Turn = turn, Brake = brake, Fire = fire });
         return true;
     }
 

@@ -34,6 +34,9 @@ using UnityEngine.SceneManagement;
 /// Menu: Tools/RA2/Build PhysicsTest Scene (S4-02 Chassis Polygon Editor)
 /// Menu: Tools/RA2/Build PhysicsTest Scene (S5-02 Binding Groups)
 /// Menu: Tools/RA2/Build PhysicsTest Scene (S11 E2E Loop)
+/// Menu: Tools/RA2/Build PhysicsTest Scene (S7-04 Spinner Fire)
+/// Menu: Tools/RA2/Build PhysicsTest Scene (S7-05 BurstPiston Fire)
+/// Menu: Tools/RA2/Build PhysicsTest Scene (S7-06 BurstMotor Fire)
 /// </summary>
 public static class PhysicsTestSceneBuilder
 {
@@ -76,7 +79,10 @@ public static class PhysicsTestSceneBuilder
         MvpE2E,
         ContactWeaponHit,
         TestReset,
-        ResultsReadable
+        ResultsReadable,
+        SpinnerFire,
+        BurstPistonFire,
+        BurstMotorFire
     }
 
     [MenuItem("Tools/RA2/Build PhysicsTest Scene")]
@@ -308,6 +314,24 @@ public static class PhysicsTestSceneBuilder
         Build(Scenario.MvpE2E);
     }
 
+    [MenuItem("Tools/RA2/Build PhysicsTest Scene (S7-04 Spinner Fire)")]
+    public static void BuildSpinnerFireFromMenu()
+    {
+        Build(Scenario.SpinnerFire);
+    }
+
+    [MenuItem("Tools/RA2/Build PhysicsTest Scene (S7-05 BurstPiston Fire)")]
+    public static void BuildBurstPistonFireFromMenu()
+    {
+        Build(Scenario.BurstPistonFire);
+    }
+
+    [MenuItem("Tools/RA2/Build PhysicsTest Scene (S7-06 BurstMotor Fire)")]
+    public static void BuildBurstMotorFireFromMenu()
+    {
+        Build(Scenario.BurstMotorFire);
+    }
+
     [MenuItem("Tools/RA2/Force Script Compile")]
     public static void ForceScriptCompile()
     {
@@ -470,6 +494,18 @@ public static class PhysicsTestSceneBuilder
         AssetDatabase.ImportAsset(
             "Assets/Runtime/Robot/RobotMvpE2EVerifier.cs",
             ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+        AssetDatabase.ImportAsset(
+            "Assets/Runtime/Robot/RobotActuatorDrive.cs",
+            ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+        AssetDatabase.ImportAsset(
+            "Assets/Runtime/Robot/RobotSpinnerFireVerifier.cs",
+            ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+        AssetDatabase.ImportAsset(
+            "Assets/Runtime/Robot/RobotBurstPistonFireVerifier.cs",
+            ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+        AssetDatabase.ImportAsset(
+            "Assets/Runtime/Robot/RobotBurstMotorFireVerifier.cs",
+            ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
         AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
         UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
         Debug.Log("[PhysicsTestSceneBuilder] Requested script compilation.");
@@ -596,6 +632,18 @@ public static class PhysicsTestSceneBuilder
         else if (scenario == Scenario.MvpE2E)
         {
             BuildMvpE2EScenario(floorMat);
+        }
+        else if (scenario == Scenario.SpinnerFire)
+        {
+            BuildSpinnerFireScenario(floorMat);
+        }
+        else if (scenario == Scenario.BurstPistonFire)
+        {
+            BuildBurstPistonFireScenario(floorMat);
+        }
+        else if (scenario == Scenario.BurstMotorFire)
+        {
+            BuildBurstMotorFireScenario(floorMat);
         }
         else if (scenario == Scenario.CollisionSmoke)
         {
@@ -1056,6 +1104,36 @@ public static class PhysicsTestSceneBuilder
         verifier.AutoRun = true;
 
         Debug.Log("[PhysicsTestSceneBuilder] S10-03 results readable host ready.");
+    }
+
+    static void BuildSpinnerFireScenario(PhysicsMaterial floor)
+    {
+        var hostGo = new GameObject("SpinnerFireHost");
+        var verifier = hostGo.AddComponent<RobotSpinnerFireVerifier>();
+        verifier.Configure(floor);
+        verifier.AutoRun = true;
+
+        Debug.Log("[PhysicsTestSceneBuilder] S7-04 spinner Fire host ready (Button→SpinMotor CW).");
+    }
+
+    static void BuildBurstPistonFireScenario(PhysicsMaterial floor)
+    {
+        var hostGo = new GameObject("BurstPistonFireHost");
+        var verifier = hostGo.AddComponent<RobotBurstPistonFireVerifier>();
+        verifier.Configure(floor);
+        verifier.AutoRun = true;
+
+        Debug.Log("[PhysicsTestSceneBuilder] S7-05 BurstPiston Fire host ready (air budget).");
+    }
+
+    static void BuildBurstMotorFireScenario(PhysicsMaterial floor)
+    {
+        var hostGo = new GameObject("BurstMotorFireHost");
+        var verifier = hostGo.AddComponent<RobotBurstMotorFireVerifier>();
+        verifier.Configure(floor);
+        verifier.AutoRun = true;
+
+        Debug.Log("[PhysicsTestSceneBuilder] S7-06 BurstMotor Fire host ready (arc &lt;180).");
     }
 
     static void BuildMatchUdpLobbyScenario(PhysicsMaterial floor)

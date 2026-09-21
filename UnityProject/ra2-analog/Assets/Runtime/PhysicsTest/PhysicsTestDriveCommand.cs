@@ -12,4 +12,10 @@ public struct PhysicsTestDriveCommand
 
     /// <summary>True while brake is held.</summary>
     public bool Brake;
+
+    /// <summary>
+    /// Digital Fire / Button / Switch intent in [0, 1] (S7-04+).
+    /// Button: held power; Switch: latched on; rising edge drives Burst* Fire.
+    /// </summary>
+    public float Fire;
 }
