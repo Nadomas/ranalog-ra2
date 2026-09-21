@@ -331,14 +331,14 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
             cam.transform.position = new Vector3(0f, 11f, -13f);
             cam.transform.rotation = Quaternion.Euler(38f, 0f, 0f);
             cam.clearFlags = CameraClearFlags.SolidColor;
-            cam.backgroundColor = new Color(0.07f, 0.08f, 0.1f);
+            cam.backgroundColor = new Color(0.045f, 0.05f, 0.07f);
             camGo.AddComponent<AudioListener>();
         }
         else
         {
             var cam = Camera.main;
             cam.clearFlags = CameraClearFlags.SolidColor;
-            cam.backgroundColor = new Color(0.07f, 0.08f, 0.1f);
+            cam.backgroundColor = new Color(0.045f, 0.05f, 0.07f);
         }
 
         if (FindFirstObjectByType<Light>() == null)
@@ -383,27 +383,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
             followCam = GetComponent<RobotMvpFollowCamera>() ?? gameObject.AddComponent<RobotMvpFollowCamera>();
     }
 
-    void EnsureArenaDressing()
-    {
-        if (GameObject.Find("ArenaRing") != null)
-            return;
-
-        var ring = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-        ring.name = "ArenaRing";
-        Object.Destroy(ring.GetComponent<Collider>());
-        ring.transform.position = new Vector3(0f, 0.02f, 0f);
-        ring.transform.localScale = new Vector3(22f, 0.02f, 22f);
-        TintRenderer(ring, new Color(0.35f, 0.28f, 0.14f, 1f));
-
-        // Center pad so spawns read as a pit, not bare plane.
-        var pad = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-        pad.name = "ArenaPad";
-        Object.Destroy(pad.GetComponent<Collider>());
-        pad.transform.SetParent(ring.transform, false);
-        pad.transform.localPosition = Vector3.zero;
-        pad.transform.localScale = new Vector3(0.55f, 1.1f, 0.55f);
-        TintRenderer(pad, new Color(0.22f, 0.25f, 0.3f));
-    }
+    void EnsureArenaDressing() => RobotMvpArenaDressing.Ensure();
 
     static void TintRenderer(GameObject go, Color color)
     {
@@ -856,12 +836,16 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         var historyOk = MatchSummaryStore.TryListRecent(new System.Collections.Generic.List<MatchSummaryStore.Dto>(8), 8) > 0;
         Debug.Log($"[S11-15] HISTORY_LIST_SMOKE pass={historyOk}");
 
-        var pass = okDesign && okCfg && okTest && hasInst && okAdmit && wireOk && localOk && udpOk && lanOk && historyOk;
+        EnsureArenaDressing();
+        var arenaOk = GameObject.Find(RobotMvpArenaDressing.RootName) != null;
+        Debug.Log($"[S11-16] ARENA_SMOKE pass={arenaOk}");
+
+        var pass = okDesign && okCfg && okTest && hasInst && okAdmit && wireOk && localOk && udpOk && lanOk && historyOk && arenaOk;
         var marker = Path.Combine(Application.persistentDataPath, "ra2-mvp-smoke.txt");
         try
         {
             File.WriteAllText(marker,
-                $"pass={pass}\nstatus={fightStatus}\nlocal_ok={localOk}\nudp_ok={udpOk}\nlan_ok={lanOk}\nwire_ok={wireOk}\nhistory_ok={historyOk}\nunity={Application.unityVersion}\n");
+                $"pass={pass}\nstatus={fightStatus}\nlocal_ok={localOk}\nudp_ok={udpOk}\nlan_ok={lanOk}\nwire_ok={wireOk}\nhistory_ok={historyOk}\narena_ok={arenaOk}\nunity={Application.unityVersion}\n");
         }
         catch
         {
@@ -871,7 +855,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         Debug.Log(
             $"[S11-07] SMOKE_DONE pass={pass} design={okDesign} cfg={okCfg} test={okTest} " +
             $"inst={hasInst} admit={okAdmit} wire={wireOk} local={localOk} udp={udpOk} lan={lanOk} " +
-            $"history={historyOk} fight={fightStatus} marker={marker}");
+            $"history={historyOk} arena={arenaOk} fight={fightStatus} marker={marker}");
 
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;

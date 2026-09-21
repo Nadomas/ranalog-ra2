@@ -11,11 +11,11 @@
 | Field | Value |
 |-------|--------|
 | **Current milestone** | **STAGE 11 MVP player + UI Toolkit** |
-| **Roadmap position** | Thin spine PASS; **S11-15** match history **PASS** |
-| **Queue status** | **Idle for agents** — history list in `.exe`; `PIPE-T02` human-only |
+| **Roadmap position** | Thin spine PASS; **S11-16** arena art **PASS** |
+| **Queue status** | **Idle for agents** — stronger pit dressing in `.exe`; `PIPE-T02` human-only |
 | **Last queue update** | 2026-09-21 |
 | **Autonomy recommendation** | Level **2–3** (see [`AI_WORKFLOW.md`](AI_WORKFLOW.md)) |
-| **Evidence snapshot** | [`S11-15_MATCH_HISTORY.md`](../experiments/S11-15_MATCH_HISTORY.md) |
+| **Evidence snapshot** | [`S11-16_ARENA_ART.md`](../experiments/S11-16_ARENA_ART.md) |
 
 ---
 
@@ -154,6 +154,7 @@
 | S11-T13 | Thin wiring canvas (Configure Sign/Channel) | done | `S11-13_WIRING_CANVAS.md` |
 | S11-T14 | LAN Host/Join (2-process) in player shell | done | `S11-14_LAN_HOST_JOIN.md` |
 | S11-T15 | Thin match history list (local persist UI) | done | `S11-15_MATCH_HISTORY.md` |
+| S11-T16 | Stronger thin arena art (procedural pit) | done | `S11-16_ARENA_ART.md` |
 
 ### Pipeline meta (this setup)
 
@@ -181,7 +182,7 @@
 
 Residual **non-blockers** (do not stop queue): Unity Dedicated Server Win module not installed (headless player used); custom UDP not frozen.
 
-Optional next agent polish (backlog — pull only when idle + human wants more touchable MVP): stronger arena art; fuller controller-grid wiring chrome.
+Optional next agent polish (backlog — pull only when idle + human wants more touchable MVP): fuller controller-grid wiring chrome.
 
 ---
 
