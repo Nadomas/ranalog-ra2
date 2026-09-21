@@ -208,6 +208,13 @@ namespace Ra2.Robot
             if (ContainsBase(blueprint, RobotComponentBase.BurstPiston) &&
                 !ContainsBase(blueprint, RobotComponentBase.AirTank))
                 result.Errors.Add("air_tank_required_for_burst_piston");
+
+            if (ContainsBase(blueprint, RobotComponentBase.ServoPiston) && blueprint.Power.AirTotal <= 0f)
+                result.Errors.Add("air_budget_required_for_servo_piston");
+
+            if (ContainsBase(blueprint, RobotComponentBase.ServoPiston) &&
+                !ContainsBase(blueprint, RobotComponentBase.AirTank))
+                result.Errors.Add("air_tank_required_for_servo_piston");
         }
 
         static void ValidateMassBudgets(RobotBlueprint blueprint, Result result)
@@ -318,7 +325,8 @@ namespace Ra2.Robot
                 var w = wirings[i];
                 if (string.IsNullOrEmpty(w.ControlSlotId))
                     result.Errors.Add($"wirings[{i}].control_missing");
-                else if (!slotIds.Contains(w.ControlSlotId))
+                else if (!slotIds.Contains(w.ControlSlotId) &&
+                         !IsSmartZoneId(blueprint, w.ControlSlotId))
                     result.Errors.Add($"wirings[{i}].unknown_control:{w.ControlSlotId}");
 
                 if (string.IsNullOrEmpty(w.ComponentId))
@@ -330,8 +338,33 @@ namespace Ra2.Robot
                     result.Errors.Add($"wirings[{i}].channel_missing");
             }
 
-            if (wirings.Length > 0 && slots.Length == 0)
+            if (wirings.Length > 0 && slots.Length == 0 && !HasSmartZoneWiring(blueprint, wirings))
                 result.Errors.Add("wiring_without_controls");
+        }
+
+        static bool IsSmartZoneId(RobotBlueprint blueprint, string id)
+        {
+            if (blueprint?.Components == null || string.IsNullOrEmpty(id))
+                return false;
+            for (var i = 0; i < blueprint.Components.Length; i++)
+            {
+                if (!string.Equals(blueprint.Components[i].Id, id, StringComparison.Ordinal))
+                    continue;
+                return blueprint.Components[i].ResolvedBase() == RobotComponentBase.SmartZone;
+            }
+
+            return false;
+        }
+
+        static bool HasSmartZoneWiring(RobotBlueprint blueprint, RobotWiringDef[] wirings)
+        {
+            for (var i = 0; i < wirings.Length; i++)
+            {
+                if (IsSmartZoneId(blueprint, wirings[i].ControlSlotId))
+                    return true;
+            }
+
+            return false;
         }
 
         static bool ContainsBase(RobotBlueprint blueprint, RobotComponentBase b)

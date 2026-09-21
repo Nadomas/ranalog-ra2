@@ -65,7 +65,7 @@ namespace Ra2.Robot
                     drive.SuppressChassisForce = true;
 
                 actuators = assembly.Root.AddComponent<RobotActuatorDrive>();
-                actuators.Bind(blueprint, assembly.Parts, drive);
+                actuators.Bind(blueprint, assembly.Parts, drive, robotId);
             }
 
             var instance = new RobotSpawnedInstance

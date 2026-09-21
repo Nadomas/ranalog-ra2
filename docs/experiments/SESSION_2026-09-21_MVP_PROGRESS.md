@@ -24,6 +24,9 @@
 | **S7-04** Spinner SpinMotor Fire/CW | **PASS** | `docs/experiments/S7-04_SPINNER_FIRE.md` |
 | **S7-05** BurstPiston Fire (air) | **PASS** | `docs/experiments/S7-05_BURST_PISTON_FIRE.md` |
 | **S7-06** BurstMotor Fire arc | **PASS** | `docs/experiments/S7-06_BURST_MOTOR_FIRE.md` |
+| **S7-07** ServoMotor Analog slow + lock | **PASS** | `docs/experiments/S7-07_SERVO_MOTOR_ANALOG.md` |
+| **S7-08** ServoPiston Analog (air) | **PASS** | `docs/experiments/S7-08_SERVO_PISTON_ANALOG.md` |
+| **S7-09** SmartZone → Fire | **PASS** | `docs/experiments/S7-09_SMARTZONE_FIRE.md` |
 
 ## Thin MVP loop status
 
@@ -32,27 +35,27 @@
 | Design | Validator + dual samples + CoM + polygon editor thin + chrome | Product polygon UX polish |
 | Configure | Preset rebind + binding groups thin + JSON + chrome | Full composite chrome |
 | Test | Workshop session + chrome + **reset UX** | Gizmo polish |
-| Fight | Local 1v1 + UDP lobby + Immobilized + disconnect + contact hit + **spinner/piston/burst Fire** | Catalog / servo channels |
+| Fight | Local 1v1 + UDP lobby + Immobilized + disconnect + contact hit + **Spin/Burst/Servo actuators + SmartZone** | Catalog / Steering hubs |
 | Results | Console + JSON persist + **readable multiline IMGUI** | History list polish |
 | Integration | Workshop → local + MP + E2E one-scene + smoke checklist | Soak / more product chrome |
 
-**Estimated % toward playable GDD MVP:** ~94% (thin actuators Fire wired).
+**Estimated % toward playable GDD MVP:** ~96% (RA2 base actuator taxonomy thin covered except Steering).
 
-## Latest Play PASS logs (actuator Fire pass)
+## Latest Play PASS logs (S7-07…09)
 
 ```
-[S7-04] VERIFIER_DONE pass=True hinge_ok=True motor_bound=True motors=5 powered=True spun=True idle_w=0.026 spin_w=12.566 coast_w=0.000 coasted=True nan=False
-[S7-05] VERIFIER_DONE pass=True fired=True air_start=800.000 air_after=720.000 air_now=0.000 air_spent=True moved=True ext=0.450 speed=0.577 denied=True denies=2 nan=False
-[S7-06] VERIFIER_DONE pass=True limits_ok=True fired=True arced=True ... within_limits=True no_retrigger=True nan=False
+[S7-07] VERIFIER_DONE pass=True limits_ok=True moved=True locked=True held=True angle=64.356 angle_lock=64.446 drive_w=1.306 lock_w=0.000 servo_locked=1 nan=False
+[S7-08] VERIFIER_DONE pass=True extended=True mid_held=True retracted=True air_start=600.000 air_after=549.401 air_now=498.802 air_spent=True ext=0.450 mid=0.446 ret=-0.001 denies=0 nan=False
+[S7-09] VERIFIER_DONE pass=True zone_contact=True zone_fired=True fired=True arced=True enters=1 fires=1 zone_fires=1 w=12.355 nan=False
 ```
 
 ## Stop condition
 
-**(a) met** for S7-04 / S7-05 / S7-06. Next open: **PIPE-T02** (human-only).
+**(a) met** for S7-07 / S7-08 / S7-09. Next open: **PIPE-T02** (human-only).
 
 ## Exact next remaining work
 
 1. PIPE-T02 human Cursor Automations (not agent).  
-2. Optional: ServoPiston Extend/Retract; electric draw on BurstMotor.  
+2. Optional: Steering hubs thin; electric draw on BurstMotor.  
 3. Product polygon/binding chrome polish (backlog).  
 4. Weapons catalog / arena art (deferred).

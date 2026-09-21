@@ -4,8 +4,8 @@ using UnityEngine;
 namespace Ra2.Robot
 {
     /// <summary>
-    /// Thin BurstMotor Fire arc + BurstPiston Fire (air) driver (S7-05 / S7-06).
-    /// SpinMotor continuous CW/Fire stays on <see cref="RobotMotorDrive"/> via digital wiring.
+    /// Thin actuator driver: BurstMotor/BurstPiston Fire (S7-05/06), ServoMotor/ServoPiston Analog (S7-07/08),
+    /// optional SmartZone→Fire (S7-09). SpinMotor continuous CW stays on <see cref="RobotMotorDrive"/>.
     /// Host/local authority: reads <see cref="PhysicsTestDrive.CurrentCommand"/> only.
     /// </summary>
     [DisallowMultipleComponent]
@@ -19,38 +19,69 @@ namespace Ra2.Robot
         const float BurstPistonAirCost = 80f;
         const float RetractSpring = 140f;
 
+        const float ServoMotorMaxDeg = 90f;
+        const float ServoMotorSlowDegPerSec = 75f;
+        const float ServoMotorDriveForce = 90f;
+        const float ServoMotorLockForce = 320f;
+        const float ServoDeadzone = 0.05f;
+
+        const float ServoPistonTravel = 0.45f;
+        const float ServoPistonAirPerSec = 55f;
+        const float ServoPistonSpring = 900f;
+        const float ServoPistonDamper = 50f;
+        const float ServoPistonMaxForce = 600f;
+
         PhysicsTestDrive commandSource;
         PhysicsTestDisableFlag disableFlag;
         RobotBlueprint blueprint;
         readonly Dictionary<string, HingeJoint> burstMotors = new Dictionary<string, HingeJoint>(4);
+        readonly Dictionary<string, HingeJoint> servoMotors = new Dictionary<string, HingeJoint>(4);
         readonly Dictionary<string, ConfigurableJoint> pistons = new Dictionary<string, ConfigurableJoint>(4);
         readonly Dictionary<string, Rigidbody> pistonBodies = new Dictionary<string, Rigidbody>(4);
         readonly Dictionary<string, Vector3> pistonRestLocal = new Dictionary<string, Vector3>(4);
+        readonly Dictionary<string, ConfigurableJoint> servoPistons = new Dictionary<string, ConfigurableJoint>(4);
+        readonly Dictionary<string, Rigidbody> servoPistonBodies = new Dictionary<string, Rigidbody>(4);
+        readonly Dictionary<string, Vector3> servoPistonRestLocal = new Dictionary<string, Vector3>(4);
+        readonly Dictionary<string, RobotSmartZoneSensor> smartZones = new Dictionary<string, RobotSmartZoneSensor>(4);
         readonly Dictionary<string, float> burstMotorUntil = new Dictionary<string, float>(4);
+        readonly Dictionary<string, float> efforts = new Dictionary<string, float>(8);
         readonly List<string> fireTargets = new List<string>(4);
+        readonly List<string> zoneFireTargets = new List<string>(4);
 
         float prevFire;
         float airRemaining;
 
         public float AirRemaining => airRemaining;
         public int BurstMotorCount => burstMotors.Count;
+        public int ServoMotorCount => servoMotors.Count;
         public int PistonCount => pistons.Count;
+        public int ServoPistonCount => servoPistons.Count;
+        public int SmartZoneCount => smartZones.Count;
         public int LastFireCount { get; private set; }
+        public int LastZoneFireCount { get; private set; }
         public int LastAirDenied { get; private set; }
+        public int LastServoLocked { get; private set; }
 
-        public void Bind(RobotBlueprint source, Dictionary<string, GameObject> parts, PhysicsTestDrive drive)
+        public void Bind(RobotBlueprint source, Dictionary<string, GameObject> parts, PhysicsTestDrive drive, int robotId = 0)
         {
             blueprint = source;
             commandSource = drive;
             burstMotors.Clear();
+            servoMotors.Clear();
             pistons.Clear();
             pistonBodies.Clear();
             pistonRestLocal.Clear();
+            servoPistons.Clear();
+            servoPistonBodies.Clear();
+            servoPistonRestLocal.Clear();
+            smartZones.Clear();
             burstMotorUntil.Clear();
             airRemaining = source != null ? Mathf.Max(0f, source.Power.AirTotal) : 0f;
             prevFire = 0f;
             LastFireCount = 0;
+            LastZoneFireCount = 0;
             LastAirDenied = 0;
+            LastServoLocked = 0;
 
             if (parts == null || source?.Components == null)
                 return;
@@ -68,6 +99,12 @@ namespace Ra2.Robot
                     if (hinge != null)
                         burstMotors[def.Id] = hinge;
                 }
+                else if (baseKind == RobotComponentBase.ServoMotor)
+                {
+                    var hinge = go.GetComponent<HingeJoint>();
+                    if (hinge != null)
+                        servoMotors[def.Id] = hinge;
+                }
                 else if (baseKind == RobotComponentBase.BurstPiston)
                 {
                     var slide = go.GetComponent<ConfigurableJoint>();
@@ -78,6 +115,26 @@ namespace Ra2.Robot
                         pistonBodies[def.Id] = body;
                         pistonRestLocal[def.Id] = go.transform.localPosition;
                     }
+                }
+                else if (baseKind == RobotComponentBase.ServoPiston)
+                {
+                    var slide = go.GetComponent<ConfigurableJoint>();
+                    var body = go.GetComponent<Rigidbody>();
+                    if (slide != null && body != null)
+                    {
+                        servoPistons[def.Id] = slide;
+                        servoPistonBodies[def.Id] = body;
+                        servoPistonRestLocal[def.Id] = go.transform.localPosition;
+                        ApplyServoPistonDrive(slide, 0f);
+                    }
+                }
+                else if (baseKind == RobotComponentBase.SmartZone)
+                {
+                    var sensor = go.GetComponent<RobotSmartZoneSensor>();
+                    if (sensor == null)
+                        sensor = go.AddComponent<RobotSmartZoneSensor>();
+                    sensor.Bind(def.Id, robotId);
+                    smartZones[def.Id] = sensor;
                 }
             }
         }
@@ -96,6 +153,7 @@ namespace Ra2.Robot
             if (disableFlag != null && disableFlag.Disabled)
             {
                 IdleBurstMotors();
+                IdleServos();
                 prevFire = 0f;
                 return;
             }
@@ -106,6 +164,7 @@ namespace Ra2.Robot
             if (cmd.Brake)
             {
                 IdleBurstMotors();
+                IdleServos();
                 prevFire = cmd.Fire;
                 return;
             }
@@ -118,8 +177,24 @@ namespace Ra2.Robot
             for (var i = 0; i < fireTargets.Count; i++)
                 TriggerFire(fireTargets[i]);
 
+            RobotWiringDriveResolver.ResolveSmartZoneFireTargets(
+                blueprint,
+                id => smartZones.TryGetValue(id, out var z) && z != null && z.ContactRisingEdge,
+                zoneFireTargets);
+            for (var i = 0; i < zoneFireTargets.Count; i++)
+            {
+                var before = LastFireCount;
+                TriggerFire(zoneFireTargets[i]);
+                if (LastFireCount > before)
+                    LastZoneFireCount++;
+            }
+
             TickBurstMotors();
             TickPistonRetract();
+
+            RobotWiringDriveResolver.ResolveMotorEfforts(blueprint, cmd, efforts);
+            TickServoMotors();
+            TickServoPistons();
         }
 
         void TriggerFire(string componentId)
@@ -196,6 +271,95 @@ namespace Ra2.Robot
             }
         }
 
+        void TickServoMotors()
+        {
+            LastServoLocked = 0;
+            foreach (var kv in servoMotors)
+            {
+                var hinge = kv.Value;
+                if (hinge == null)
+                    continue;
+                efforts.TryGetValue(kv.Key, out var effort);
+                effort = Mathf.Clamp(effort, -1f, 1f);
+
+                if (Mathf.Abs(effort) < ServoDeadzone)
+                {
+                    var lockMotor = hinge.motor;
+                    lockMotor.targetVelocity = 0f;
+                    lockMotor.force = ServoMotorLockForce;
+                    lockMotor.freeSpin = false;
+                    hinge.motor = lockMotor;
+                    hinge.useMotor = true;
+                    LastServoLocked++;
+                    continue;
+                }
+
+                var targetAngle = effort * ServoMotorMaxDeg;
+                var angle = hinge.angle;
+                if (float.IsNaN(angle) || float.IsInfinity(angle))
+                    angle = 0f;
+                var error = targetAngle - angle;
+                var speed = Mathf.Clamp(error * 4f, -ServoMotorSlowDegPerSec, ServoMotorSlowDegPerSec);
+                var motor = hinge.motor;
+                motor.targetVelocity = speed;
+                motor.force = ServoMotorDriveForce;
+                motor.freeSpin = false;
+                hinge.motor = motor;
+                hinge.useMotor = true;
+            }
+        }
+
+        void TickServoPistons()
+        {
+            var dt = Time.fixedDeltaTime;
+            foreach (var kv in servoPistons)
+            {
+                var slide = kv.Value;
+                if (slide == null || !servoPistonBodies.TryGetValue(kv.Key, out var body) || body == null)
+                    continue;
+
+                efforts.TryGetValue(kv.Key, out var effort);
+                effort = Mathf.Clamp(effort, -1f, 1f);
+
+                if (Mathf.Abs(effort) >= ServoDeadzone)
+                {
+                    if (airRemaining <= 1e-3f)
+                    {
+                        LastAirDenied++;
+                        // Hold last commanded position (lock mid-stroke) when air empty.
+                        continue;
+                    }
+
+                    airRemaining = Mathf.Max(0f, airRemaining - ServoPistonAirPerSec * dt);
+                }
+
+                var targetExt = Mathf.Clamp01((effort + 1f) * 0.5f) * ServoPistonTravel;
+                if (Mathf.Abs(effort) < ServoDeadzone)
+                {
+                    // Lock mid-stroke: hold current extension via joint drive.
+                    if (servoPistonRestLocal.TryGetValue(kv.Key, out var rest))
+                    {
+                        var axis = slide.axis.sqrMagnitude > 1e-6f ? slide.axis.normalized : Vector3.forward;
+                        var cur = Vector3.Dot(body.transform.localPosition - rest, axis);
+                        targetExt = Mathf.Clamp(cur, 0f, ServoPistonTravel);
+                    }
+                }
+
+                ApplyServoPistonDrive(slide, targetExt);
+            }
+        }
+
+        static void ApplyServoPistonDrive(ConfigurableJoint slide, float targetExt)
+        {
+            var drive = slide.xDrive;
+            drive.positionSpring = ServoPistonSpring;
+            drive.positionDamper = ServoPistonDamper;
+            drive.maximumForce = ServoPistonMaxForce;
+            slide.xDrive = drive;
+            // Invert joint target X so +Extend matches +Dot(local, axis).
+            slide.targetPosition = new Vector3(-targetExt, 0f, 0f);
+        }
+
         void IdleBurstMotors()
         {
             foreach (var kv in burstMotors)
@@ -208,6 +372,32 @@ namespace Ra2.Robot
                 motor.force = 20f;
                 hinge.motor = motor;
                 hinge.useMotor = true;
+            }
+        }
+
+        void IdleServos()
+        {
+            foreach (var kv in servoMotors)
+            {
+                var hinge = kv.Value;
+                if (hinge == null)
+                    continue;
+                var motor = hinge.motor;
+                motor.targetVelocity = 0f;
+                motor.force = ServoMotorLockForce;
+                hinge.motor = motor;
+                hinge.useMotor = true;
+            }
+
+            foreach (var kv in servoPistons)
+            {
+                if (kv.Value == null || !servoPistonBodies.TryGetValue(kv.Key, out var body) || body == null)
+                    continue;
+                if (!servoPistonRestLocal.TryGetValue(kv.Key, out var rest))
+                    continue;
+                var axis = kv.Value.axis.sqrMagnitude > 1e-6f ? kv.Value.axis.normalized : Vector3.forward;
+                var cur = Vector3.Dot(body.transform.localPosition - rest, axis);
+                ApplyServoPistonDrive(kv.Value, Mathf.Clamp(cur, 0f, ServoPistonTravel));
             }
         }
     }

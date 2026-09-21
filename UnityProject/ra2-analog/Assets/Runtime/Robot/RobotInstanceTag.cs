@@ -17,5 +17,12 @@ namespace Ra2.Robot
             Instance = instance;
             RobotId = instance != null ? instance.RobotId : -1;
         }
+
+        /// <summary>S7-09 thin contact probe identity (no full spawn instance).</summary>
+        public void BindProbe(int robotId)
+        {
+            Instance = null;
+            RobotId = robotId;
+        }
     }
 }

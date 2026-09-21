@@ -37,6 +37,9 @@ using UnityEngine.SceneManagement;
 /// Menu: Tools/RA2/Build PhysicsTest Scene (S7-04 Spinner Fire)
 /// Menu: Tools/RA2/Build PhysicsTest Scene (S7-05 BurstPiston Fire)
 /// Menu: Tools/RA2/Build PhysicsTest Scene (S7-06 BurstMotor Fire)
+/// Menu: Tools/RA2/Build PhysicsTest Scene (S7-07 ServoMotor Analog)
+/// Menu: Tools/RA2/Build PhysicsTest Scene (S7-08 ServoPiston Analog)
+/// Menu: Tools/RA2/Build PhysicsTest Scene (S7-09 SmartZone Fire)
 /// </summary>
 public static class PhysicsTestSceneBuilder
 {
@@ -82,7 +85,10 @@ public static class PhysicsTestSceneBuilder
         ResultsReadable,
         SpinnerFire,
         BurstPistonFire,
-        BurstMotorFire
+        BurstMotorFire,
+        ServoMotorAnalog,
+        ServoPistonAnalog,
+        SmartZoneFire
     }
 
     [MenuItem("Tools/RA2/Build PhysicsTest Scene")]
@@ -332,6 +338,24 @@ public static class PhysicsTestSceneBuilder
         Build(Scenario.BurstMotorFire);
     }
 
+    [MenuItem("Tools/RA2/Build PhysicsTest Scene (S7-07 ServoMotor Analog)")]
+    public static void BuildServoMotorAnalogFromMenu()
+    {
+        Build(Scenario.ServoMotorAnalog);
+    }
+
+    [MenuItem("Tools/RA2/Build PhysicsTest Scene (S7-08 ServoPiston Analog)")]
+    public static void BuildServoPistonAnalogFromMenu()
+    {
+        Build(Scenario.ServoPistonAnalog);
+    }
+
+    [MenuItem("Tools/RA2/Build PhysicsTest Scene (S7-09 SmartZone Fire)")]
+    public static void BuildSmartZoneFireFromMenu()
+    {
+        Build(Scenario.SmartZoneFire);
+    }
+
     [MenuItem("Tools/RA2/Force Script Compile")]
     public static void ForceScriptCompile()
     {
@@ -506,6 +530,18 @@ public static class PhysicsTestSceneBuilder
         AssetDatabase.ImportAsset(
             "Assets/Runtime/Robot/RobotBurstMotorFireVerifier.cs",
             ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+        AssetDatabase.ImportAsset(
+            "Assets/Runtime/Robot/RobotSmartZoneSensor.cs",
+            ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+        AssetDatabase.ImportAsset(
+            "Assets/Runtime/Robot/RobotServoMotorAnalogVerifier.cs",
+            ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+        AssetDatabase.ImportAsset(
+            "Assets/Runtime/Robot/RobotServoPistonAnalogVerifier.cs",
+            ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+        AssetDatabase.ImportAsset(
+            "Assets/Runtime/Robot/RobotSmartZoneFireVerifier.cs",
+            ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
         AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
         UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
         Debug.Log("[PhysicsTestSceneBuilder] Requested script compilation.");
@@ -644,6 +680,18 @@ public static class PhysicsTestSceneBuilder
         else if (scenario == Scenario.BurstMotorFire)
         {
             BuildBurstMotorFireScenario(floorMat);
+        }
+        else if (scenario == Scenario.ServoMotorAnalog)
+        {
+            BuildServoMotorAnalogScenario(floorMat);
+        }
+        else if (scenario == Scenario.ServoPistonAnalog)
+        {
+            BuildServoPistonAnalogScenario(floorMat);
+        }
+        else if (scenario == Scenario.SmartZoneFire)
+        {
+            BuildSmartZoneFireScenario(floorMat);
         }
         else if (scenario == Scenario.CollisionSmoke)
         {
@@ -1134,6 +1182,36 @@ public static class PhysicsTestSceneBuilder
         verifier.AutoRun = true;
 
         Debug.Log("[PhysicsTestSceneBuilder] S7-06 BurstMotor Fire host ready (arc &lt;180).");
+    }
+
+    static void BuildServoMotorAnalogScenario(PhysicsMaterial floor)
+    {
+        var hostGo = new GameObject("ServoMotorAnalogHost");
+        var verifier = hostGo.AddComponent<RobotServoMotorAnalogVerifier>();
+        verifier.Configure(floor);
+        verifier.AutoRun = true;
+
+        Debug.Log("[PhysicsTestSceneBuilder] S7-07 ServoMotor Analog host ready (slow + lock).");
+    }
+
+    static void BuildServoPistonAnalogScenario(PhysicsMaterial floor)
+    {
+        var hostGo = new GameObject("ServoPistonAnalogHost");
+        var verifier = hostGo.AddComponent<RobotServoPistonAnalogVerifier>();
+        verifier.Configure(floor);
+        verifier.AutoRun = true;
+
+        Debug.Log("[PhysicsTestSceneBuilder] S7-08 ServoPiston Analog host ready (air stroke).");
+    }
+
+    static void BuildSmartZoneFireScenario(PhysicsMaterial floor)
+    {
+        var hostGo = new GameObject("SmartZoneFireHost");
+        var verifier = hostGo.AddComponent<RobotSmartZoneFireVerifier>();
+        verifier.Configure(floor);
+        verifier.AutoRun = true;
+
+        Debug.Log("[PhysicsTestSceneBuilder] S7-09 SmartZone→Fire host ready.");
     }
 
     static void BuildMatchUdpLobbyScenario(PhysicsMaterial floor)

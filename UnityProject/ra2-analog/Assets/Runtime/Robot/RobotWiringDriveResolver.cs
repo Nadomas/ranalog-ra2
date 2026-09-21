@@ -63,8 +63,10 @@ namespace Ra2.Robot
                 if (string.IsNullOrEmpty(w.ComponentId) || string.IsNullOrEmpty(w.ControlSlotId))
                     continue;
 
-                // Burst actuators are edge-driven by RobotActuatorDrive — skip continuous effort.
+                // Burst / SmartZone edge targets are handled by RobotActuatorDrive — skip continuous effort.
                 if (IsBurstActuator(blueprint, w.ComponentId))
+                    continue;
+                if (IsSmartZoneComponent(blueprint, w.ControlSlotId))
                     continue;
 
                 float slot;
@@ -74,6 +76,8 @@ namespace Ra2.Robot
                     slot = turn;
                 else if (IsDigitalSlot(blueprint, w.ControlSlotId))
                     slot = fire;
+                else if (IsAnalogSlot(blueprint, w.ControlSlotId))
+                    slot = move; // thin: dedicated Analog slots map to Move axis
                 else
                     continue;
 
@@ -116,6 +120,65 @@ namespace Ra2.Robot
             }
         }
 
+        /// <summary>
+        /// S7-09: optional SmartZone contact → Fire targets. ControlSlotId names a SmartZone component.
+        /// </summary>
+        public static void ResolveSmartZoneFireTargets(
+            RobotBlueprint blueprint,
+            System.Func<string, bool> zoneContactRising,
+            List<string> into)
+        {
+            into.Clear();
+            if (blueprint?.Wirings == null || zoneContactRising == null)
+                return;
+
+            for (var i = 0; i < blueprint.Wirings.Length; i++)
+            {
+                var w = blueprint.Wirings[i];
+                if (string.IsNullOrEmpty(w.ComponentId) || string.IsNullOrEmpty(w.ControlSlotId))
+                    continue;
+                if (!IsBurstActuator(blueprint, w.ComponentId))
+                    continue;
+                if (!IsSmartZoneComponent(blueprint, w.ControlSlotId))
+                    continue;
+                if (!IsFireLikeChannel(w.Channel))
+                    continue;
+                if (!zoneContactRising(w.ControlSlotId))
+                    continue;
+                if (!into.Contains(w.ComponentId))
+                    into.Add(w.ComponentId);
+            }
+        }
+
+        public static bool IsSmartZoneComponent(RobotBlueprint blueprint, string componentId)
+        {
+            if (blueprint?.Components == null || string.IsNullOrEmpty(componentId))
+                return false;
+            for (var i = 0; i < blueprint.Components.Length; i++)
+            {
+                if (!string.Equals(blueprint.Components[i].Id, componentId, StringComparison.Ordinal))
+                    continue;
+                return blueprint.Components[i].ResolvedBase() == RobotComponentBase.SmartZone;
+            }
+
+            return false;
+        }
+
+        public static bool IsServoActuator(RobotBlueprint blueprint, string componentId)
+        {
+            if (blueprint?.Components == null || string.IsNullOrEmpty(componentId))
+                return false;
+            for (var i = 0; i < blueprint.Components.Length; i++)
+            {
+                if (!string.Equals(blueprint.Components[i].Id, componentId, StringComparison.Ordinal))
+                    continue;
+                var b = blueprint.Components[i].ResolvedBase();
+                return b == RobotComponentBase.ServoMotor || b == RobotComponentBase.ServoPiston;
+            }
+
+            return false;
+        }
+
         public static bool IsDigitalSlot(RobotBlueprint blueprint, string slotId)
         {
             if (blueprint?.ControlSlots == null || string.IsNullOrEmpty(slotId))
@@ -131,6 +194,21 @@ namespace Ra2.Robot
             // Unknown id used as Fire-like digital (thin verifier convenience).
             return string.Equals(slotId, "fire", StringComparison.OrdinalIgnoreCase) ||
                    slotId.StartsWith("fire_", StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static bool IsAnalogSlot(RobotBlueprint blueprint, string slotId)
+        {
+            if (blueprint?.ControlSlots == null || string.IsNullOrEmpty(slotId))
+                return false;
+            for (var i = 0; i < blueprint.ControlSlots.Length; i++)
+            {
+                var s = blueprint.ControlSlots[i];
+                if (!string.Equals(s.Id, slotId, StringComparison.Ordinal))
+                    continue;
+                return s.Kind == RobotControlKind.Analog;
+            }
+
+            return false;
         }
 
         public static bool IsBurstActuator(RobotBlueprint blueprint, string componentId)

@@ -736,6 +736,181 @@ namespace Ra2.Robot
             return bp;
         }
 
+        /// <summary>S7-07: tank + ServoMotor Analog slow rotate + lock at stop.</summary>
+        public static RobotBlueprint CreateRa2ServoMotorAnalogSample(Vector3 rootPosition, float yawDegrees)
+        {
+            var bp = CreateRa2ConstructionSampleA(rootPosition, yawDegrees);
+            bp.Name = "Ra2ServoMotorAnalogSample";
+
+            var components = new System.Collections.Generic.List<RobotComponentDef>(bp.Components)
+            {
+                new RobotComponentDef
+                {
+                    Id = "servo_motor",
+                    Kind = RobotComponentKind.Module,
+                    Base = RobotComponentBase.ServoMotor,
+                    CatalogId = "servomotor",
+                    LocalPosition = new Vector3(0f, 0.3f, 0.75f),
+                    LocalEuler = Vector3.zero,
+                    Scale = new Vector3(0.24f, 0.2f, 0.24f),
+                    Mass = 1.1f,
+                    HasRigidbody = true,
+                    IsRoot = false,
+                    ElecMaxInOutRate = 40f
+                },
+                new RobotComponentDef
+                {
+                    Id = "servo_arm",
+                    Kind = RobotComponentKind.Module,
+                    Base = RobotComponentBase.Weapon,
+                    CatalogId = "servo_arm",
+                    LocalPosition = new Vector3(0f, 0f, 0.5f),
+                    LocalEuler = Vector3.zero,
+                    Scale = new Vector3(0.15f, 0.08f, 0.9f),
+                    Mass = 0.5f,
+                    HasRigidbody = false,
+                    IsRoot = false,
+                    Concussion = 0.3f,
+                    Piercing = 0.1f
+                }
+            };
+            bp.Components = components.ToArray();
+
+            var conns = new System.Collections.Generic.List<RobotConnectionDef>(bp.Connections)
+            {
+                new RobotConnectionDef
+                {
+                    ParentId = "chassis",
+                    ChildId = "servo_motor",
+                    Joint = RobotJointKind.Hinge,
+                    HingeAxis = Vector3.up
+                },
+                new RobotConnectionDef
+                {
+                    ParentId = "servo_motor",
+                    ChildId = "servo_arm",
+                    Joint = RobotJointKind.FixedHierarchy,
+                    HingeAxis = Vector3.zero
+                }
+            };
+            bp.Connections = conns.ToArray();
+
+            AppendAnalogSlot(bp, "servo_aim", "Servo Aim", "AxisServo");
+            AppendWiring(bp, "servo_aim", "servo_motor", "CW", 1f);
+            return bp;
+        }
+
+        /// <summary>S7-08: tank + AirTank + ServoPiston Analog Extend/Retract (air).</summary>
+        public static RobotBlueprint CreateRa2ServoPistonAnalogSample(Vector3 rootPosition, float yawDegrees)
+        {
+            var bp = CreateRa2ConstructionSampleA(rootPosition, yawDegrees);
+            bp.Name = "Ra2ServoPistonAnalogSample";
+            bp.Power = new RobotPowerBudgetDef
+            {
+                ElectricTotal = bp.Power.ElectricTotal,
+                ElectricMaxInOutRate = bp.Power.ElectricMaxInOutRate,
+                AirTotal = 600f,
+                AirMaxInOutRate = 100f
+            };
+
+            var components = new System.Collections.Generic.List<RobotComponentDef>(bp.Components)
+            {
+                new RobotComponentDef
+                {
+                    Id = "air_tank",
+                    Kind = RobotComponentKind.Module,
+                    Base = RobotComponentBase.AirTank,
+                    CatalogId = "airtank",
+                    LocalPosition = new Vector3(-0.35f, -0.2f, -0.15f),
+                    LocalEuler = Vector3.zero,
+                    Scale = new Vector3(0.3f, 0.2f, 0.4f),
+                    Mass = 1.5f,
+                    HasRigidbody = false,
+                    IsRoot = false,
+                    AirMaxInOutRate = 100f
+                },
+                new RobotComponentDef
+                {
+                    Id = "servo_piston",
+                    Kind = RobotComponentKind.Module,
+                    Base = RobotComponentBase.ServoPiston,
+                    CatalogId = "servopiston",
+                    LocalPosition = new Vector3(0f, 0.15f, 1.1f),
+                    LocalEuler = Vector3.zero,
+                    Scale = new Vector3(0.2f, 0.2f, 0.5f),
+                    Mass = 1.2f,
+                    HasRigidbody = true,
+                    IsRoot = false,
+                    AirMaxInOutRate = -40f
+                }
+            };
+            bp.Components = components.ToArray();
+
+            var conns = new System.Collections.Generic.List<RobotConnectionDef>(bp.Connections)
+            {
+                new RobotConnectionDef
+                {
+                    ParentId = "chassis",
+                    ChildId = "air_tank",
+                    Joint = RobotJointKind.FixedHierarchy,
+                    HingeAxis = Vector3.zero
+                },
+                new RobotConnectionDef
+                {
+                    ParentId = "chassis",
+                    ChildId = "servo_piston",
+                    Joint = RobotJointKind.Slider,
+                    HingeAxis = Vector3.forward
+                }
+            };
+            bp.Connections = conns.ToArray();
+
+            AppendAnalogSlot(bp, "piston_stroke", "Piston Stroke", "AxisPiston");
+            AppendWiring(bp, "piston_stroke", "servo_piston", "Extend", 1f);
+            return bp;
+        }
+
+        /// <summary>S7-09: BurstMotor Fire + SmartZone contact optional auto-Fire.</summary>
+        public static RobotBlueprint CreateRa2SmartZoneFireSample(Vector3 rootPosition, float yawDegrees)
+        {
+            var bp = CreateRa2BurstMotorFireSample(rootPosition, yawDegrees);
+            bp.Name = "Ra2SmartZoneFireSample";
+
+            var components = new System.Collections.Generic.List<RobotComponentDef>(bp.Components)
+            {
+                new RobotComponentDef
+                {
+                    Id = "smart_zone",
+                    Kind = RobotComponentKind.Module,
+                    Base = RobotComponentBase.SmartZone,
+                    CatalogId = "smartzone",
+                    LocalPosition = new Vector3(0f, 0.2f, 1.35f),
+                    LocalEuler = Vector3.zero,
+                    Scale = new Vector3(1.2f, 0.6f, 0.9f),
+                    Mass = 0.01f,
+                    HasRigidbody = false,
+                    IsRoot = false
+                }
+            };
+            bp.Components = components.ToArray();
+
+            var conns = new System.Collections.Generic.List<RobotConnectionDef>(bp.Connections)
+            {
+                new RobotConnectionDef
+                {
+                    ParentId = "chassis",
+                    ChildId = "smart_zone",
+                    Joint = RobotJointKind.FixedHierarchy,
+                    HingeAxis = Vector3.zero
+                }
+            };
+            bp.Connections = conns.ToArray();
+
+            // Optional zone trigger: ControlSlotId names the SmartZone component (not a Button).
+            AppendWiring(bp, "smart_zone", "burst_motor", "Fire", 1f);
+            return bp;
+        }
+
         static void AppendDigitalSlot(
             RobotBlueprint bp,
             string id,
@@ -755,6 +930,11 @@ namespace Ra2.Robot
                 }
             };
             bp.ControlSlots = slots.ToArray();
+        }
+
+        static void AppendAnalogSlot(RobotBlueprint bp, string id, string displayName, string binding)
+        {
+            AppendDigitalSlot(bp, id, displayName, RobotControlKind.Analog, binding);
         }
 
         static void AppendWiring(

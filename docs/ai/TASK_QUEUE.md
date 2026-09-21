@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|--------|
-| **Current milestone** | **Post thin MVP polish spikes** — weapons depth + product chrome |
-| **Roadmap position** | Stages 0–8 **thin proofs PASS**; Stage 2 HARD GATE **GO**; Stage 3 exit **PASS (thin)**; S9–S11 thin + S4-02 / S5-02 / S11-E2E + S7-03 / S6-02 / S10-03 + **S7-04/05/06 actuator Fire** **PASS** |
-| **Queue status** | **Idle for agents** — actuator Fire polish done; `PIPE-T02` human-only |
+| **Current milestone** | **Post thin MVP polish spikes** — actuator taxonomy coverage |
+| **Roadmap position** | Stages 0–8 **thin proofs PASS**; Stage 2 HARD GATE **GO**; Stage 3 exit **PASS (thin)**; S9–S11 thin + S4-02 / S5-02 / S11-E2E + S7-03 / S6-02 / S10-03 + **S7-04…09 actuators** **PASS** |
+| **Queue status** | **Idle for agents** — Servo + SmartZone taxonomy thin done; `PIPE-T02` human-only |
 | **Last queue update** | 2026-09-21 |
 | **Autonomy recommendation** | Level **2–3** (see [`AI_WORKFLOW.md`](AI_WORKFLOW.md)) |
-| **Evidence snapshot** | [`S7-04_SPINNER_FIRE.md`](../experiments/S7-04_SPINNER_FIRE.md) + [`S7-05_BURST_PISTON_FIRE.md`](../experiments/S7-05_BURST_PISTON_FIRE.md) + [`S7-06_BURST_MOTOR_FIRE.md`](../experiments/S7-06_BURST_MOTOR_FIRE.md) + [`S7-03_CONTACT_WEAPON_HIT.md`](../experiments/S7-03_CONTACT_WEAPON_HIT.md) |
+| **Evidence snapshot** | [`S7-07_SERVO_MOTOR_ANALOG.md`](../experiments/S7-07_SERVO_MOTOR_ANALOG.md) + [`S7-08_SERVO_PISTON_ANALOG.md`](../experiments/S7-08_SERVO_PISTON_ANALOG.md) + [`S7-09_SMARTZONE_FIRE.md`](../experiments/S7-09_SMARTZONE_FIRE.md) |
 
 ---
 
@@ -106,6 +106,9 @@
 | S07-T04 | Spinner SpinMotor Fire/CW via Button/Switch | done | `S7-04_SPINNER_FIRE.md` |
 | S07-T05 | BurstPiston Fire air budget thin | done | `S7-05_BURST_PISTON_FIRE.md` |
 | S07-T06 | BurstMotor Fire arc thin | done | `S7-06_BURST_MOTOR_FIRE.md` |
+| S07-T07 | ServoMotor Analog slow + lock | done | `S7-07_SERVO_MOTOR_ANALOG.md` |
+| S07-T08 | ServoPiston Analog Extend/Retract (air) | done | `S7-08_SERVO_PISTON_ANALOG.md` |
+| S07-T09 | SmartZone contact → optional Fire | done | `S7-09_SMARTZONE_FIRE.md` |
 | S08-T01 | Immobility win evaluator (local 1v1) | done | `ImmobilityWinEvaluator`; `S8-01` PASS |
 | S08-T02 | Weapons catalog / arena art | deferred | Post thin MVP spine |
 
@@ -162,7 +165,7 @@
 
 Residual **non-blockers** (do not stop queue): Unity Dedicated Server Win module not installed (headless player used); custom UDP not frozen.
 
-Optional next agent polish (backlog — pull only when idle + human wants more touchable MVP): ServoPiston Extend/Retract; workshop admit→test flow polish beyond reset; electric draw on BurstMotor Fire.
+Optional next agent polish (backlog — pull only when idle + human wants more touchable MVP): Steering hubs thin; workshop admit→test flow polish beyond reset; electric draw on BurstMotor Fire.
 
 ---
 
@@ -173,7 +176,7 @@ Optional next agent polish (backlog — pull only when idle + human wants more t
 - NGO/NFE package freeze (only after experiment vs current UDP)  
 - True Dedicated Server build target hardening  
 - Detach debris net replication; weapon formulae / chassis splash polish  
-- ServoPiston / ServoMotor channels; air recharge rates  
+- Steering hubs; air recharge rates  
 - Ranked matchmaking, spectator, replay  
 - Reconnect window / bot replace  
 
