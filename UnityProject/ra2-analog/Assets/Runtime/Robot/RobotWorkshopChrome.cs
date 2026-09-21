@@ -24,6 +24,9 @@ public sealed class RobotWorkshopChrome : MonoBehaviour
     public int PolySelectedIndex => polySelectedIndex;
     public RobotControlConfigurer.BindingGroupId BindGroup => bindGroup;
 
+    /// <summary>When true, hide IMGUI (S11-08 UI Toolkit owns chrome).</summary>
+    public bool SuppressImgui { get; set; }
+
     public void Configure(PhysicsMaterial slide)
     {
         slideMaterial = slide;
@@ -170,10 +173,26 @@ public sealed class RobotWorkshopChrome : MonoBehaviour
         status = $"sel={RobotControlConfigurer.DisplayNameForGroup(group)}";
     }
 
+    public void StepPolySelection(int delta)
+    {
+        EnsureSession();
+        var pts = RobotChassisPolygonEditor.PointCount(session?.WorkingBlueprint);
+        if (pts <= 0)
+        {
+            polySelectedIndex = 0;
+            return;
+        }
+
+        polySelectedIndex = ((polySelectedIndex + delta) % pts + pts) % pts;
+        status = $"sel={polySelectedIndex} pts={pts}";
+    }
+
     void Start() => EnsureSession();
 
     void OnGUI()
     {
+        if (SuppressImgui)
+            return;
         EnsureSession();
         const float w = 300f;
         var boxH = session.Mode == WorkshopMode.Design || session.Mode == WorkshopMode.Configure ? 420f : 300f;

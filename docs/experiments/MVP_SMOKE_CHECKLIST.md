@@ -18,21 +18,18 @@
 | MVP glue | `… (S11 MVP Loop Glue)` | Workshop → local + MP admit |
 | Workshop chrome | `… (S11 Workshop Chrome)` | IMGUI Design/Configure/Test |
 | Workshop unified | `… (S11-06 Workshop Unified Chrome)` | Design polygon + Configure bindings + admit |
-| **MVP Windows player** | `Tools/RA2/Build MVP Windows Player (S11-07)` | `Builds/Ra2MvpPlayer/Ra2MvpPlayer.exe` |
-| Chassis polygon | `… (S4-02 Chassis Polygon Editor)` | ≤16 edit + admit |
-| Binding groups | `… (S5-02 Binding Groups)` | Drive/Turn cycle + JSON |
-| E2E loop | `… (S11 E2E Loop)` | Design→Fight→Results one scene |
+| **MVP Windows player** | `Tools/RA2/Build MVP Windows Player (S11-07)` | `Builds/Ra2MvpPlayer/Ra2MvpPlayer.exe` + UI Toolkit |
 
 ## Manual touch path (local)
 
-1. Build **MVP Windows Player (S11-07)** → run `Ra2MvpPlayer.exe`.  
-2. Design → Nudge+X → Configure → Cycle → Test → WASD → Prepare Admit → **Local Fight 1v1**.  
-3. Or Editor: **S11-06 Workshop Unified Chrome** → Play.  
-4. Build **S9-02** → Play; confirm forfeit log (no hung fight).
+1. Run `Ra2MvpPlayer.exe` (rebuild via S11-07 menu if needed).  
+2. Left panel: Design / Configure / Test → tools → Prepare Admit → **Local Fight 1v1**.  
+3. Results overlay after fight.  
+4. UDP combat remain Editor/UDP verifier menus.
 
 ## Known issues / residuals (non-blockers)
 
-- Product UI Toolkit (still IMGUI in player)  
+- Wiring canvas / controller grid still not full GDD UI  
 - UDP MP not wired into player shell (local fight only)  
 - Freehand polygon gizmo / full composite binding matrix  
 - Weapons beyond functional disable (Stage 7 depth)  

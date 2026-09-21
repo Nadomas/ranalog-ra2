@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|--------|
-| **Current milestone** | **STAGE 11 MVP player** — first Windows playable build |
-| **Roadmap position** | Thin spine PASS; **S11-07 MVP Windows player PASS** |
-| **Queue status** | **Idle for agents** — first playable `.exe` shipped locally; `PIPE-T02` human-only |
+| **Current milestone** | **STAGE 11 MVP player + UI Toolkit** |
+| **Roadmap position** | Thin spine PASS; **S11-07 player** + **S11-08 UI Toolkit** **PASS** |
+| **Queue status** | **Idle for agents** — playable `.exe` with product UI shell; `PIPE-T02` human-only |
 | **Last queue update** | 2026-09-21 |
 | **Autonomy recommendation** | Level **2–3** (see [`AI_WORKFLOW.md`](AI_WORKFLOW.md)) |
-| **Evidence snapshot** | [`S11-07_MVP_PLAYER_BUILD.md`](../experiments/S11-07_MVP_PLAYER_BUILD.md) |
+| **Evidence snapshot** | [`S11-08_MVP_UI_TOOLKIT.md`](../experiments/S11-08_MVP_UI_TOOLKIT.md) |
 
 ---
 
@@ -146,6 +146,7 @@
 | S11-T05 | E2E smoke Design→Configure→Test→Fight→Results | done | `S11_E2E_LOOP.md` |
 | S11-T06 | Workshop unified Design polygon + Configure bindings | done | `S11_06_WORKSHOP_UNIFIED_CHROME.md` |
 | S11-T07 | First Windows MVP player build (playable) | done | `S11-07_MVP_PLAYER_BUILD.md` |
+| S11-T08 | UI Toolkit workshop shell (replace IMGUI) | done | `S11-08_MVP_UI_TOOLKIT.md` |
 
 ### Pipeline meta (this setup)
 
@@ -173,13 +174,13 @@
 
 Residual **non-blockers** (do not stop queue): Unity Dedicated Server Win module not installed (headless player used); custom UDP not frozen.
 
-Optional next agent polish (backlog — pull only when idle + human wants more touchable MVP): product UI Toolkit; UDP fight in player shell; match history list.
+Optional next agent polish (backlog — pull only when idle + human wants more touchable MVP): wiring canvas UI; UDP fight in player shell; match history list.
 
 ---
 
 ## Backlog (do not pull forward early)
 
-- Product UI Toolkit construction/configure chrome  
+- Full wiring canvas / controller grid GDD UI  
 - UDP MP path inside Windows player shell  
 - Construction polygon freehand gizmo; full composite binding chrome  
 - Content catalog / economy / career  

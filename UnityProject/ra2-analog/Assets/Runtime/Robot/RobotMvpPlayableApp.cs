@@ -22,11 +22,15 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
     PhysicsMaterial runtimeGrip;
     bool fightRunning;
     string fightStatus = "";
+    string pendingResultsText;
     RobotSpawnedInstance wiredInput;
 
     public bool Ready { get; private set; }
     public string FightStatus => fightStatus;
+    public bool FightRunning => fightRunning;
     public RobotWorkshopChrome Chrome => chrome;
+    public string PendingResultsText => pendingResultsText;
+    public bool HasResultsOverlay => !string.IsNullOrEmpty(pendingResultsText);
 
     void Awake()
     {
@@ -34,6 +38,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         EnsureChrome();
         Ready = true;
         Debug.Log("[S11-07] PLAYABLE_READY");
+        Debug.Log("[S11-08] UI_TOOLKIT_SHELL");
     }
 
     void Start()
@@ -47,23 +52,68 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         WireTestInput();
     }
 
-    void OnGUI()
-    {
-        if (chrome == null)
-            return;
+    // IMGUI removed — S11-08 UI Toolkit owns chrome (RobotMvpUiShell).
 
-        const float w = 220f;
-        var y = Screen.height - 140f;
-        GUI.Box(new Rect(Screen.width - w - 12f, y, w, 120f), "MVP Playable");
-        y += 28f;
-        GUI.enabled = !fightRunning && chrome.Session != null &&
-                      (chrome.Session.Mode == WorkshopMode.Test || chrome.Session.LastAdmitBlueprint != null);
-        if (GUI.Button(new Rect(Screen.width - w + 10f, y, w - 28f, 28f), "Local Fight 1v1"))
+    public void ClearPendingResults() => pendingResultsText = null;
+
+    public bool TryUiSetMode(WorkshopMode mode)
+    {
+        EnsureChrome();
+        return chrome.TrySetMode(mode, out _);
+    }
+
+    public void TryUiPolyStep(int delta)
+    {
+        EnsureChrome();
+        chrome.StepPolySelection(delta);
+    }
+
+    public void TryUiPolyNudge()
+    {
+        EnsureChrome();
+        chrome.TryDesignNudge(new Vector2(0.1f, 0f), out _);
+    }
+
+    public void TryUiSelectBind(RobotControlConfigurer.BindingGroupId group)
+    {
+        EnsureChrome();
+        chrome.SelectBindGroup(group);
+    }
+
+    public void TryUiCycleBind()
+    {
+        EnsureChrome();
+        chrome.TryConfigureCycleBinding(out _, out _);
+    }
+
+    public void TryUiTankPreset()
+    {
+        EnsureChrome();
+        chrome.TryApplyTankPreset(out _);
+    }
+
+    public void TryUiResetTest()
+    {
+        EnsureChrome();
+        chrome.TryResetTest(out _);
+    }
+
+    public void TryUiPrepareAdmit()
+    {
+        EnsureChrome();
+        chrome.TryPrepareAdmit(out _);
+    }
+
+    public void TryUiTestAdmit()
+    {
+        EnsureChrome();
+        chrome.TryTestAdmitClone(out _);
+    }
+
+    public void TryUiLocalFight()
+    {
+        if (!fightRunning)
             StartCoroutine(RunLocalFightFromWorkshop());
-        GUI.enabled = true;
-        y += 36f;
-        GUI.Label(new Rect(Screen.width - w + 10f, y, w - 28f, 40f),
-            string.IsNullOrEmpty(fightStatus) ? "WASD in Test; Space brake" : fightStatus);
     }
 
     public void EnsureWorld()
@@ -119,11 +169,13 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         if (chrome == null)
             chrome = gameObject.AddComponent<RobotWorkshopChrome>();
         chrome.Configure(slideMaterial);
+        chrome.SuppressImgui = true;
         chrome.EnsureSession();
 
         resultsView = GetComponent<MatchResultsView>();
         if (resultsView == null)
             resultsView = gameObject.AddComponent<MatchResultsView>();
+        resultsView.SuppressImgui = true;
         resultsView.Hide();
     }
 
@@ -188,6 +240,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         if (summary.Outcome.Finished)
         {
             MatchResultsStub.Present(summary, "mvp-player", persist: true, view: resultsView);
+            pendingResultsText = MatchResultsStub.FormatReadable(summary, "mvp-player");
             fightStatus = $"done {summary.Outcome.Reason} winner={summary.Outcome.WinnerRobotId}";
             Debug.Log(
                 $"[S11-07] FIGHT_DONE pass=True reason={summary.Outcome.Reason} " +

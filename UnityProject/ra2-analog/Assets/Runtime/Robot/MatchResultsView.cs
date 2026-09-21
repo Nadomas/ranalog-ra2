@@ -12,27 +12,30 @@ namespace Ra2.Robot
         string body = "(no results)";
         bool visible;
 
-        public string Body => body;
-        public bool Visible => visible;
+    /// <summary>When true, hide IMGUI (S11-08 UI Toolkit owns results).</summary>
+    public bool SuppressImgui { get; set; }
 
-        public void Show(MatchSummary summary, string side = null)
-        {
-            if (!string.IsNullOrEmpty(side))
-                sideLabel = side;
-            // S10-03: readable multiline panel; log line remains Format() in Present().
-            body = MatchResultsStub.FormatReadable(summary, sideLabel);
-            visible = true;
-        }
+    public string Body => body;
+    public bool Visible => visible;
 
-        public void Hide()
-        {
-            visible = false;
-        }
+    public void Show(MatchSummary summary, string side = null)
+    {
+        if (!string.IsNullOrEmpty(side))
+            sideLabel = side;
+        // S10-03: readable multiline panel; log line remains Format() in Present().
+        body = MatchResultsStub.FormatReadable(summary, sideLabel);
+        visible = true;
+    }
 
-        void OnGUI()
-        {
-            if (!visible)
-                return;
+    public void Hide()
+    {
+        visible = false;
+    }
+
+    void OnGUI()
+    {
+        if (SuppressImgui || !visible)
+            return;
 
             const float w = 420f;
             const float h = 220f;

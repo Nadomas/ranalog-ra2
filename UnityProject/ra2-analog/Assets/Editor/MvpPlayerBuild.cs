@@ -3,15 +3,19 @@ using UnityEditor;
 using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.SceneManagement;
+using UnityEngine.UIElements;
 
 /// <summary>
-/// S11-07: build first playable Windows MVP player (workshop + local fight).
+/// S11-07/08: MvpPlayable scene + Windows player with UI Toolkit workshop shell.
 /// </summary>
 public static class MvpPlayerBuild
 {
     public const string ScenePath = "Assets/Scenes/MvpPlayable.unity";
     const string PlayerOut = "../Builds/Ra2MvpPlayer/Ra2MvpPlayer.exe";
+    const string UiFolder = "Assets/UI/Mvp";
+    const string UxmlPath = UiFolder + "/MvpWorkshop.uxml";
+    const string UssPath = UiFolder + "/MvpWorkshop.uss";
+    const string PanelSettingsPath = UiFolder + "/MvpPanelSettings.asset";
 
     [MenuItem("Tools/RA2/Build MvpPlayable Scene (S11-07)")]
     public static void BuildSceneFromMenu()
@@ -39,10 +43,16 @@ public static class MvpPlayerBuild
             $"size={summary.totalSize} path={summary.outputPath}");
         if (summary.result != BuildResult.Succeeded)
             Debug.LogError($"[S11-07] PLAYER_BUILD FAILED: {summary.result}");
+        else
+            Debug.Log("[S11-08] PLAYER_BUILD_WITH_UIToolkit");
     }
 
     public static void BuildPlayableScene()
     {
+        EnsureUiAssets();
+        var panelSettings = AssetDatabase.LoadAssetAtPath<PanelSettings>(PanelSettingsPath);
+        var uxml = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(UxmlPath);
+
         var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
         var arena = new GameObject("Arena");
@@ -62,23 +72,60 @@ public static class MvpPlayerBuild
         var cam = camGo.AddComponent<Camera>();
         cam.transform.position = new Vector3(0f, 12f, -14f);
         cam.transform.rotation = Quaternion.Euler(40f, 0f, 0f);
+        cam.clearFlags = CameraClearFlags.SolidColor;
+        cam.backgroundColor = new Color(0.08f, 0.09f, 0.11f);
         camGo.AddComponent<AudioListener>();
 
         var lightGo = new GameObject("Directional Light");
         var light = lightGo.AddComponent<Light>();
         light.type = LightType.Directional;
-        light.intensity = 1.1f;
+        light.intensity = 1.15f;
+        light.color = new Color(1f, 0.95f, 0.88f);
         lightGo.transform.rotation = Quaternion.Euler(50f, -30f, 0f);
 
         var host = new GameObject("MvpPlayableHost");
-        host.AddComponent<RobotMvpPlayableApp>();
-        // Editor-only auto verifier: keep off for interactive/player boots; smoke uses -ra2-mvp-smoke.
+        var app = host.AddComponent<RobotMvpPlayableApp>();
         host.AddComponent<RobotMvpPlayableVerifier>().AutoRun = false;
+        host.AddComponent<RobotMvpUiVerifier>().AutoRun = false;
+
+        var uiGo = new GameObject("MvpUi");
+        uiGo.transform.SetParent(host.transform, false);
+        var doc = uiGo.AddComponent<UIDocument>();
+        doc.visualTreeAsset = uxml;
+        doc.panelSettings = panelSettings;
+        var shell = uiGo.AddComponent<RobotMvpUiShell>();
+        shell.Bind(app);
 
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(ScenePath)) ?? "Assets/Scenes");
         EditorSceneManager.SaveScene(scene, ScenePath);
         AssetDatabase.Refresh();
         Debug.Log($"[S11-07] MvpPlayable scene saved: {ScenePath}");
+        Debug.Log("[S11-08] UI_DOCUMENT wired (UI Toolkit)");
+    }
+
+    static void EnsureUiAssets()
+    {
+        if (!AssetDatabase.IsValidFolder("Assets/UI"))
+            AssetDatabase.CreateFolder("Assets", "UI");
+        if (!AssetDatabase.IsValidFolder(UiFolder))
+            AssetDatabase.CreateFolder("Assets/UI", "Mvp");
+
+        if (AssetDatabase.LoadAssetAtPath<PanelSettings>(PanelSettingsPath) == null)
+        {
+            var settings = ScriptableObject.CreateInstance<PanelSettings>();
+            settings.scaleMode = PanelScaleMode.ScaleWithScreenSize;
+            settings.referenceResolution = new Vector2Int(1920, 1080);
+            settings.screenMatchMode = PanelScreenMatchMode.MatchWidthOrHeight;
+            settings.match = 0.5f;
+            settings.sortingOrder = 100;
+            AssetDatabase.CreateAsset(settings, PanelSettingsPath);
+            Debug.Log($"[S11-08] Created PanelSettings at {PanelSettingsPath}");
+        }
+
+        AssetDatabase.ImportAsset(UxmlPath, ImportAssetOptions.ForceUpdate);
+        AssetDatabase.ImportAsset(UssPath, ImportAssetOptions.ForceUpdate);
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
     }
 
     static void EnsureSceneInBuildSettingsFirst()

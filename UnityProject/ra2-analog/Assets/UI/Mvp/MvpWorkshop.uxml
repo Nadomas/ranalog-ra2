@@ -1,0 +1,69 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="MvpWorkshop.uss" />
+    <ui:VisualElement name="root" class="root">
+        <ui:VisualElement name="top-bar" class="top-bar">
+            <ui:Label name="brand" text="RA2 ANALOG" class="brand" />
+            <ui:Label name="mode-label" text="DESIGN" class="mode-pill" />
+            <ui:VisualElement class="spacer" />
+            <ui:Label name="hint" text="Build · Wire · Test · Fight" class="hint" />
+        </ui:VisualElement>
+
+        <ui:VisualElement name="body" class="body">
+            <ui:VisualElement name="side-panel" class="side-panel">
+                <ui:Label text="WORKSHOP" class="section-title" />
+                <ui:VisualElement class="mode-row">
+                    <ui:Button name="btn-design" text="Design" class="mode-btn" />
+                    <ui:Button name="btn-configure" text="Configure" class="mode-btn" />
+                    <ui:Button name="btn-test" text="Test" class="mode-btn" />
+                </ui:VisualElement>
+
+                <ui:VisualElement name="panel-design" class="tool-panel">
+                    <ui:Label text="Chassis polygon" class="tool-title" />
+                    <ui:Label name="poly-info" text="pts=0" class="tool-meta" />
+                    <ui:VisualElement class="row">
+                        <ui:Button name="btn-poly-prev" text="Prev" class="tool-btn" />
+                        <ui:Button name="btn-poly-next" text="Next" class="tool-btn" />
+                        <ui:Button name="btn-poly-nudge" text="Nudge +X" class="tool-btn accent" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+
+                <ui:VisualElement name="panel-configure" class="tool-panel hidden">
+                    <ui:Label text="Binding groups" class="tool-title" />
+                    <ui:Label name="bind-info" text="Drive=—  Turn=—" class="tool-meta" />
+                    <ui:VisualElement class="row">
+                        <ui:Button name="btn-bind-drive" text="Drive" class="tool-btn" />
+                        <ui:Button name="btn-bind-turn" text="Turn" class="tool-btn" />
+                        <ui:Button name="btn-bind-cycle" text="Cycle" class="tool-btn accent" />
+                    </ui:VisualElement>
+                    <ui:Button name="btn-tank" text="Apply TankSteer" class="tool-btn wide" />
+                </ui:VisualElement>
+
+                <ui:VisualElement name="panel-test" class="tool-panel hidden">
+                    <ui:Label text="Test Room" class="tool-title" />
+                    <ui:Label text="WASD drive · Space brake" class="tool-meta" />
+                    <ui:Button name="btn-reset" text="Reset Test" class="tool-btn wide accent" />
+                </ui:VisualElement>
+
+                <ui:VisualElement class="divider" />
+                <ui:Label text="MATCH" class="section-title" />
+                <ui:Button name="btn-admit" text="Prepare Admit" class="tool-btn wide" />
+                <ui:Button name="btn-admit-test" text="Test Admit Clone" class="tool-btn wide" />
+                <ui:Button name="btn-fight" text="Local Fight 1v1" class="tool-btn wide fight" />
+
+                <ui:Label name="status" text="Ready" class="status" />
+            </ui:VisualElement>
+
+            <ui:VisualElement name="arena-chrome" class="arena-chrome">
+                <ui:Label name="arena-caption" text="ARENA VIEW" class="arena-caption" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="results-overlay" class="results-overlay hidden">
+            <ui:VisualElement class="results-card">
+                <ui:Label text="MATCH RESULTS" class="results-title" />
+                <ui:Label name="results-body" text="" class="results-body" />
+                <ui:Button name="btn-results-close" text="Back to Workshop" class="tool-btn wide accent" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
