@@ -86,6 +86,102 @@ namespace Ra2.Robot
             return warnings;
         }
 
+        /// <summary>Named binding groups (S5-02 thin) — convenience over multiple control slots.</summary>
+        public enum BindingGroupId : byte
+        {
+            Drive = 0,
+            Turn = 1
+        }
+
+        public static string[] SlotIdsForGroup(BindingGroupId group) =>
+            group switch
+            {
+                BindingGroupId.Turn => new[] { "left_right" },
+                _ => new[] { "forward_back" }
+            };
+
+        public static string DisplayNameForGroup(BindingGroupId group) =>
+            group switch
+            {
+                BindingGroupId.Turn => "Turn (Left-Right)",
+                _ => "Drive (Forward-Back)"
+            };
+
+        /// <summary>Apply one input binding string to every slot in the group.</summary>
+        public static bool TryApplyGroupBinding(
+            RobotBlueprint blueprint,
+            BindingGroupId group,
+            string inputBinding,
+            out string error)
+        {
+            error = null;
+            if (blueprint == null)
+            {
+                error = "no_blueprint";
+                return false;
+            }
+
+            EnsureAnalogDriveSlots(blueprint);
+            var slots = SlotIdsForGroup(group);
+            for (var i = 0; i < slots.Length; i++)
+                SetSlotBinding(blueprint, slots[i], inputBinding);
+            return true;
+        }
+
+        public static string GetGroupBinding(RobotBlueprint blueprint, BindingGroupId group)
+        {
+            var slots = SlotIdsForGroup(group);
+            if (slots.Length == 0)
+                return null;
+            return GetSlotBinding(blueprint, slots[0]);
+        }
+
+        /// <summary>Cycle Drive/Turn bindings through a small preset list (thin UX).</summary>
+        public static bool TryCycleGroupBinding(
+            RobotBlueprint blueprint,
+            BindingGroupId group,
+            out string applied,
+            out string error)
+        {
+            applied = null;
+            error = null;
+            EnsureAnalogDriveSlots(blueprint);
+            var options = group == BindingGroupId.Turn
+                ? new[] { "A/D", "Left/Right", "J/L" }
+                : new[] { "W/S", "S/W", "Up/Down" };
+
+            var current = GetGroupBinding(blueprint, group) ?? options[0];
+            var idx = 0;
+            for (var i = 0; i < options.Length; i++)
+            {
+                if (string.Equals(options[i], current, StringComparison.Ordinal))
+                {
+                    idx = (i + 1) % options.Length;
+                    break;
+                }
+            }
+
+            applied = options[idx];
+            return TryApplyGroupBinding(blueprint, group, applied, out error);
+        }
+
+        /// <summary>Warn when Drive and Turn share the same binding string.</summary>
+        public static List<string> FindBindingGroupConflicts(RobotBlueprint blueprint)
+        {
+            var warnings = new List<string>();
+            if (blueprint == null)
+                return warnings;
+
+            EnsureAnalogDriveSlots(blueprint);
+            var drive = GetGroupBinding(blueprint, BindingGroupId.Drive);
+            var turn = GetGroupBinding(blueprint, BindingGroupId.Turn);
+            if (!string.IsNullOrEmpty(drive) &&
+                string.Equals(drive, turn, StringComparison.Ordinal))
+                warnings.Add($"group_binding_overlap:{drive}");
+
+            return warnings;
+        }
+
         static void EnsureAnalogDriveSlots(RobotBlueprint blueprint)
         {
             if (blueprint.ControlSlots != null && blueprint.ControlSlots.Length >= 2)

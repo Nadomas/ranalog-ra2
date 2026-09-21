@@ -11,11 +11,11 @@
 | Field | Value |
 |-------|--------|
 | **Current milestone** | **Post thin MVP polish spikes** — touchable residuals |
-| **Roadmap position** | Stages 0–8 **thin proofs PASS**; Stage 2 HARD GATE **GO**; Stage 3 exit **PASS (thin)**; S9–S11 thin + disconnect/persist/chrome/ready/smoke **PASS**; S07-T02 weapon hit thin **PASS**; S09-T04 heartbeat disconnect **PASS** |
-| **Queue status** | **Idle for agents** — no product open tasks; `PIPE-T02` human-only |
+| **Roadmap position** | Stages 0–8 **thin proofs PASS**; Stage 2 HARD GATE **GO**; Stage 3 exit **PASS (thin)**; S9–S11 thin + S4-02 polygon + S5-02 groups + S11-E2E **PASS** |
+| **Queue status** | **Idle for agents** — product polish spikes done; `PIPE-T02` human-only |
 | **Last queue update** | 2026-09-21 |
 | **Autonomy recommendation** | Level **2–3** (see [`AI_WORKFLOW.md`](AI_WORKFLOW.md)) |
-| **Evidence snapshot** | [`SESSION_2026-09-21_MVP_PROGRESS.md`](../experiments/SESSION_2026-09-21_MVP_PROGRESS.md) (~80–85% thin MVP loop) + [`S7-02_WEAPON_HIT.md`](../experiments/S7-02_WEAPON_HIT.md) |
+| **Evidence snapshot** | [`SESSION_2026-09-21_MVP_PROGRESS.md`](../experiments/SESSION_2026-09-21_MVP_PROGRESS.md) + [`S4-02_CHASSIS_POLYGON_EDITOR.md`](../experiments/S4-02_CHASSIS_POLYGON_EDITOR.md) + [`S5-02_BINDING_GROUPS.md`](../experiments/S5-02_BINDING_GROUPS.md) + [`S11_E2E_LOOP.md`](../experiments/S11_E2E_LOOP.md) |
 
 ---
 
@@ -79,14 +79,14 @@
 | ID | Task | Status | Evidence |
 |----|------|--------|----------|
 | S04-T01 | Construction validation mass/CoM/admit (S4-01) | done | `S4-01_CONSTRUCTION_VALIDATION.md` |
-| S04-T02 | Construction editor UX / polygon UI | deferred | Out of thin path; after S09–S11 |
+| S04-T02 | Chassis polygon editor thin (≤16 pts) | done | `S4-02_CHASSIS_POLYGON_EDITOR.md` |
 
 ### Stage 5 — Control (thin)
 
 | ID | Task | Status | Evidence |
 |----|------|--------|----------|
 | S05-T01 | Configure wiring presets (S5-01) | done | `S5-01_CONFIGURE_WIRING.md` |
-| S05-T02 | Binding UI / composite groups UX | deferred | After S09–S11; net re-admit of rebound maps still open |
+| S05-T02 | Binding groups UX thin | done | `S5-02_BINDING_GROUPS.md` |
 
 ### Stage 6 — Seamless loop (thin)
 
@@ -128,6 +128,7 @@
 | S11-T02 | One blessed MP path same blueprint | done | `S11_MVP_LOOP_GLUE.md` |
 | S11-T03 | MVP smoke checklist + known-issues | done | `MVP_SMOKE_CHECKLIST.md` |
 | S11-T04 | Workshop Construction/Configure chrome (thin) | done | `S11_WORKSHOP_CHROME.md` |
+| S11-T05 | E2E smoke Design→Configure→Test→Fight→Results | done | `S11_E2E_LOOP.md` |
 
 ### Pipeline meta (this setup)
 
@@ -144,8 +145,6 @@
 | ID | Task | Status | Acceptance (thin) |
 |----|------|--------|-------------------|
 | PIPE-T02 | Cursor Project + Automations (manual UI) | open | Human-only; see AI_WORKFLOW § Manual steps — **not** agent work |
-| S04-T02 | Construction polygon editor UI | deferred | See completed table |
-| S05-T02 | Binding UI / composite groups UX | deferred | See completed table |
 
 ---
 
@@ -155,13 +154,13 @@
 |------|--------|-----|
 | — | None | [`BLOCKERS.md`](BLOCKERS.md) |
 
-Residual **non-blockers** (do not stop queue): Unity Dedicated Server Win module not installed (headless player used); custom UDP not frozen; polygon/binding polish deferred.
+Residual **non-blockers** (do not stop queue): Unity Dedicated Server Win module not installed (headless player used); custom UDP not frozen.
 
 ---
 
 ## Backlog (do not pull forward early)
 
-- Construction polygon editor UI; Configure binding UI chrome (beyond thin IMGUI)  
+- Construction polygon editor polish beyond thin IMGUI; full composite binding chrome  
 - Content catalog / economy / career  
 - NGO/NFE package freeze (only after experiment vs current UDP)  
 - True Dedicated Server build target hardening  

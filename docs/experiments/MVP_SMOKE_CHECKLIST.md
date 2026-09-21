@@ -17,6 +17,9 @@
 | Results persist | `… (S10-02 Results Persist)` | JSON file + thin view |
 | MVP glue | `… (S11 MVP Loop Glue)` | Workshop → local + MP admit |
 | Workshop chrome | `… (S11 Workshop Chrome)` | IMGUI Design/Configure/Test |
+| Chassis polygon | `… (S4-02 Chassis Polygon Editor)` | ≤16 edit + admit |
+| Binding groups | `… (S5-02 Binding Groups)` | Drive/Turn cycle + JSON |
+| E2E loop | `… (S11 E2E Loop)` | Design→Fight→Results one scene |
 
 ## Manual touch path (local)
 
@@ -27,10 +30,10 @@
 
 ## Known issues / residuals (non-blockers)
 
-- No polygon editor / binding groups UI  
+- Product polygon / binding chrome polish beyond thin IMGUI  
 - Weapons beyond functional disable (Stage 7 depth)  
 - Ready/lobby UX stub (S09-T03) still thin/auto  
-- No reconnect; hard drop without goodbye needs heartbeat (future)  
+- No reconnect; hard drop without goodbye covered by S9-04 heartbeat  
 - Custom UDP not frozen; Dedicated Server Win module optional residual  
 - No economy / catalog / career
 

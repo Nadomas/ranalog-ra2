@@ -28,6 +28,9 @@ using UnityEngine.SceneManagement;
 /// Menu: Tools/RA2/Build PhysicsTest Scene (S6-01 Seamless Loop)
 /// Menu: Tools/RA2/Build PhysicsTest Scene (S8-01 Combat Immobility)
 /// Menu: Tools/RA2/Build PhysicsTest Scene (S7-02 Weapon Hit)
+/// Menu: Tools/RA2/Build PhysicsTest Scene (S4-02 Chassis Polygon Editor)
+/// Menu: Tools/RA2/Build PhysicsTest Scene (S5-02 Binding Groups)
+/// Menu: Tools/RA2/Build PhysicsTest Scene (S11 E2E Loop)
 /// </summary>
 public static class PhysicsTestSceneBuilder
 {
@@ -64,7 +67,10 @@ public static class PhysicsTestSceneBuilder
         HeartbeatDisconnect,
         ResultsPersist,
         WorkshopChrome,
-        ReadyLobby
+        ReadyLobby,
+        ChassisPolygonEditor,
+        BindingGroups,
+        MvpE2E
     }
 
     [MenuItem("Tools/RA2/Build PhysicsTest Scene")]
@@ -260,6 +266,24 @@ public static class PhysicsTestSceneBuilder
         Build(Scenario.ReadyLobby);
     }
 
+    [MenuItem("Tools/RA2/Build PhysicsTest Scene (S4-02 Chassis Polygon Editor)")]
+    public static void BuildChassisPolygonEditorFromMenu()
+    {
+        Build(Scenario.ChassisPolygonEditor);
+    }
+
+    [MenuItem("Tools/RA2/Build PhysicsTest Scene (S5-02 Binding Groups)")]
+    public static void BuildBindingGroupsFromMenu()
+    {
+        Build(Scenario.BindingGroups);
+    }
+
+    [MenuItem("Tools/RA2/Build PhysicsTest Scene (S11 E2E Loop)")]
+    public static void BuildMvpE2EFromMenu()
+    {
+        Build(Scenario.MvpE2E);
+    }
+
     [MenuItem("Tools/RA2/Force Script Compile")]
     public static void ForceScriptCompile()
     {
@@ -386,6 +410,24 @@ public static class PhysicsTestSceneBuilder
         AssetDatabase.ImportAsset(
             "Assets/Runtime/Robot/RobotReadyLobbyVerifier.cs",
             ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+        AssetDatabase.ImportAsset(
+            "Assets/Runtime/Robot/RobotChassisPolygonEditor.cs",
+            ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+        AssetDatabase.ImportAsset(
+            "Assets/Runtime/Robot/RobotChassisPolygonChrome.cs",
+            ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+        AssetDatabase.ImportAsset(
+            "Assets/Runtime/Robot/RobotChassisPolygonVerifier.cs",
+            ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+        AssetDatabase.ImportAsset(
+            "Assets/Runtime/Robot/RobotBindingGroupsChrome.cs",
+            ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+        AssetDatabase.ImportAsset(
+            "Assets/Runtime/Robot/RobotBindingGroupsVerifier.cs",
+            ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+        AssetDatabase.ImportAsset(
+            "Assets/Runtime/Robot/RobotMvpE2EVerifier.cs",
+            ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
         AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
         UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
         Debug.Log("[PhysicsTestSceneBuilder] Requested script compilation.");
@@ -488,6 +530,18 @@ public static class PhysicsTestSceneBuilder
         else if (scenario == Scenario.ReadyLobby)
         {
             BuildReadyLobbyScenario();
+        }
+        else if (scenario == Scenario.ChassisPolygonEditor)
+        {
+            BuildChassisPolygonEditorScenario(floorMat);
+        }
+        else if (scenario == Scenario.BindingGroups)
+        {
+            BuildBindingGroupsScenario();
+        }
+        else if (scenario == Scenario.MvpE2E)
+        {
+            BuildMvpE2EScenario(floorMat);
         }
         else if (scenario == Scenario.CollisionSmoke)
         {
@@ -989,6 +1043,35 @@ public static class PhysicsTestSceneBuilder
         Debug.Log("[PhysicsTestSceneBuilder] S9-03 ready/lobby stub host ready (UDP peers → ready → start).");
     }
 
+    static void BuildChassisPolygonEditorScenario(PhysicsMaterial floor)
+    {
+        var hostGo = new GameObject("ChassisPolygonEditorHost");
+        var verifier = hostGo.AddComponent<RobotChassisPolygonVerifier>();
+        verifier.Configure(floor);
+        verifier.AutoRun = true;
+
+        Debug.Log("[PhysicsTestSceneBuilder] S4-02 chassis polygon editor host ready (≤16 edit + admit).");
+    }
+
+    static void BuildBindingGroupsScenario()
+    {
+        var hostGo = new GameObject("BindingGroupsHost");
+        var verifier = hostGo.AddComponent<RobotBindingGroupsVerifier>();
+        verifier.AutoRun = true;
+
+        Debug.Log("[PhysicsTestSceneBuilder] S5-02 binding groups host ready (Drive/Turn cycle + JSON).");
+    }
+
+    static void BuildMvpE2EScenario(PhysicsMaterial floor)
+    {
+        var hostGo = new GameObject("MvpE2EHost");
+        var verifier = hostGo.AddComponent<RobotMvpE2EVerifier>();
+        verifier.Configure(floor);
+        verifier.AutoRun = true;
+
+        Debug.Log("[PhysicsTestSceneBuilder] S11-E2E host ready (Design→Configure→Test→Fight→Results).");
+    }
+
     static bool UsesGripFloor(Scenario scenario)
     {
         return scenario == Scenario.BlueprintV1Ra2
@@ -1004,7 +1087,9 @@ public static class PhysicsTestSceneBuilder
             || scenario == Scenario.MvpLoopGlue
             || scenario == Scenario.DisconnectPolicy
             || scenario == Scenario.HeartbeatDisconnect
-            || scenario == Scenario.WorkshopChrome;
+            || scenario == Scenario.WorkshopChrome
+            || scenario == Scenario.ChassisPolygonEditor
+            || scenario == Scenario.MvpE2E;
     }
 
     static void CreateMainCamera()

@@ -15,35 +15,38 @@
 | **S11** Workshop → local+MP combat admit glue | **PASS** | `docs/experiments/S11_MVP_LOOP_GLUE.md` |
 | **S11 chrome** Workshop IMGUI Design/Configure/Test | **PASS** | `docs/experiments/S11_WORKSHOP_CHROME.md` |
 | **MVP smoke checklist** | **PASS** | `docs/experiments/MVP_SMOKE_CHECKLIST.md` |
+| **S4-02** Chassis polygon editor thin | **PASS** | `docs/experiments/S4-02_CHASSIS_POLYGON_EDITOR.md` |
+| **S5-02** Binding groups UX thin | **PASS** | `docs/experiments/S5-02_BINDING_GROUPS.md` |
+| **S11-E2E** Design→Fight→Results one scene | **PASS** | `docs/experiments/S11_E2E_LOOP.md` |
 
 ## Thin MVP loop status
 
 | Loop step | Thin proof | Gap to GDD MVP |
 |-----------|------------|----------------|
-| Design | Validator + dual samples + CoM + thin chrome | No polygon editor UI |
-| Configure | Preset rebind + JSON + thin chrome | No binding groups UX |
+| Design | Validator + dual samples + CoM + polygon editor thin + chrome | Product polygon UX polish |
+| Configure | Preset rebind + binding groups thin + JSON + chrome | Full composite chrome |
 | Test | Workshop session + chrome | Gizmo polish |
-| Fight | Local 1v1 + UDP lobby + Immobilized + disconnect forfeit | Weapons depth / ready UX stub |
+| Fight | Local 1v1 + UDP lobby + Immobilized + disconnect forfeit | Weapons depth |
 | Results | Console + JSON persist + thin IMGUI view | History list / polish |
-| Integration | Workshop → local + MP + smoke checklist | Soak / product chrome |
+| Integration | Workshop → local + MP + E2E one-scene + smoke checklist | Soak / product chrome |
 
-**Estimated % toward playable GDD MVP:** ~80–85% (thin Design→Configure→Test→Battle→Results + disconnect + persist + touchable workshop chrome; polygon/weapons/ready UX remain).
+**Estimated % toward playable GDD MVP:** ~90% (thin Design→Configure→Test→Battle→Results + polygon/groups + E2E scene; weapons/product chrome remain).
 
 ## Latest Play PASS logs (this residual pass)
 
 ```
-[S9-02] VERIFIER_DONE pass=True reason=ok policy=disconnect-forfeit-v0 ... host_reason=DisconnectForfeit
-[S10-02] VERIFIER_DONE pass=True file_ok=True view_ok=True ...
-[S11-CHROME] VERIFIER_DONE pass=True design=True/ cfg=True/ preset=True/ test=True/ inst=True admit=True/ ...
+[S4-02] VERIFIER_DONE pass=True before=4 nudged=True/ at_max=True reject17=True/chassis_points:17>16 ...
+[S5-02] VERIFIER_DONE pass=True apply=True/ drive=Up/Down cycle=True/ ... bind_json=True ...
+[S11-E2E] VERIFIER_DONE pass=True poly=True/ pts_ok=True group=True/ fight=True reason=Immobilized winner=1 results=True ...
 ```
 
 ## Stop condition
 
-**(a) met for Stages 9–11 thin + residuals listed above.** Next open queue item: **S09-T03** ready/lobby stub. Weapon thin (S07-T02) only if needed for feel.
+**(a) met** for Stages 9–11 thin + S4-02 / S5-02 / S11-E2E playability polish. Next open: **PIPE-T02** (human-only) or backlog product chrome.
 
 ## Exact next remaining work
 
-1. Ready/lobby flow stub (S09-T03).  
-2. Weapon hit apply thin **only if** GDD MVP feel still blocked.  
-3. Polygon construction / binding groups UX (deferred polish).  
-4. Commit large uncommitted tree on `agent/*` when asked (PIPE-T03).
+1. PIPE-T02 human Cursor Automations (not agent).  
+2. Product polygon/binding chrome polish (backlog).  
+3. Weapons depth / arena art (deferred).  
+4. Results history list polish (backlog).
