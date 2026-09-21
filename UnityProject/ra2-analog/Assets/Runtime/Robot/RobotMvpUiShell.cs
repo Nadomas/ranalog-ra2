@@ -45,6 +45,7 @@ public sealed class RobotMvpUiShell : MonoBehaviour
     Button btnTest;
     Button btnAdmitTest;
     Button btnFight;
+    Button btnUdpFight;
     Button btnReset;
 
     bool bound;
@@ -173,6 +174,7 @@ public sealed class RobotMvpUiShell : MonoBehaviour
         btnTest = root.Q<Button>("btn-test");
         btnAdmitTest = root.Q<Button>("btn-admit-test");
         btnFight = root.Q<Button>("btn-fight");
+        btnUdpFight = root.Q<Button>("btn-udp-fight");
         btnReset = root.Q<Button>("btn-reset");
 
         Wire(btnDesign, () => app.TryUiSetMode(WorkshopMode.Design));
@@ -189,6 +191,7 @@ public sealed class RobotMvpUiShell : MonoBehaviour
         Wire(root.Q<Button>("btn-admit"), () => app.TryUiPrepareAdmit());
         Wire(btnAdmitTest, () => app.TryUiTestAdmit());
         Wire(btnFight, () => app.TryUiLocalFight());
+        Wire(btnUdpFight, () => app.TryUiUdpFight());
         Wire(root.Q<Button>("btn-results-close"), () => HideResults());
 
         bound = true;
@@ -258,6 +261,9 @@ public sealed class RobotMvpUiShell : MonoBehaviour
         if (btnFight != null)
             btnFight.SetEnabled(!fighting &&
                                 (mode == WorkshopMode.Test || hasAdmit || bp != null));
+        if (btnUdpFight != null)
+            btnUdpFight.SetEnabled(!fighting &&
+                                   (mode == WorkshopMode.Test || hasAdmit || bp != null));
         if (btnReset != null)
             btnReset.SetEnabled(mode == WorkshopMode.Test);
 

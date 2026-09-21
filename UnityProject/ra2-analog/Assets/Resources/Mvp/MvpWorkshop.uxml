@@ -70,6 +70,7 @@
                 <ui:Button name="btn-admit" text="Prepare Admit" class="tool-btn wide" />
                 <ui:Button name="btn-admit-test" text="Test Admit Clone" class="tool-btn wide" />
                 <ui:Button name="btn-fight" text="Start Local Fight" class="tool-btn wide fight" />
+                <ui:Button name="btn-udp-fight" text="UDP Loopback Fight" class="tool-btn wide accent" />
 
                 <ui:VisualElement name="status-box" class="status-box">
                     <ui:Label text="STATUS" class="status-caption" />

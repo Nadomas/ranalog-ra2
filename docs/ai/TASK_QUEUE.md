@@ -11,11 +11,11 @@
 | Field | Value |
 |-------|--------|
 | **Current milestone** | **STAGE 11 MVP player + UI Toolkit** |
-| **Roadmap position** | Thin spine PASS; **S11-10/11** fight feel + less-raw chrome **PASS** |
-| **Queue status** | **Idle for agents** — playable duel + Drive boot; `PIPE-T02` human-only |
+| **Roadmap position** | Thin spine PASS; **S11-12** UDP loopback in player **PASS** |
+| **Queue status** | **Idle for agents** — local + UDP duel in `.exe`; `PIPE-T02` human-only |
 | **Last queue update** | 2026-09-21 |
 | **Autonomy recommendation** | Level **2–3** (see [`AI_WORKFLOW.md`](AI_WORKFLOW.md)) |
-| **Evidence snapshot** | [`S11-11_MVP_FEEL_POLISH.md`](../experiments/S11-11_MVP_FEEL_POLISH.md) |
+| **Evidence snapshot** | [`S11-12_UDP_PLAYER_SHELL.md`](../experiments/S11-12_UDP_PLAYER_SHELL.md) |
 
 ---
 
@@ -150,6 +150,7 @@
 | S11-T09 | Workshop UI polish (flow / HUD / results) | done | `S11-09_MVP_UI_POLISH.md` |
 | S11-T10 | Playable local fight feel (drive + chase AI) | done | `S11-10_PLAYABLE_FIGHT_FEEL.md` |
 | S11-T11 | MVP feel polish (boot Drive, camera, fight HUD) | done | `S11-11_MVP_FEEL_POLISH.md` |
+| S11-T12 | UDP loopback fight in Windows player shell | done | `S11-12_UDP_PLAYER_SHELL.md` |
 
 ### Pipeline meta (this setup)
 
@@ -177,7 +178,7 @@
 
 Residual **non-blockers** (do not stop queue): Unity Dedicated Server Win module not installed (headless player used); custom UDP not frozen.
 
-Optional next agent polish (backlog — pull only when idle + human wants more touchable MVP): wiring canvas UI; UDP fight in player shell; match history list; stronger arena art.
+Optional next agent polish (backlog — pull only when idle + human wants more touchable MVP): wiring canvas UI; true LAN host/join (2 processes); match history list; stronger arena art.
 
 ---
 

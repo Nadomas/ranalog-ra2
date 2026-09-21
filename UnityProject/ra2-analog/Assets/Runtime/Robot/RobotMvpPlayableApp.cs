@@ -162,6 +162,12 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
             StartCoroutine(RunLocalFightFromWorkshop());
     }
 
+    public void TryUiUdpFight()
+    {
+        if (!fightRunning)
+            StartCoroutine(RunUdpFightFromWorkshop(interactive: !smokeMode));
+    }
+
     public void EnsureWorld()
     {
         if (Camera.main == null)
@@ -364,6 +370,86 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         {
             fightStatus = "fight_failed";
             Debug.Log("[S11-07] FIGHT_DONE pass=False");
+        }
+
+        fightRunning = false;
+    }
+
+    IEnumerator RunUdpFightFromWorkshop(bool interactive)
+    {
+        if (fightRunning)
+            yield break;
+        fightRunning = true;
+        fightStatus = "udp lobby…";
+        resultsView?.Hide();
+        EnsureChrome();
+        EnsureArenaBounds();
+
+        RobotBlueprint admitBp;
+        if (chrome.Session.LastAdmitBlueprint != null)
+        {
+            admitBp = RobotBlueprintSerializer.FromJson(
+                chrome.Session.LastAdmitJson ??
+                RobotBlueprintSerializer.ToJson(chrome.Session.LastAdmitBlueprint));
+        }
+        else if (chrome.Session.WorkingBlueprint != null)
+        {
+            if (!chrome.Session.TryPrepareCombatAdmit(out admitBp, out _, out var err))
+            {
+                fightStatus = $"udp_admit_fail={err}";
+                fightRunning = false;
+                yield break;
+            }
+        }
+        else
+        {
+            fightStatus = "udp_no_blueprint";
+            fightRunning = false;
+            yield break;
+        }
+
+        if (chrome.Session.Mode == WorkshopMode.Test)
+            chrome.TrySetMode(WorkshopMode.Configure, out _);
+
+        fightYouLabel = "YOU · UDP";
+        fightAiLabel = "AI · NET";
+        fightEndsAt = Time.time + interactiveFightSeconds;
+
+        var runner = new RobotMvpUdpLoopbackRunner(slideMaterial, interactiveFightSeconds: interactiveFightSeconds);
+        RobotMvpUdpLoopbackRunner.Result result = default;
+        yield return runner.Run(
+            admitBp,
+            interactive,
+            onFightLive: (a, b) =>
+            {
+                fightPlayer = a;
+                fightOpponent = b;
+                fightStatus = "udp fight · WASD host seat";
+                WireTestInput();
+            },
+            onFightCleared: () =>
+            {
+                fightPlayer = null;
+                fightOpponent = null;
+                wiredInput = null;
+            },
+            done: r => result = r);
+
+        if (result.Ok && result.HostSummary.Outcome.Finished)
+        {
+            MatchResultsStub.Present(result.HostSummary, "mvp-udp-host", persist: true, view: resultsView);
+            pendingResultsText = MatchResultsStub.FormatReadable(result.HostSummary, "mvp-udp");
+            fightStatus =
+                $"done udp {result.HostSummary.Outcome.Reason} winner={result.HostSummary.Outcome.WinnerRobotId}";
+            Debug.Log(
+                $"[S11-12] UDP_FIGHT_DONE pass=True reason={result.Reason} " +
+                $"winner={result.HostSummary.Outcome.WinnerRobotId} " +
+                $"client_winner={result.ClientSummary.Outcome.WinnerRobotId} session={result.SessionId}");
+        }
+        else
+        {
+            fightStatus = $"udp_fail={result.Reason}";
+            Debug.Log($"[S11-12] UDP_FIGHT_DONE pass=False reason={result.Reason}");
         }
 
         fightRunning = false;
@@ -601,14 +687,18 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
 
         yield return RunLocalFightFromWorkshop();
         yield return new WaitForSecondsRealtime(0.2f);
+        var localOk = fightStatus != null && fightStatus.StartsWith("done");
 
-        var pass = okDesign && okCfg && okTest && hasInst && okAdmit &&
-                   fightStatus != null && fightStatus.StartsWith("done");
+        yield return RunUdpFightFromWorkshop(interactive: false);
+        yield return new WaitForSecondsRealtime(0.2f);
+        var udpOk = fightStatus != null && fightStatus.StartsWith("done udp");
+
+        var pass = okDesign && okCfg && okTest && hasInst && okAdmit && localOk && udpOk;
         var marker = Path.Combine(Application.persistentDataPath, "ra2-mvp-smoke.txt");
         try
         {
             File.WriteAllText(marker,
-                $"pass={pass}\nstatus={fightStatus}\nunity={Application.unityVersion}\n");
+                $"pass={pass}\nstatus={fightStatus}\nlocal_ok={localOk}\nudp_ok={udpOk}\nunity={Application.unityVersion}\n");
         }
         catch
         {
@@ -617,7 +707,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
 
         Debug.Log(
             $"[S11-07] SMOKE_DONE pass={pass} design={okDesign} cfg={okCfg} test={okTest} " +
-            $"inst={hasInst} admit={okAdmit} fight={fightStatus} marker={marker}");
+            $"inst={hasInst} admit={okAdmit} local={localOk} udp={udpOk} fight={fightStatus} marker={marker}");
 
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
