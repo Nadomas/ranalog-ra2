@@ -11,11 +11,11 @@
 | Field | Value |
 |-------|--------|
 | **Current milestone** | **STAGE 11 MVP player + UI Toolkit** |
-| **Roadmap position** | Thin spine PASS; **S11-16** arena art **PASS** |
-| **Queue status** | **Idle for agents** — stronger pit dressing in `.exe`; `PIPE-T02` human-only |
+| **Roadmap position** | Stage 11 polish — **S11-17** done; next **S11-18** blueprint save/load |
+| **Queue status** | **Active** — touchable MVP polish → Stage 11 exit → Stage 12 |
 | **Last queue update** | 2026-09-21 |
 | **Autonomy recommendation** | Level **2–3** (see [`AI_WORKFLOW.md`](AI_WORKFLOW.md)) |
-| **Evidence snapshot** | [`S11-16_ARENA_ART.md`](../experiments/S11-16_ARENA_ART.md) |
+| **Evidence snapshot** | [`S11-17_CONTROLLER_GRID.md`](../experiments/S11-17_CONTROLLER_GRID.md) |
 
 ---
 
@@ -155,6 +155,7 @@
 | S11-T14 | LAN Host/Join (2-process) in player shell | done | `S11-14_LAN_HOST_JOIN.md` |
 | S11-T15 | Thin match history list (local persist UI) | done | `S11-15_MATCH_HISTORY.md` |
 | S11-T16 | Stronger thin arena art (procedural pit) | done | `S11-16_ARENA_ART.md` |
+| S11-T17 | Fuller controller-grid wiring chrome | done | `S11-17_CONTROLLER_GRID.md` |
 
 ### Pipeline meta (this setup)
 
@@ -170,7 +171,19 @@
 
 | ID | Task | Status | Acceptance (thin) |
 |----|------|--------|-------------------|
+| S11-T17 | Fuller controller-grid wiring chrome | done | Control slots as Kind+Binding grid; wires grouped by slot; conflict line; smoke |
+| S11-T18 | Blueprint local save/load (session persistence) | open | Save/Load JSON from player UI; round-trip smoke |
+| S11-T19 | Control debug visualization in Test | open | Live slot values / active wires HUD (local-only) |
+| S11-T20 | Stage 11 MVP exit (checklist + known-issues) | open | `STAGE11_EXIT.md` + updated `MVP_SMOKE_CHECKLIST.md` |
 | PIPE-T02 | Cursor Project + Automations (manual UI) | open | Human-only; see AI_WORKFLOW § Manual steps — **not** agent work |
+
+### Plan (why this order)
+
+1. **S11-17** — DESIGN≠CONFIGURE depth players feel next (GDD controller grid, still thin).  
+2. **S11-18** — MVP SHOULD: robots persist between sessions without catalog.  
+3. **S11-19** — MVP SHOULD: control debug makes wiring testable.  
+4. **S11-20** — Close Stage 11 with signed exit before Stage 12 hardening.  
+5. **After exit** — Stage 12 thin: soak/net stability, stalemate UX polish (no content/economy).
 
 ---
 
@@ -182,21 +195,18 @@
 
 Residual **non-blockers** (do not stop queue): Unity Dedicated Server Win module not installed (headless player used); custom UDP not frozen.
 
-Optional next agent polish (backlog — pull only when idle + human wants more touchable MVP): fuller controller-grid wiring chrome.
-
 ---
 
 ## Backlog (do not pull forward early)
 
-- Full wiring canvas / controller grid GDD UI  
-- UDP MP path inside Windows player shell  
+- Full freehand wire editor / GDD-complete controller chrome  
 - Construction polygon freehand gizmo; full composite binding chrome  
 - Content catalog / economy / career  
 - NGO/NFE package freeze (only after experiment vs current UDP)  
 - True Dedicated Server build target hardening  
 - Detach debris net replication; weapon formulae / chassis splash polish  
 - Geometric Ackermann toe tables / 4WS  
-- Ranked matchmaking, spectator, replay / match history list  
+- Ranked matchmaking, spectator, replay scrubber  
 - Reconnect window / bot replace / installer  
 
 ---

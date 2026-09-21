@@ -44,8 +44,10 @@ public sealed class RobotMvpUiShell : MonoBehaviour
     VisualElement fightHud;
     VisualElement wireList;
     VisualElement historyList;
+    VisualElement controlGrid;
     TextField lanHostField;
     Label historyDetail;
+    Label wireConflicts;
     Button btnDesign;
     Button btnConfigure;
     Button btnTest;
@@ -57,6 +59,7 @@ public sealed class RobotMvpUiShell : MonoBehaviour
     Button btnReset;
     Button btnHistory;
     int lastWireFingerprint = int.MinValue;
+    int lastSlotFingerprint = int.MinValue;
     readonly List<MatchSummaryStore.Dto> historyBuffer = new List<MatchSummaryStore.Dto>(16);
 
     bool bound;
@@ -184,6 +187,8 @@ public sealed class RobotMvpUiShell : MonoBehaviour
         historyList = root.Q("history-list");
         historyDetail = root.Q<Label>("history-detail");
         wireList = root.Q("wire-list");
+        controlGrid = root.Q("control-grid");
+        wireConflicts = root.Q<Label>("wire-conflicts");
         lanHostField = root.Q<TextField>("lan-host-field");
         btnDesign = root.Q<Button>("btn-design");
         btnConfigure = root.Q<Button>("btn-configure");
@@ -209,6 +214,7 @@ public sealed class RobotMvpUiShell : MonoBehaviour
         {
             app.TryUiTankPreset();
             lastWireFingerprint = int.MinValue;
+            lastSlotFingerprint = int.MinValue;
         });
         Wire(btnReset, () => app.TryUiResetTest());
         Wire(root.Q<Button>("btn-admit"), () => app.TryUiPrepareAdmit());
@@ -285,7 +291,11 @@ public sealed class RobotMvpUiShell : MonoBehaviour
         }
 
         if (mode == WorkshopMode.Configure)
+        {
+            RebuildControlGrid(bp);
             RebuildWireCanvas(bp);
+            RefreshWireConflicts(bp);
+        }
 
         if (btnAdmitTest != null)
             btnAdmitTest.SetEnabled(hasAdmit);
@@ -320,7 +330,7 @@ public sealed class RobotMvpUiShell : MonoBehaviour
                 : mode == WorkshopMode.Test
                     ? "Drive with WASD. Prepare Admit, then Start Local Fight."
                     : mode == WorkshopMode.Configure
-                        ? "Pick Drive/Turn, Cycle binding, or apply TankSteer."
+                        ? "Edit Kind/Binding on slots, then Sign/Channel on wires."
                         : "Nudge chassis points, then Wire bindings.";
         }
 
@@ -365,6 +375,106 @@ public sealed class RobotMvpUiShell : MonoBehaviour
         }
     }
 
+    void RebuildControlGrid(RobotBlueprint bp)
+    {
+        if (controlGrid == null)
+            return;
+
+        var fp = 0;
+        if (bp?.ControlSlots != null)
+        {
+            unchecked
+            {
+                for (var i = 0; i < bp.ControlSlots.Length; i++)
+                {
+                    var s = bp.ControlSlots[i];
+                    fp = (fp * 397) ^ (s.Id?.GetHashCode() ?? 0);
+                    fp = (fp * 397) ^ (int)s.Kind;
+                    fp = (fp * 397) ^ (s.InputBinding?.GetHashCode() ?? 0);
+                }
+
+                fp ^= bp.ControlSlots.Length;
+            }
+        }
+
+        if (fp == lastSlotFingerprint && controlGrid.childCount > 0)
+            return;
+        lastSlotFingerprint = fp;
+        controlGrid.Clear();
+
+        if (bp?.ControlSlots == null || bp.ControlSlots.Length == 0)
+        {
+            var empty = new Label("No control slots — apply TankSteer.");
+            empty.AddToClassList("tool-help");
+            controlGrid.Add(empty);
+            return;
+        }
+
+        var header = new Label("CONTROLS");
+        header.AddToClassList("grid-section");
+        controlGrid.Add(header);
+
+        for (var i = 0; i < bp.ControlSlots.Length; i++)
+        {
+            var idx = i;
+            var s = bp.ControlSlots[i];
+            var row = new VisualElement();
+            row.AddToClassList("control-row");
+
+            var name = new Label(string.IsNullOrEmpty(s.DisplayName) ? s.Id : s.DisplayName);
+            name.AddToClassList("control-row-name");
+            row.Add(name);
+
+            var kindBtn = new Button(() =>
+            {
+                app.TryUiCycleSlotKind(idx);
+                lastSlotFingerprint = int.MinValue;
+            })
+            {
+                text = s.Kind.ToString()
+            };
+            kindBtn.AddToClassList("tool-btn");
+            kindBtn.AddToClassList("wire-mini");
+            row.Add(kindBtn);
+
+            var bindBtn = new Button(() =>
+            {
+                app.TryUiCycleSlotBinding(idx);
+                lastSlotFingerprint = int.MinValue;
+            })
+            {
+                text = string.IsNullOrEmpty(s.InputBinding) ? "?" : s.InputBinding
+            };
+            bindBtn.AddToClassList("tool-btn");
+            bindBtn.AddToClassList("wire-mini");
+            row.Add(bindBtn);
+
+            controlGrid.Add(row);
+        }
+    }
+
+    void RefreshWireConflicts(RobotBlueprint bp)
+    {
+        if (wireConflicts == null)
+            return;
+        if (bp == null)
+        {
+            wireConflicts.text = "";
+            return;
+        }
+
+        var conflicts = RobotControlConfigurer.FindWiringConflicts(bp);
+        var groupWarn = RobotControlConfigurer.FindBindingGroupConflicts(bp);
+        if (conflicts.Count == 0 && groupWarn.Count == 0)
+        {
+            wireConflicts.text = "Conflicts: none";
+            return;
+        }
+
+        var n = conflicts.Count + groupWarn.Count;
+        wireConflicts.text = $"Conflicts: {n}";
+    }
+
     void RebuildWireCanvas(RobotBlueprint bp)
     {
         if (wireList == null)
@@ -400,14 +510,28 @@ public sealed class RobotMvpUiShell : MonoBehaviour
             return;
         }
 
+        var wiresHeader = new Label("WIRES BY CONTROL");
+        wiresHeader.AddToClassList("grid-section");
+        wireList.Add(wiresHeader);
+
+        string lastSlot = null;
         for (var i = 0; i < bp.Wirings.Length; i++)
         {
             var idx = i;
             var w = bp.Wirings[i];
+            var slot = w.ControlSlotId ?? "?";
+            if (!string.Equals(slot, lastSlot, System.StringComparison.Ordinal))
+            {
+                lastSlot = slot;
+                var group = new Label(slot);
+                group.AddToClassList("wire-group");
+                wireList.Add(group);
+            }
+
             var row = new VisualElement();
             row.AddToClassList("wire-row");
 
-            var label = new Label($"{w.ControlSlotId} → {w.ComponentId}");
+            var label = new Label($"→ {w.ComponentId}");
             label.AddToClassList("wire-row-label");
             row.Add(label);
 

@@ -284,5 +284,70 @@ namespace Ra2.Robot
             blueprint.Wirings[wireIndex] = w;
             return true;
         }
+
+        static readonly string[] BindingCycle =
+        {
+            "W/S", "A/D", "Up/Down", "Left/Right", "MouseY", "MouseX", "Space", "F"
+        };
+
+        /// <summary>S11-17: cycle ControlSlot Kind Switch→Button→Analog.</summary>
+        public static bool TryCycleSlotKind(RobotBlueprint blueprint, int slotIndex, out string error)
+        {
+            error = null;
+            if (blueprint?.ControlSlots == null)
+            {
+                error = "no_slots";
+                return false;
+            }
+
+            if (slotIndex < 0 || slotIndex >= blueprint.ControlSlots.Length)
+            {
+                error = "bad_index";
+                return false;
+            }
+
+            var s = blueprint.ControlSlots[slotIndex];
+            s.Kind = s.Kind switch
+            {
+                RobotControlKind.Switch => RobotControlKind.Button,
+                RobotControlKind.Button => RobotControlKind.Analog,
+                _ => RobotControlKind.Switch
+            };
+            blueprint.ControlSlots[slotIndex] = s;
+            return true;
+        }
+
+        /// <summary>S11-17: cycle ControlSlot InputBinding through a thin preset list.</summary>
+        public static bool TryCycleSlotBinding(RobotBlueprint blueprint, int slotIndex, out string error)
+        {
+            error = null;
+            if (blueprint?.ControlSlots == null)
+            {
+                error = "no_slots";
+                return false;
+            }
+
+            if (slotIndex < 0 || slotIndex >= blueprint.ControlSlots.Length)
+            {
+                error = "bad_index";
+                return false;
+            }
+
+            var s = blueprint.ControlSlots[slotIndex];
+            var cur = s.InputBinding ?? string.Empty;
+            var idx = 0;
+            for (var i = 0; i < BindingCycle.Length; i++)
+            {
+                if (string.Equals(BindingCycle[i], cur, StringComparison.OrdinalIgnoreCase))
+                {
+                    idx = (i + 1) % BindingCycle.Length;
+                    break;
+                }
+            }
+
+            s.InputBinding = BindingCycle[idx];
+            blueprint.ControlSlots[slotIndex] = s;
+            return true;
+        }
     }
 }

@@ -189,6 +189,22 @@ public sealed class RobotWorkshopChrome : MonoBehaviour
         return ok;
     }
 
+    public bool TryCycleSlotKind(int index, out string error)
+    {
+        EnsureSession();
+        var ok = RobotControlConfigurer.TryCycleSlotKind(session.WorkingBlueprint, index, out error);
+        status = ok ? $"slot_kind={index}" : $"slot_kind_fail={error}";
+        return ok;
+    }
+
+    public bool TryCycleSlotBinding(int index, out string error)
+    {
+        EnsureSession();
+        var ok = RobotControlConfigurer.TryCycleSlotBinding(session.WorkingBlueprint, index, out error);
+        status = ok ? $"slot_bind={index}" : $"slot_bind_fail={error}";
+        return ok;
+    }
+
     public void StepPolySelection(int delta)
     {
         EnsureSession();

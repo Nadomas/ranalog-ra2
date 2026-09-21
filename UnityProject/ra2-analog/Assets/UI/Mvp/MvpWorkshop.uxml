@@ -42,8 +42,8 @@
                 </ui:VisualElement>
 
                 <ui:VisualElement name="panel-configure" class="tool-panel hidden">
-                    <ui:Label text="Wiring canvas" class="tool-title" />
-                    <ui:Label text="Rows = slot → part. Click Sign / Channel to edit. TankSteer resets map." class="tool-help" />
+                    <ui:Label text="Controller grid" class="tool-title" />
+                    <ui:Label text="Slots = Kind + Binding. Wires below are grouped by control." class="tool-help" />
                     <ui:Label name="bind-info" text="Drive=—  Turn=—" class="tool-meta" />
                     <ui:VisualElement class="row">
                         <ui:Button name="btn-bind-drive" text="Drive" class="tool-btn" />
@@ -53,7 +53,9 @@
                         <ui:Button name="btn-bind-cycle" text="Cycle binding" class="tool-btn" />
                         <ui:Button name="btn-tank" text="TankSteer" class="tool-btn accent tool-btn-end" />
                     </ui:VisualElement>
+                    <ui:Label name="wire-conflicts" text="" class="tool-meta wire-conflicts" />
                     <ui:ScrollView name="wire-canvas" class="wire-canvas">
+                        <ui:VisualElement name="control-grid" class="control-grid" />
                         <ui:VisualElement name="wire-list" class="wire-list" />
                     </ui:ScrollView>
                 </ui:VisualElement>

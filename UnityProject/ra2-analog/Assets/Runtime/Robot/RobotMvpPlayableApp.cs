@@ -187,6 +187,18 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         chrome.TryCycleWireChannel(index, out _);
     }
 
+    public void TryUiCycleSlotKind(int index)
+    {
+        EnsureChrome();
+        chrome.TryCycleSlotKind(index, out _);
+    }
+
+    public void TryUiCycleSlotBinding(int index)
+    {
+        EnsureChrome();
+        chrome.TryCycleSlotBinding(index, out _);
+    }
+
     public void TryUiLanHost(string _)
     {
         if (!fightRunning)
@@ -813,6 +825,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         yield return null;
         chrome.TryApplyTankPreset(out _);
         var wireOk = TrySmokeWireCanvas();
+        var gridOk = TrySmokeControllerGrid();
         yield return null;
         var okTest = chrome.TrySetMode(WorkshopMode.Test, out _);
         yield return new WaitForFixedUpdate();
@@ -840,12 +853,12 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         var arenaOk = GameObject.Find(RobotMvpArenaDressing.RootName) != null;
         Debug.Log($"[S11-16] ARENA_SMOKE pass={arenaOk}");
 
-        var pass = okDesign && okCfg && okTest && hasInst && okAdmit && wireOk && localOk && udpOk && lanOk && historyOk && arenaOk;
+        var pass = okDesign && okCfg && okTest && hasInst && okAdmit && wireOk && gridOk && localOk && udpOk && lanOk && historyOk && arenaOk;
         var marker = Path.Combine(Application.persistentDataPath, "ra2-mvp-smoke.txt");
         try
         {
             File.WriteAllText(marker,
-                $"pass={pass}\nstatus={fightStatus}\nlocal_ok={localOk}\nudp_ok={udpOk}\nlan_ok={lanOk}\nwire_ok={wireOk}\nhistory_ok={historyOk}\narena_ok={arenaOk}\nunity={Application.unityVersion}\n");
+                $"pass={pass}\nstatus={fightStatus}\nlocal_ok={localOk}\nudp_ok={udpOk}\nlan_ok={lanOk}\nwire_ok={wireOk}\ngrid_ok={gridOk}\nhistory_ok={historyOk}\narena_ok={arenaOk}\nunity={Application.unityVersion}\n");
         }
         catch
         {
@@ -854,7 +867,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
 
         Debug.Log(
             $"[S11-07] SMOKE_DONE pass={pass} design={okDesign} cfg={okCfg} test={okTest} " +
-            $"inst={hasInst} admit={okAdmit} wire={wireOk} local={localOk} udp={udpOk} lan={lanOk} " +
+            $"inst={hasInst} admit={okAdmit} wire={wireOk} grid={gridOk} local={localOk} udp={udpOk} lan={lanOk} " +
             $"history={historyOk} arena={arenaOk} fight={fightStatus} marker={marker}");
 
 #if UNITY_EDITOR
@@ -877,6 +890,29 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         if (!chrome.TryCycleWireChannel(0, out _))
             return false;
         Debug.Log($"[S11-13] WIRE_CANVAS_SMOKE pass=True sign={bp.Wirings[0].Sign} ch={bp.Wirings[0].Channel}");
+        return true;
+    }
+
+    bool TrySmokeControllerGrid()
+    {
+        var bp = chrome.Session.WorkingBlueprint;
+        if (bp?.ControlSlots == null || bp.ControlSlots.Length == 0)
+            return false;
+        var kind0 = bp.ControlSlots[0].Kind;
+        var bind0 = bp.ControlSlots[0].InputBinding;
+        if (!chrome.TryCycleSlotKind(0, out _))
+            return false;
+        if (bp.ControlSlots[0].Kind == kind0)
+            return false;
+        if (!chrome.TryCycleSlotBinding(0, out _))
+            return false;
+        if (string.Equals(bp.ControlSlots[0].InputBinding, bind0, System.StringComparison.Ordinal))
+            return false;
+        // Restore Analog+W/S so drive smoke stays sane.
+        chrome.TryApplyTankPreset(out _);
+        Debug.Log(
+            $"[S11-17] CONTROLLER_GRID_SMOKE pass=True kind={kind0}->{RobotControlKind.Analog} " +
+            $"bind_cycled=True slots={bp.ControlSlots.Length}");
         return true;
     }
 
