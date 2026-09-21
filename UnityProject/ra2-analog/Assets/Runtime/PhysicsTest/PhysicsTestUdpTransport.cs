@@ -340,6 +340,15 @@ public sealed class PhysicsTestUdpTransport : MonoBehaviour
         SendRaw(payload);
     }
 
+    /// <summary>
+    /// S11-14: host-local spawn inject (seat 0) without round-tripping UDP to self.
+    /// </summary>
+    public void InjectSpawnRequestLocal(RobotSpawnRequest request)
+    {
+        readySpawnRequests.Enqueue(request);
+        enqueuedSpawnRequests++;
+    }
+
     public int DrainSpawnRequests(List<RobotSpawnRequest> into)
     {
         if (into == null)

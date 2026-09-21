@@ -40,13 +40,18 @@ public sealed class RobotMvpUiShell : MonoBehaviour
     VisualElement panelTest;
     VisualElement resultsOverlay;
     VisualElement fightHud;
+    VisualElement wireList;
+    TextField lanHostField;
     Button btnDesign;
     Button btnConfigure;
     Button btnTest;
     Button btnAdmitTest;
     Button btnFight;
     Button btnUdpFight;
+    Button btnLanHost;
+    Button btnLanJoin;
     Button btnReset;
+    int lastWireFingerprint = int.MinValue;
 
     bool bound;
 
@@ -169,12 +174,16 @@ public sealed class RobotMvpUiShell : MonoBehaviour
         panelConfigure = root.Q("panel-configure");
         panelTest = root.Q("panel-test");
         resultsOverlay = root.Q("results-overlay");
+        wireList = root.Q("wire-list");
+        lanHostField = root.Q<TextField>("lan-host-field");
         btnDesign = root.Q<Button>("btn-design");
         btnConfigure = root.Q<Button>("btn-configure");
         btnTest = root.Q<Button>("btn-test");
         btnAdmitTest = root.Q<Button>("btn-admit-test");
         btnFight = root.Q<Button>("btn-fight");
         btnUdpFight = root.Q<Button>("btn-udp-fight");
+        btnLanHost = root.Q<Button>("btn-lan-host");
+        btnLanJoin = root.Q<Button>("btn-lan-join");
         btnReset = root.Q<Button>("btn-reset");
 
         Wire(btnDesign, () => app.TryUiSetMode(WorkshopMode.Design));
@@ -186,15 +195,22 @@ public sealed class RobotMvpUiShell : MonoBehaviour
         Wire(root.Q<Button>("btn-bind-drive"), () => app.TryUiSelectBind(RobotControlConfigurer.BindingGroupId.Drive));
         Wire(root.Q<Button>("btn-bind-turn"), () => app.TryUiSelectBind(RobotControlConfigurer.BindingGroupId.Turn));
         Wire(root.Q<Button>("btn-bind-cycle"), () => app.TryUiCycleBind());
-        Wire(root.Q<Button>("btn-tank"), () => app.TryUiTankPreset());
+        Wire(root.Q<Button>("btn-tank"), () =>
+        {
+            app.TryUiTankPreset();
+            lastWireFingerprint = int.MinValue;
+        });
         Wire(btnReset, () => app.TryUiResetTest());
         Wire(root.Q<Button>("btn-admit"), () => app.TryUiPrepareAdmit());
         Wire(btnAdmitTest, () => app.TryUiTestAdmit());
         Wire(btnFight, () => app.TryUiLocalFight());
         Wire(btnUdpFight, () => app.TryUiUdpFight());
+        Wire(btnLanHost, () => app.TryUiLanHost(lanHostField != null ? lanHostField.value : "127.0.0.1"));
+        Wire(btnLanJoin, () => app.TryUiLanJoin(lanHostField != null ? lanHostField.value : "127.0.0.1"));
         Wire(root.Q<Button>("btn-results-close"), () => HideResults());
 
         bound = true;
+        lastWireFingerprint = int.MinValue;
         RefreshChrome();
     }
 
@@ -256,6 +272,9 @@ public sealed class RobotMvpUiShell : MonoBehaviour
             bindInfo.text = $"Drive={drive}  Turn={turn}  sel={chrome.BindGroup}";
         }
 
+        if (mode == WorkshopMode.Configure)
+            RebuildWireCanvas(bp);
+
         if (btnAdmitTest != null)
             btnAdmitTest.SetEnabled(hasAdmit);
         if (btnFight != null)
@@ -264,6 +283,10 @@ public sealed class RobotMvpUiShell : MonoBehaviour
         if (btnUdpFight != null)
             btnUdpFight.SetEnabled(!fighting &&
                                    (mode == WorkshopMode.Test || hasAdmit || bp != null));
+        if (btnLanHost != null)
+            btnLanHost.SetEnabled(!fighting && bp != null);
+        if (btnLanJoin != null)
+            btnLanJoin.SetEnabled(!fighting && bp != null);
         if (btnReset != null)
             btnReset.SetEnabled(mode == WorkshopMode.Test);
 
@@ -327,6 +350,80 @@ public sealed class RobotMvpUiShell : MonoBehaviour
         {
             ShowResults(app.PendingResultsText);
             app.ClearPendingResults();
+        }
+    }
+
+    void RebuildWireCanvas(RobotBlueprint bp)
+    {
+        if (wireList == null)
+            return;
+
+        var fp = 0;
+        if (bp?.Wirings != null)
+        {
+            unchecked
+            {
+                for (var i = 0; i < bp.Wirings.Length; i++)
+                {
+                    var w = bp.Wirings[i];
+                    fp = (fp * 397) ^ (w.ComponentId?.GetHashCode() ?? 0);
+                    fp = (fp * 397) ^ (w.ControlSlotId?.GetHashCode() ?? 0);
+                    fp = (fp * 397) ^ (w.Channel?.GetHashCode() ?? 0);
+                    fp = (fp * 397) ^ w.Sign.GetHashCode();
+                }
+
+                fp ^= bp.Wirings.Length;
+            }
+        }
+
+        if (fp == lastWireFingerprint && wireList.childCount > 0)
+            return;
+        lastWireFingerprint = fp;
+        wireList.Clear();
+        if (bp?.Wirings == null || bp.Wirings.Length == 0)
+        {
+            var empty = new Label("No wires — apply TankSteer.");
+            empty.AddToClassList("tool-help");
+            wireList.Add(empty);
+            return;
+        }
+
+        for (var i = 0; i < bp.Wirings.Length; i++)
+        {
+            var idx = i;
+            var w = bp.Wirings[i];
+            var row = new VisualElement();
+            row.AddToClassList("wire-row");
+
+            var label = new Label($"{w.ControlSlotId} → {w.ComponentId}");
+            label.AddToClassList("wire-row-label");
+            row.Add(label);
+
+            var signBtn = new Button(() =>
+            {
+                app.TryUiFlipWire(idx);
+                lastWireFingerprint = int.MinValue;
+            })
+            {
+                text = w.Sign >= 0f ? "+1" : "−1"
+            };
+            signBtn.AddToClassList("tool-btn");
+            signBtn.AddToClassList("wire-mini");
+            row.Add(signBtn);
+
+            var chBtn = new Button(() =>
+            {
+                app.TryUiCycleWireChannel(idx);
+                lastWireFingerprint = int.MinValue;
+            })
+            {
+                text = string.IsNullOrEmpty(w.Channel) ? "?" : w.Channel
+            };
+            chBtn.AddToClassList("tool-btn");
+            chBtn.AddToClassList("wire-mini");
+            row.Add(chBtn);
+
+            wireList.Add(row);
         }
     }
 

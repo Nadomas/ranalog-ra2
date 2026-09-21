@@ -55,6 +55,13 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
     void Start()
     {
         smokeMode = HasCliFlag("-ra2-mvp-smoke");
+#if UNITY_EDITOR
+        if (!smokeMode && UnityEditor.EditorPrefs.GetBool("Ra2MvpForceSmoke", false))
+        {
+            smokeMode = true;
+            UnityEditor.EditorPrefs.DeleteKey("Ra2MvpForceSmoke");
+        }
+#endif
         if (smokeMode)
             StartCoroutine(RunSmokeAndQuit());
         else
@@ -166,6 +173,152 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
     {
         if (!fightRunning)
             StartCoroutine(RunUdpFightFromWorkshop(interactive: !smokeMode));
+    }
+
+    public void TryUiFlipWire(int index)
+    {
+        EnsureChrome();
+        chrome.TryFlipWireSign(index, out _);
+    }
+
+    public void TryUiCycleWireChannel(int index)
+    {
+        EnsureChrome();
+        chrome.TryCycleWireChannel(index, out _);
+    }
+
+    public void TryUiLanHost(string _)
+    {
+        if (!fightRunning)
+            StartCoroutine(RunLanHostFromWorkshop());
+    }
+
+    public void TryUiLanJoin(string hostAddress)
+    {
+        if (!fightRunning)
+            StartCoroutine(RunLanJoinFromWorkshop(hostAddress));
+    }
+
+    IEnumerator RunLanHostFromWorkshop()
+    {
+        if (fightRunning)
+            yield break;
+        fightRunning = true;
+        fightStatus = "lan host…";
+        resultsView?.Hide();
+        EnsureChrome();
+        EnsureArenaBounds();
+
+        if (!TryResolveAdmitBlueprint(out var admitBp, out var err))
+        {
+            fightStatus = $"lan_host_fail={err}";
+            fightRunning = false;
+            yield break;
+        }
+
+        if (chrome.Session.Mode == WorkshopMode.Test)
+            chrome.TrySetMode(WorkshopMode.Configure, out _);
+
+        fightYouLabel = "YOU · HOST";
+        fightAiLabel = "PEER";
+        fightEndsAt = Time.time + interactiveFightSeconds;
+
+        var runner = new RobotMvpLanMatchRunner(slideMaterial, interactiveFightSeconds: interactiveFightSeconds);
+        RobotMvpLanMatchRunner.Result result = default;
+        yield return runner.RunHost(
+            admitBp,
+            status => fightStatus = status,
+            onLive: (a, b) =>
+            {
+                fightPlayer = a;
+                fightOpponent = b;
+                // Host seat drive via LanHostLocalSeatDrive → authority (not PlayerInput).
+            },
+            onCleared: () =>
+            {
+                fightPlayer = null;
+                fightOpponent = null;
+                wiredInput = null;
+            },
+            done: r => result = r);
+
+        PresentLanResult(result);
+        fightRunning = false;
+    }
+
+    IEnumerator RunLanJoinFromWorkshop(string hostAddress)
+    {
+        if (fightRunning)
+            yield break;
+        fightRunning = true;
+        fightStatus = "lan join…";
+        resultsView?.Hide();
+        EnsureChrome();
+
+        if (!TryResolveAdmitBlueprint(out var admitBp, out var err))
+        {
+            fightStatus = $"lan_join_fail={err}";
+            fightRunning = false;
+            yield break;
+        }
+
+        if (chrome.Session.Mode == WorkshopMode.Test)
+            chrome.TrySetMode(WorkshopMode.Configure, out _);
+
+        fightYouLabel = "YOU · JOIN";
+        fightAiLabel = "HOST";
+        fightEndsAt = Time.time + interactiveFightSeconds;
+
+        var runner = new RobotMvpLanMatchRunner(slideMaterial, interactiveFightSeconds: interactiveFightSeconds);
+        RobotMvpLanMatchRunner.Result result = default;
+        yield return runner.RunClient(
+            admitBp,
+            hostAddress,
+            status => fightStatus = status,
+            onCleared: () => { },
+            done: r => result = r);
+
+        PresentLanResult(result);
+        fightRunning = false;
+    }
+
+    bool TryResolveAdmitBlueprint(out RobotBlueprint admitBp, out string error)
+    {
+        error = null;
+        admitBp = null;
+        if (chrome.Session.LastAdmitBlueprint != null)
+        {
+            admitBp = RobotBlueprintSerializer.FromJson(
+                chrome.Session.LastAdmitJson ??
+                RobotBlueprintSerializer.ToJson(chrome.Session.LastAdmitBlueprint));
+            return true;
+        }
+
+        if (chrome.Session.WorkingBlueprint != null)
+            return chrome.Session.TryPrepareCombatAdmit(out admitBp, out _, out error);
+
+        error = "no_blueprint";
+        return false;
+    }
+
+    void PresentLanResult(RobotMvpLanMatchRunner.Result result)
+    {
+        if (result.Ok && result.Summary.Outcome.Finished)
+        {
+            var side = result.WasHost ? "mvp-lan-host" : "mvp-lan-client";
+            MatchResultsStub.Present(result.Summary, side, persist: true, view: resultsView);
+            pendingResultsText = MatchResultsStub.FormatReadable(result.Summary, side);
+            fightStatus =
+                $"done lan {result.Summary.Outcome.Reason} winner={result.Summary.Outcome.WinnerRobotId}";
+            Debug.Log(
+                $"[S11-14] LAN_FIGHT_DONE pass=True host={result.WasHost} reason={result.Reason} " +
+                $"winner={result.Summary.Outcome.WinnerRobotId} session={result.SessionId}");
+        }
+        else
+        {
+            fightStatus = $"lan_fail={result.Reason}";
+            Debug.Log($"[S11-14] LAN_FIGHT_DONE pass=False host={result.WasHost} reason={result.Reason}");
+        }
     }
 
     public void EnsureWorld()
@@ -678,6 +831,9 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         yield return null;
         chrome.TryConfigureCycleBinding(out _, out _);
         yield return null;
+        chrome.TryApplyTankPreset(out _);
+        var wireOk = TrySmokeWireCanvas();
+        yield return null;
         var okTest = chrome.TrySetMode(WorkshopMode.Test, out _);
         yield return new WaitForFixedUpdate();
         yield return new WaitForFixedUpdate();
@@ -690,15 +846,19 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         var localOk = fightStatus != null && fightStatus.StartsWith("done");
 
         yield return RunUdpFightFromWorkshop(interactive: false);
-        yield return new WaitForSecondsRealtime(0.2f);
+        yield return new WaitForSecondsRealtime(0.5f);
         var udpOk = fightStatus != null && fightStatus.StartsWith("done udp");
 
-        var pass = okDesign && okCfg && okTest && hasInst && okAdmit && localOk && udpOk;
+        yield return RunLanSameProcessSmoke();
+        yield return new WaitForSecondsRealtime(0.2f);
+        var lanOk = fightStatus != null && fightStatus.StartsWith("done lan");
+
+        var pass = okDesign && okCfg && okTest && hasInst && okAdmit && wireOk && localOk && udpOk && lanOk;
         var marker = Path.Combine(Application.persistentDataPath, "ra2-mvp-smoke.txt");
         try
         {
             File.WriteAllText(marker,
-                $"pass={pass}\nstatus={fightStatus}\nlocal_ok={localOk}\nudp_ok={udpOk}\nunity={Application.unityVersion}\n");
+                $"pass={pass}\nstatus={fightStatus}\nlocal_ok={localOk}\nudp_ok={udpOk}\nlan_ok={lanOk}\nwire_ok={wireOk}\nunity={Application.unityVersion}\n");
         }
         catch
         {
@@ -707,13 +867,116 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
 
         Debug.Log(
             $"[S11-07] SMOKE_DONE pass={pass} design={okDesign} cfg={okCfg} test={okTest} " +
-            $"inst={hasInst} admit={okAdmit} local={localOk} udp={udpOk} fight={fightStatus} marker={marker}");
+            $"inst={hasInst} admit={okAdmit} wire={wireOk} local={localOk} udp={udpOk} lan={lanOk} " +
+            $"fight={fightStatus} marker={marker}");
 
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
 #else
         Application.Quit(pass ? 0 : 1);
 #endif
+    }
+
+    bool TrySmokeWireCanvas()
+    {
+        var bp = chrome.Session.WorkingBlueprint;
+        if (bp?.Wirings == null || bp.Wirings.Length == 0)
+            return false;
+        var before = bp.Wirings[0].Sign;
+        if (!chrome.TryFlipWireSign(0, out _))
+            return false;
+        if (Mathf.Approximately(bp.Wirings[0].Sign, before))
+            return false;
+        if (!chrome.TryCycleWireChannel(0, out _))
+            return false;
+        Debug.Log($"[S11-13] WIRE_CANVAS_SMOKE pass=True sign={bp.Wirings[0].Sign} ch={bp.Wirings[0].Channel}");
+        return true;
+    }
+
+    IEnumerator RunLanSameProcessSmoke()
+    {
+        if (fightRunning)
+            yield break;
+        fightRunning = true;
+        fightStatus = "lan smoke…";
+        EnsureChrome();
+        EnsureArenaBounds();
+
+        if (!TryResolveAdmitBlueprint(out var admitBp, out var err))
+        {
+            fightStatus = $"lan_smoke_fail={err}";
+            fightRunning = false;
+            yield break;
+        }
+
+        var runner = new RobotMvpLanMatchRunner(
+            slideMaterial,
+            peerWaitSeconds: 8f,
+            spawnWaitSeconds: 12f,
+            immobile: 0.8f,
+            interactiveFightSeconds: 6f);
+
+        RobotMvpLanMatchRunner.Result hostResult = default;
+        RobotMvpLanMatchRunner.Result clientResult = default;
+        var hostDone = false;
+        var clientDone = false;
+
+        StartCoroutine(WrapLan(
+            runner.RunHost(
+                admitBp,
+                s => fightStatus = "lan host: " + s,
+                onLive: (a, b) =>
+                {
+                    fightPlayer = a;
+                    fightOpponent = b;
+                },
+                onCleared: () =>
+                {
+                    fightPlayer = null;
+                    fightOpponent = null;
+                },
+                done: r => hostResult = r),
+            () => hostDone = true));
+
+        // Client starts slightly later so host socket is listening.
+        yield return new WaitForSecondsRealtime(0.35f);
+
+        StartCoroutine(WrapLan(
+            runner.RunClient(
+                admitBp,
+                "127.0.0.1",
+                s => fightStatus = "lan join: " + s,
+                onCleared: () => { },
+                done: r => clientResult = r),
+            () => clientDone = true));
+
+        var deadline = Time.realtimeSinceStartup + 45f;
+        while ((!hostDone || !clientDone) && Time.realtimeSinceStartup < deadline)
+            yield return null;
+
+        fightRunning = false;
+        if (hostResult.Ok && clientResult.Ok &&
+            hostResult.Summary.Outcome.WinnerRobotId == clientResult.Summary.Outcome.WinnerRobotId)
+        {
+            fightStatus =
+                $"done lan smoke winner={hostResult.Summary.Outcome.WinnerRobotId}";
+            Debug.Log(
+                $"[S11-14] LAN_SMOKE_DONE pass=True winner={hostResult.Summary.Outcome.WinnerRobotId} " +
+                $"host={hostResult.Reason} client={clientResult.Reason}");
+        }
+        else
+        {
+            fightStatus =
+                $"lan_smoke_fail host={hostResult.Reason} client={clientResult.Reason} " +
+                $"hostDone={hostDone} clientDone={clientDone}";
+            Debug.Log($"[S11-14] LAN_SMOKE_DONE pass=False {fightStatus}");
+        }
+    }
+
+    static IEnumerator WrapLan(IEnumerator inner, System.Action onDone)
+    {
+        yield return inner;
+        onDone?.Invoke();
     }
 
     static bool HasCliFlag(string flag)

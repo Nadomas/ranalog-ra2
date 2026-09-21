@@ -173,6 +173,22 @@ public sealed class RobotWorkshopChrome : MonoBehaviour
         status = $"sel={RobotControlConfigurer.DisplayNameForGroup(group)}";
     }
 
+    public bool TryFlipWireSign(int index, out string error)
+    {
+        EnsureSession();
+        var ok = RobotControlConfigurer.TryFlipWireSign(session.WorkingBlueprint, index, out error);
+        status = ok ? $"wire_flip={index}" : $"wire_flip_fail={error}";
+        return ok;
+    }
+
+    public bool TryCycleWireChannel(int index, out string error)
+    {
+        EnsureSession();
+        var ok = RobotControlConfigurer.TryCycleWireChannel(session.WorkingBlueprint, index, out error);
+        status = ok ? $"wire_ch={index}" : $"wire_ch_fail={error}";
+        return ok;
+    }
+
     public void StepPolySelection(int delta)
     {
         EnsureSession();

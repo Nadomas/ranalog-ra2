@@ -240,5 +240,49 @@ namespace Ra2.Robot
 
             return list.ToArray();
         }
+
+        /// <summary>S11-13: flip Sign on one wiring row (thin canvas edit).</summary>
+        public static bool TryFlipWireSign(RobotBlueprint blueprint, int wireIndex, out string error)
+        {
+            error = null;
+            if (blueprint?.Wirings == null)
+            {
+                error = "no_wirings";
+                return false;
+            }
+
+            if (wireIndex < 0 || wireIndex >= blueprint.Wirings.Length)
+            {
+                error = "bad_index";
+                return false;
+            }
+
+            var w = blueprint.Wirings[wireIndex];
+            w.Sign = w.Sign >= 0f ? -1f : 1f;
+            blueprint.Wirings[wireIndex] = w;
+            return true;
+        }
+
+        /// <summary>S11-13: cycle Channel CW↔CCW on one wiring row.</summary>
+        public static bool TryCycleWireChannel(RobotBlueprint blueprint, int wireIndex, out string error)
+        {
+            error = null;
+            if (blueprint?.Wirings == null)
+            {
+                error = "no_wirings";
+                return false;
+            }
+
+            if (wireIndex < 0 || wireIndex >= blueprint.Wirings.Length)
+            {
+                error = "bad_index";
+                return false;
+            }
+
+            var w = blueprint.Wirings[wireIndex];
+            w.Channel = string.Equals(w.Channel, "CW", StringComparison.OrdinalIgnoreCase) ? "CCW" : "CW";
+            blueprint.Wirings[wireIndex] = w;
+            return true;
+        }
     }
 }

@@ -41,8 +41,8 @@
                 </ui:VisualElement>
 
                 <ui:VisualElement name="panel-configure" class="tool-panel hidden">
-                    <ui:Label text="Binding groups" class="tool-title" />
-                    <ui:Label text="Map Drive / Turn inputs. TankSteer is the quick preset." class="tool-help" />
+                    <ui:Label text="Wiring canvas" class="tool-title" />
+                    <ui:Label text="Rows = slot → part. Click Sign / Channel to edit. TankSteer resets map." class="tool-help" />
                     <ui:Label name="bind-info" text="Drive=—  Turn=—" class="tool-meta" />
                     <ui:VisualElement class="row">
                         <ui:Button name="btn-bind-drive" text="Drive" class="tool-btn" />
@@ -52,6 +52,9 @@
                         <ui:Button name="btn-bind-cycle" text="Cycle binding" class="tool-btn" />
                         <ui:Button name="btn-tank" text="TankSteer" class="tool-btn accent tool-btn-end" />
                     </ui:VisualElement>
+                    <ui:ScrollView name="wire-canvas" class="wire-canvas">
+                        <ui:VisualElement name="wire-list" class="wire-list" />
+                    </ui:ScrollView>
                 </ui:VisualElement>
 
                 <ui:VisualElement name="panel-test" class="tool-panel hidden">
@@ -66,11 +69,19 @@
 
                 <ui:VisualElement class="divider" />
                 <ui:Label text="FIGHT" class="section-title" />
-                <ui:Label text="Admit locks the blueprint, then start a local duel vs AI." class="tool-help" />
+                <ui:Label text="Local / UDP loopback / LAN host-join (2 processes)." class="tool-help" />
                 <ui:Button name="btn-admit" text="Prepare Admit" class="tool-btn wide" />
                 <ui:Button name="btn-admit-test" text="Test Admit Clone" class="tool-btn wide" />
                 <ui:Button name="btn-fight" text="Start Local Fight" class="tool-btn wide fight" />
                 <ui:Button name="btn-udp-fight" text="UDP Loopback Fight" class="tool-btn wide accent" />
+                <ui:VisualElement class="lan-box">
+                    <ui:Label text="LAN" class="status-caption" />
+                    <ui:TextField name="lan-host-field" value="127.0.0.1" class="lan-field" />
+                    <ui:VisualElement class="row">
+                        <ui:Button name="btn-lan-host" text="Host LAN" class="tool-btn" />
+                        <ui:Button name="btn-lan-join" text="Join LAN" class="tool-btn accent tool-btn-end" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
 
                 <ui:VisualElement name="status-box" class="status-box">
                     <ui:Label text="STATUS" class="status-caption" />

@@ -53,6 +53,17 @@ public static class MvpPlayerBuild
             Debug.Log("[S11-09] PLAYER_BUILD_WITH_UI_FALLBACK");
     }
 
+    [MenuItem("Tools/RA2/Play MVP Smoke (S11)")]
+    public static void PlayMvpSmokeFromMenu()
+    {
+        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+            return;
+        EditorSceneManager.OpenScene(ScenePath);
+        EditorPrefs.SetBool("Ra2MvpForceSmoke", true);
+        EditorApplication.isPlaying = true;
+        Debug.Log("[S11] MVP_SMOKE_PLAY requested");
+    }
+
     public static void BuildPlayableScene()
     {
         EnsureUiAssets();

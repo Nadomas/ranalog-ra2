@@ -335,6 +335,63 @@
     border-color: var(--edge);
 }
 
+.wire-canvas {
+    margin-top: 8px;
+    max-height: 160px;
+    background-color: #0c1016;
+    border-width: 1px;
+    border-color: var(--edge);
+    border-radius: 4px;
+    padding: 4px;
+}
+
+.wire-list {
+    flex-direction: column;
+}
+
+.wire-row {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 4px;
+    padding: 4px 6px;
+    background-color: #151a22;
+    border-radius: 3px;
+    border-width: 1px;
+    border-color: var(--edge);
+}
+
+.wire-row-label {
+    flex-grow: 1;
+    font-size: 11px;
+    color: var(--text);
+    white-space: normal;
+}
+
+.wire-mini {
+    height: 26px;
+    min-width: 44px;
+    margin-left: 4px;
+    margin-right: 0;
+    margin-bottom: 0;
+    font-size: 10px;
+    padding-left: 4px;
+    padding-right: 4px;
+}
+
+.lan-box {
+    margin-top: 8px;
+    padding: 8px;
+    background-color: #11161d;
+    border-width: 1px;
+    border-color: var(--edge);
+    border-radius: 4px;
+}
+
+.lan-field {
+    margin-bottom: 6px;
+    height: 28px;
+}
+
 .fight-pill {
     margin-left: 8px;
     background-color: var(--danger);
