@@ -39,6 +39,13 @@
                         <ui:Button name="btn-poly-next" text="Next ▶" class="tool-btn tool-btn-end" />
                     </ui:VisualElement>
                     <ui:Button name="btn-poly-nudge" text="Nudge +X" class="tool-btn wide accent" />
+                    <ui:VisualElement class="divider" />
+                    <ui:Label text="Blueprint slot" class="tool-title" />
+                    <ui:Label text="Local save on this machine (workshop-bot.json)." class="tool-help" />
+                    <ui:VisualElement class="row">
+                        <ui:Button name="btn-bp-save" text="Save Bot" class="tool-btn" />
+                        <ui:Button name="btn-bp-load" text="Load Bot" class="tool-btn accent tool-btn-end" />
+                    </ui:VisualElement>
                 </ui:VisualElement>
 
                 <ui:VisualElement name="panel-configure" class="tool-panel hidden">

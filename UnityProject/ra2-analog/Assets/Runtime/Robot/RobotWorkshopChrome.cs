@@ -205,6 +205,39 @@ public sealed class RobotWorkshopChrome : MonoBehaviour
         return ok;
     }
 
+    public bool TrySaveBlueprint(out string error)
+    {
+        EnsureSession();
+        if (session.WorkingBlueprint == null)
+        {
+            error = "no_blueprint";
+            status = "save_fail=no_blueprint";
+            return false;
+        }
+
+        var ok = RobotBlueprintStore.TrySave(session.WorkingBlueprint, out var path, out error);
+        status = ok ? $"saved={path}" : $"save_fail={error}";
+        return ok;
+    }
+
+    public bool TryLoadBlueprint(out string error)
+    {
+        EnsureSession();
+        if (!RobotBlueprintStore.TryLoad(out var bp, out var path, out error))
+        {
+            status = $"load_fail={error}";
+            return false;
+        }
+
+        // Leave Test so load doesn't fight a live spawn.
+        if (session.Mode == WorkshopMode.Test)
+            TrySetMode(WorkshopMode.Design, out _);
+
+        session.SetWorkingBlueprint(bp);
+        status = $"loaded={path}";
+        return true;
+    }
+
     public void StepPolySelection(int delta)
     {
         EnsureSession();

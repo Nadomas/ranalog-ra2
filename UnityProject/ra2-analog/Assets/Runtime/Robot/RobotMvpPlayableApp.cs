@@ -199,6 +199,18 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         chrome.TryCycleSlotBinding(index, out _);
     }
 
+    public void TryUiSaveBlueprint()
+    {
+        EnsureChrome();
+        chrome.TrySaveBlueprint(out _);
+    }
+
+    public void TryUiLoadBlueprint()
+    {
+        EnsureChrome();
+        chrome.TryLoadBlueprint(out _);
+    }
+
     public void TryUiLanHost(string _)
     {
         if (!fightRunning)
@@ -826,6 +838,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         chrome.TryApplyTankPreset(out _);
         var wireOk = TrySmokeWireCanvas();
         var gridOk = TrySmokeControllerGrid();
+        var saveOk = TrySmokeBlueprintSaveLoad();
         yield return null;
         var okTest = chrome.TrySetMode(WorkshopMode.Test, out _);
         yield return new WaitForFixedUpdate();
@@ -853,12 +866,15 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         var arenaOk = GameObject.Find(RobotMvpArenaDressing.RootName) != null;
         Debug.Log($"[S11-16] ARENA_SMOKE pass={arenaOk}");
 
-        var pass = okDesign && okCfg && okTest && hasInst && okAdmit && wireOk && gridOk && localOk && udpOk && lanOk && historyOk && arenaOk;
+        var pass = okDesign && okCfg && okTest && hasInst && okAdmit && wireOk && gridOk && saveOk &&
+                   localOk && udpOk && lanOk && historyOk && arenaOk;
         var marker = Path.Combine(Application.persistentDataPath, "ra2-mvp-smoke.txt");
         try
         {
             File.WriteAllText(marker,
-                $"pass={pass}\nstatus={fightStatus}\nlocal_ok={localOk}\nudp_ok={udpOk}\nlan_ok={lanOk}\nwire_ok={wireOk}\ngrid_ok={gridOk}\nhistory_ok={historyOk}\narena_ok={arenaOk}\nunity={Application.unityVersion}\n");
+                $"pass={pass}\nstatus={fightStatus}\nlocal_ok={localOk}\nudp_ok={udpOk}\nlan_ok={lanOk}\n" +
+                $"wire_ok={wireOk}\ngrid_ok={gridOk}\nsave_ok={saveOk}\nhistory_ok={historyOk}\narena_ok={arenaOk}\n" +
+                $"unity={Application.unityVersion}\n");
         }
         catch
         {
@@ -867,8 +883,8 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
 
         Debug.Log(
             $"[S11-07] SMOKE_DONE pass={pass} design={okDesign} cfg={okCfg} test={okTest} " +
-            $"inst={hasInst} admit={okAdmit} wire={wireOk} grid={gridOk} local={localOk} udp={udpOk} lan={lanOk} " +
-            $"history={historyOk} arena={arenaOk} fight={fightStatus} marker={marker}");
+            $"inst={hasInst} admit={okAdmit} wire={wireOk} grid={gridOk} save={saveOk} local={localOk} " +
+            $"udp={udpOk} lan={lanOk} history={historyOk} arena={arenaOk} fight={fightStatus} marker={marker}");
 
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
@@ -914,6 +930,25 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
             $"[S11-17] CONTROLLER_GRID_SMOKE pass=True kind={kind0}->{RobotControlKind.Analog} " +
             $"bind_cycled=True slots={bp.ControlSlots.Length}");
         return true;
+    }
+
+    bool TrySmokeBlueprintSaveLoad()
+    {
+        var bp = chrome.Session.WorkingBlueprint;
+        if (bp == null)
+            return false;
+        bp.Name = "smoke-save-bot";
+        if (!chrome.TrySaveBlueprint(out _))
+            return false;
+        bp.Name = "mutated-in-memory";
+        if (!chrome.TryLoadBlueprint(out _))
+            return false;
+        var loaded = chrome.Session.WorkingBlueprint;
+        var ok = loaded != null &&
+                 string.Equals(loaded.Name, "smoke-save-bot", System.StringComparison.Ordinal) &&
+                 loaded.Wirings != null && loaded.Wirings.Length > 0;
+        Debug.Log($"[S11-18] BLUEPRINT_SAVE_SMOKE pass={ok} name={loaded?.Name} wires={loaded?.Wirings?.Length}");
+        return ok;
     }
 
     IEnumerator RunLanSameProcessSmoke()

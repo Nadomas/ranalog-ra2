@@ -207,6 +207,13 @@ public sealed class RobotMvpUiShell : MonoBehaviour
         Wire(root.Q<Button>("btn-poly-prev"), () => app.TryUiPolyStep(-1));
         Wire(root.Q<Button>("btn-poly-next"), () => app.TryUiPolyStep(1));
         Wire(root.Q<Button>("btn-poly-nudge"), () => app.TryUiPolyNudge());
+        Wire(root.Q<Button>("btn-bp-save"), () => app.TryUiSaveBlueprint());
+        Wire(root.Q<Button>("btn-bp-load"), () =>
+        {
+            app.TryUiLoadBlueprint();
+            lastWireFingerprint = int.MinValue;
+            lastSlotFingerprint = int.MinValue;
+        });
         Wire(root.Q<Button>("btn-bind-drive"), () => app.TryUiSelectBind(RobotControlConfigurer.BindingGroupId.Drive));
         Wire(root.Q<Button>("btn-bind-turn"), () => app.TryUiSelectBind(RobotControlConfigurer.BindingGroupId.Turn));
         Wire(root.Q<Button>("btn-bind-cycle"), () => app.TryUiCycleBind());
