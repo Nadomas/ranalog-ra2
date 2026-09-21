@@ -17,25 +17,27 @@
 | Results persist | `… (S10-02 Results Persist)` | JSON file + thin view |
 | MVP glue | `… (S11 MVP Loop Glue)` | Workshop → local + MP admit |
 | Workshop chrome | `… (S11 Workshop Chrome)` | IMGUI Design/Configure/Test |
+| Workshop unified | `… (S11-06 Workshop Unified Chrome)` | Design polygon + Configure bindings + admit |
 | Chassis polygon | `… (S4-02 Chassis Polygon Editor)` | ≤16 edit + admit |
 | Binding groups | `… (S5-02 Binding Groups)` | Drive/Turn cycle + JSON |
 | E2E loop | `… (S11 E2E Loop)` | Design→Fight→Results one scene |
 
 ## Manual touch path (local)
 
-1. Build **S11 Workshop Chrome** → Play.  
-2. Click Design / Configure / Apply TankSteer / Test / Prepare Admit.  
+1. Build **S11-06 Workshop Unified Chrome** → Play.  
+2. Design → Nudge+X → Configure → Cycle Turn → Test → Prepare Admit → Test Admit Clone.  
 3. Build **S10-02** → Play; confirm results box + JSON under `persistentDataPath/ra2-match-results/`.  
 4. Build **S9-02** → Play; confirm forfeit log (no hung fight).
 
 ## Known issues / residuals (non-blockers)
 
-- Product polygon / binding chrome polish beyond thin IMGUI  
+- Freehand polygon gizmo / full composite binding matrix  
 - Weapons beyond functional disable (Stage 7 depth)  
 - Ready/lobby UX stub (S09-T03) still thin/auto  
 - No reconnect; hard drop without goodbye covered by S9-04 heartbeat  
 - Custom UDP not frozen; Dedicated Server Win module optional residual  
-- No economy / catalog / career
+- No economy / catalog / career  
+- Match history list UI
 
 ## Critical desync class
 

@@ -46,6 +46,7 @@ using UnityEngine.SceneManagement;
 /// Menu: Tools/RA2/Build PhysicsTest Scene (S7-13 Electric Recharge)
 /// Menu: Tools/RA2/Build PhysicsTest Scene (S6-04 Workshop Admit→Test)
 /// Menu: Tools/RA2/Build PhysicsTest Scene (S7-14 Ackermann Steer)
+/// Menu: Tools/RA2/Build PhysicsTest Scene (S11-06 Workshop Unified Chrome)
 /// </summary>
 public static class PhysicsTestSceneBuilder
 {
@@ -100,7 +101,8 @@ public static class PhysicsTestSceneBuilder
         AirRecharge,
         ElectricRecharge,
         WorkshopAdmitTest,
-        AckermannSteer
+        AckermannSteer,
+        WorkshopUnifiedChrome
     }
 
     [MenuItem("Tools/RA2/Build PhysicsTest Scene")]
@@ -404,6 +406,12 @@ public static class PhysicsTestSceneBuilder
         Build(Scenario.AckermannSteer);
     }
 
+    [MenuItem("Tools/RA2/Build PhysicsTest Scene (S11-06 Workshop Unified Chrome)")]
+    public static void BuildWorkshopUnifiedChromeFromMenu()
+    {
+        Build(Scenario.WorkshopUnifiedChrome);
+    }
+
     [MenuItem("Tools/RA2/Force Script Compile")]
     public static void ForceScriptCompile()
     {
@@ -608,6 +616,9 @@ public static class PhysicsTestSceneBuilder
         AssetDatabase.ImportAsset(
             "Assets/Runtime/Robot/RobotAckermannSteerVerifier.cs",
             ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+        AssetDatabase.ImportAsset(
+            "Assets/Runtime/Robot/RobotWorkshopUnifiedChromeVerifier.cs",
+            ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
         AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
         UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
         Debug.Log("[PhysicsTestSceneBuilder] Requested script compilation.");
@@ -782,6 +793,10 @@ public static class PhysicsTestSceneBuilder
         else if (scenario == Scenario.AckermannSteer)
         {
             BuildAckermannSteerScenario(floorMat);
+        }
+        else if (scenario == Scenario.WorkshopUnifiedChrome)
+        {
+            BuildWorkshopUnifiedChromeScenario(floorMat);
         }
         else if (scenario == Scenario.CollisionSmoke)
         {
@@ -1364,6 +1379,16 @@ public static class PhysicsTestSceneBuilder
         Debug.Log("[PhysicsTestSceneBuilder] S7-14 Ackermann steer host ready.");
     }
 
+    static void BuildWorkshopUnifiedChromeScenario(PhysicsMaterial floor)
+    {
+        var hostGo = new GameObject("WorkshopUnifiedChromeHost");
+        var verifier = hostGo.AddComponent<RobotWorkshopUnifiedChromeVerifier>();
+        verifier.Configure(floor);
+        verifier.AutoRun = true;
+
+        Debug.Log("[PhysicsTestSceneBuilder] S11-06 Workshop unified Design/Configure chrome ready.");
+    }
+
     static void BuildMatchUdpLobbyScenario(PhysicsMaterial floor)
     {
         var hostGo = new GameObject("MatchUdpLobbyHost");
@@ -1483,6 +1508,7 @@ public static class PhysicsTestSceneBuilder
             || scenario == Scenario.MvpE2E
             || scenario == Scenario.WorkshopAdmitTest
             || scenario == Scenario.AckermannSteer
+            || scenario == Scenario.WorkshopUnifiedChrome
             || scenario == Scenario.SteeringHub
             || scenario == Scenario.AirRecharge
             || scenario == Scenario.ElectricRecharge
