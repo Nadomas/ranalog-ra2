@@ -44,6 +44,8 @@ using UnityEngine.SceneManagement;
 /// Menu: Tools/RA2/Build PhysicsTest Scene (S7-11 BurstMotor Electric)
 /// Menu: Tools/RA2/Build PhysicsTest Scene (S7-12 Air Recharge)
 /// Menu: Tools/RA2/Build PhysicsTest Scene (S7-13 Electric Recharge)
+/// Menu: Tools/RA2/Build PhysicsTest Scene (S6-04 Workshop Admit→Test)
+/// Menu: Tools/RA2/Build PhysicsTest Scene (S7-14 Ackermann Steer)
 /// </summary>
 public static class PhysicsTestSceneBuilder
 {
@@ -96,7 +98,9 @@ public static class PhysicsTestSceneBuilder
         SteeringHub,
         BurstMotorElectric,
         AirRecharge,
-        ElectricRecharge
+        ElectricRecharge,
+        WorkshopAdmitTest,
+        AckermannSteer
     }
 
     [MenuItem("Tools/RA2/Build PhysicsTest Scene")]
@@ -388,6 +392,18 @@ public static class PhysicsTestSceneBuilder
         Build(Scenario.ElectricRecharge);
     }
 
+    [MenuItem("Tools/RA2/Build PhysicsTest Scene (S6-04 Workshop Admit→Test)")]
+    public static void BuildWorkshopAdmitTestFromMenu()
+    {
+        Build(Scenario.WorkshopAdmitTest);
+    }
+
+    [MenuItem("Tools/RA2/Build PhysicsTest Scene (S7-14 Ackermann Steer)")]
+    public static void BuildAckermannSteerFromMenu()
+    {
+        Build(Scenario.AckermannSteer);
+    }
+
     [MenuItem("Tools/RA2/Force Script Compile")]
     public static void ForceScriptCompile()
     {
@@ -586,6 +602,12 @@ public static class PhysicsTestSceneBuilder
         AssetDatabase.ImportAsset(
             "Assets/Runtime/Robot/RobotElectricRechargeVerifier.cs",
             ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+        AssetDatabase.ImportAsset(
+            "Assets/Runtime/Robot/RobotWorkshopAdmitTestVerifier.cs",
+            ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+        AssetDatabase.ImportAsset(
+            "Assets/Runtime/Robot/RobotAckermannSteerVerifier.cs",
+            ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
         AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
         UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
         Debug.Log("[PhysicsTestSceneBuilder] Requested script compilation.");
@@ -752,6 +774,14 @@ public static class PhysicsTestSceneBuilder
         else if (scenario == Scenario.ElectricRecharge)
         {
             BuildElectricRechargeScenario(floorMat);
+        }
+        else if (scenario == Scenario.WorkshopAdmitTest)
+        {
+            BuildWorkshopAdmitTestScenario(floorMat);
+        }
+        else if (scenario == Scenario.AckermannSteer)
+        {
+            BuildAckermannSteerScenario(floorMat);
         }
         else if (scenario == Scenario.CollisionSmoke)
         {
@@ -1314,6 +1344,26 @@ public static class PhysicsTestSceneBuilder
         Debug.Log("[PhysicsTestSceneBuilder] S7-13 Electric recharge host ready.");
     }
 
+    static void BuildWorkshopAdmitTestScenario(PhysicsMaterial floor)
+    {
+        var hostGo = new GameObject("WorkshopAdmitTestHost");
+        var verifier = hostGo.AddComponent<RobotWorkshopAdmitTestVerifier>();
+        verifier.Configure(floor);
+        verifier.AutoRun = true;
+
+        Debug.Log("[PhysicsTestSceneBuilder] S6-04 Workshop Admit→Test host ready.");
+    }
+
+    static void BuildAckermannSteerScenario(PhysicsMaterial floor)
+    {
+        var hostGo = new GameObject("AckermannSteerHost");
+        var verifier = hostGo.AddComponent<RobotAckermannSteerVerifier>();
+        verifier.Configure(floor);
+        verifier.AutoRun = true;
+
+        Debug.Log("[PhysicsTestSceneBuilder] S7-14 Ackermann steer host ready.");
+    }
+
     static void BuildMatchUdpLobbyScenario(PhysicsMaterial floor)
     {
         var hostGo = new GameObject("MatchUdpLobbyHost");
@@ -1430,7 +1480,13 @@ public static class PhysicsTestSceneBuilder
             || scenario == Scenario.HeartbeatDisconnect
             || scenario == Scenario.WorkshopChrome
             || scenario == Scenario.ChassisPolygonEditor
-            || scenario == Scenario.MvpE2E;
+            || scenario == Scenario.MvpE2E
+            || scenario == Scenario.WorkshopAdmitTest
+            || scenario == Scenario.AckermannSteer
+            || scenario == Scenario.SteeringHub
+            || scenario == Scenario.AirRecharge
+            || scenario == Scenario.ElectricRecharge
+            || scenario == Scenario.BurstMotorElectric;
     }
 
     static void CreateMainCamera()

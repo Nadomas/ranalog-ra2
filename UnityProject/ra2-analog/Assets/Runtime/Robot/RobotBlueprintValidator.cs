@@ -143,7 +143,9 @@ namespace Ra2.Robot
                     continue;
 
                 var parentBase = parent.ResolvedBase();
-                if (parentBase != RobotComponentBase.Chassis && parentBase != RobotComponentBase.Structural)
+                if (parentBase != RobotComponentBase.Chassis &&
+                    parentBase != RobotComponentBase.Structural &&
+                    parentBase != RobotComponentBase.Steering)
                     result.Warnings.Add($"motor_parent_unusual:{c.Id}->{parentBase}");
             }
         }

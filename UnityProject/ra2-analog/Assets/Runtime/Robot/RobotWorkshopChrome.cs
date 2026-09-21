@@ -73,6 +73,20 @@ public sealed class RobotWorkshopChrome : MonoBehaviour
         return ok;
     }
 
+    /// <summary>S6-04: spawn Test from last Prepare Admit JSON clone.</summary>
+    public bool TryTestAdmitClone(out string error)
+    {
+        EnsureSession();
+        if (slideMaterial == null)
+            slideMaterial = Resources.Load<PhysicsMaterial>("PhysicsTestSlide");
+
+        var ok = session.TryEnterTestFromAdmit(transform, slideMaterial, bodyColor, out error);
+        status = ok
+            ? $"admit_test ms={session.LastAdmitTestMs:F1}"
+            : $"admit_test_fail={error}";
+        return ok;
+    }
+
     /// <summary>S6-02: despawn+respawn Test instance from the same working blueprint (local-only chrome).</summary>
     public bool TryResetTest(out string error)
     {
@@ -94,7 +108,7 @@ public sealed class RobotWorkshopChrome : MonoBehaviour
         EnsureSession();
         const float w = 280f;
         var y = 12f;
-        GUI.Box(new Rect(12f, y, w, 250f), "Workshop (thin)");
+        GUI.Box(new Rect(12f, y, w, 290f), "Workshop (thin)");
         y += 28f;
         GUI.Label(new Rect(22f, y, w - 20f, 20f), $"Mode: {session.Mode}  switches={session.SwitchCount}");
         y += 24f;
@@ -119,6 +133,12 @@ public sealed class RobotWorkshopChrome : MonoBehaviour
 
         if (GUI.Button(new Rect(22f, y, 160f, 28f), "Prepare Admit"))
             TryPrepareAdmit(out _);
+        y += 36f;
+
+        GUI.enabled = session.LastAdmitBlueprint != null;
+        if (GUI.Button(new Rect(22f, y, 160f, 28f), "Test Admit Clone"))
+            TryTestAdmitClone(out _);
+        GUI.enabled = true;
         y += 36f;
 
         GUI.Label(new Rect(22f, y, w - 20f, 40f), status);

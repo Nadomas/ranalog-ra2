@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|--------|
-| **Current milestone** | **Post thin MVP polish spikes** — actuator taxonomy coverage |
-| **Roadmap position** | Stages 0–8 **thin proofs PASS**; Stage 2 HARD GATE **GO**; Stage 3 exit **PASS (thin)**; S9–S11 thin + S4-02 / S5-02 / S11-E2E + S7-03 / S6-02 / S10-03 + **S7-04…13 actuators** **PASS** |
-| **Queue status** | **Idle for agents** — dual power recharge thin done; `PIPE-T02` human-only |
+| **Current milestone** | **Post thin MVP polish spikes** — workshop + Ackermann |
+| **Roadmap position** | Stages 0–8 **thin proofs PASS**; Stage 2 HARD GATE **GO**; Stage 3 exit **PASS (thin)**; S9–S11 thin + **S6-04** + **S7-04…14** **PASS** |
+| **Queue status** | **Idle for agents** — admit→Test + Ackermann thin done; `PIPE-T02` human-only |
 | **Last queue update** | 2026-09-21 |
 | **Autonomy recommendation** | Level **2–3** (see [`AI_WORKFLOW.md`](AI_WORKFLOW.md)) |
-| **Evidence snapshot** | [`S7-13_ELECTRIC_RECHARGE.md`](../experiments/S7-13_ELECTRIC_RECHARGE.md) |
+| **Evidence snapshot** | [`S6-04_WORKSHOP_ADMIT_TEST.md`](../experiments/S6-04_WORKSHOP_ADMIT_TEST.md) + [`S7-14_ACKERMANN_STEER.md`](../experiments/S7-14_ACKERMANN_STEER.md) |
 
 ---
 
@@ -95,6 +95,7 @@
 | S06-T01 | Seamless Design↔Configure↔Test (S6-01) | done | `S6-01_SEAMLESS_LOOP.md` |
 | S06-T02 | Test Room reset UX thin | done | `S6-02_TEST_RESET.md` |
 | S06-T03 | Additive multi-scene U-SCN polish | deferred | Not required for thin MVP path |
+| S06-T04 | Workshop Admit → Test admit clone | done | `S6-04_WORKSHOP_ADMIT_TEST.md` |
 
 ### Stage 7 / 8 — Damage + combat spine (thin)
 
@@ -113,6 +114,7 @@
 | S07-T11 | BurstMotor Fire electric draw + deny | done | `S7-11_BURST_MOTOR_ELECTRIC.md` |
 | S07-T12 | Air tank recharge via AirMaxInOutRate | done | `S7-12_AIR_RECHARGE.md` |
 | S07-T13 | Electric recharge via ElectricMaxInOutRate | done | `S7-13_ELECTRIC_RECHARGE.md` |
+| S07-T14 | Ackermann steer + wheel admit | done | `S7-14_ACKERMANN_STEER.md` |
 | S08-T01 | Immobility win evaluator (local 1v1) | done | `ImmobilityWinEvaluator`; `S8-01` PASS |
 | S08-T02 | Weapons catalog / arena art | deferred | Post thin MVP spine |
 
@@ -169,7 +171,7 @@
 
 Residual **non-blockers** (do not stop queue): Unity Dedicated Server Win module not installed (headless player used); custom UDP not frozen.
 
-Optional next agent polish (backlog — pull only when idle + human wants more touchable MVP): workshop admit→test flow polish beyond reset; Ackermann steering+wheel admit.
+Optional next agent polish (backlog — pull only when idle + human wants more touchable MVP): construction polygon polish; binding chrome; results/UX touchables.
 
 ---
 
@@ -180,7 +182,7 @@ Optional next agent polish (backlog — pull only when idle + human wants more t
 - NGO/NFE package freeze (only after experiment vs current UDP)  
 - True Dedicated Server build target hardening  
 - Detach debris net replication; weapon formulae / chassis splash polish  
-- Ackermann steering + wheel-on-axle  
+- Geometric Ackermann toe tables / 4WS  
 - Ranked matchmaking, spectator, replay  
 - Reconnect window / bot replace  
 

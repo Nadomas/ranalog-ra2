@@ -18,8 +18,12 @@ namespace Ra2.Robot
         public WorkshopMode Mode { get; private set; } = WorkshopMode.Design;
         public RobotBlueprint WorkingBlueprint { get; private set; }
         public RobotSpawnedInstance TestInstance { get; private set; }
+        /// <summary>Last combat-admit clone from <see cref="TryPrepareCombatAdmit"/> (S6-04).</summary>
+        public RobotBlueprint LastAdmitBlueprint { get; private set; }
+        public string LastAdmitJson { get; private set; }
         public double LastSwitchMs { get; private set; }
         public double LastResetMs { get; private set; }
+        public double LastAdmitTestMs { get; private set; }
         public int SwitchCount { get; private set; }
 
         public void SetWorkingBlueprint(RobotBlueprint blueprint)
@@ -157,6 +161,58 @@ namespace Ra2.Robot
             if (!RobotSpawnService.TryValidate(admitBlueprint, out error))
                 return false;
 
+            LastAdmitBlueprint = admitBlueprint;
+            LastAdmitJson = blueprintJson;
+            return true;
+        }
+
+        /// <summary>
+        /// S6-04: enter Test using the last combat-admit JSON clone (not raw Design edits).
+        /// Rejects if Prepare Admit has not succeeded yet.
+        /// </summary>
+        public bool TryEnterTestFromAdmit(
+            UnityEngine.Transform spawnParent,
+            UnityEngine.PhysicsMaterial slide,
+            UnityEngine.Color bodyColor,
+            out string error)
+        {
+            error = null;
+            if (LastAdmitBlueprint == null || string.IsNullOrEmpty(LastAdmitJson))
+            {
+                error = "no_admit";
+                return false;
+            }
+
+            var sw = Stopwatch.StartNew();
+
+            RobotBlueprint admitClone;
+            try
+            {
+                admitClone = RobotBlueprintSerializer.FromJson(LastAdmitJson);
+            }
+            catch (System.Exception)
+            {
+                error = "admit_clone_failed";
+                return false;
+            }
+
+            if (!RobotSpawnService.TryValidate(admitClone, out error))
+                return false;
+
+            if (Mode == WorkshopMode.Test && TestInstance != null)
+            {
+                RobotSpawnService.Despawn(TestInstance);
+                TestInstance = null;
+            }
+
+            WorkingBlueprint = admitClone;
+            LastAdmitBlueprint = admitClone;
+            TestInstance = RobotSpawnService.Spawn(admitClone, 0, 0, spawnParent, slide, bodyColor);
+            Mode = WorkshopMode.Test;
+            sw.Stop();
+            LastAdmitTestMs = sw.Elapsed.TotalMilliseconds;
+            LastSwitchMs = LastAdmitTestMs;
+            SwitchCount++;
             return true;
         }
     }

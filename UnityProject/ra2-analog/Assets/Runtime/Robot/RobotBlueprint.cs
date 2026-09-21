@@ -1023,6 +1023,141 @@ namespace Ra2.Robot
             return bp;
         }
 
+        /// <summary>
+        /// S7-14: front Ackermann — Steering hubs on chassis, SpinMotor+Wheel under each hub (admit OK).
+        /// Turn drives opposite hub angles; Move still powers wheel hinges.
+        /// </summary>
+        public static RobotBlueprint CreateRa2AckermannSteerSample(Vector3 rootPosition, float yawDegrees)
+        {
+            var bp = CreateRa2ConstructionSampleA(rootPosition, yawDegrees);
+            bp.Name = "Ra2AckermannSteerSample";
+
+            Vector3 posFl = new Vector3(-0.85f, 0.05f, 0.95f);
+            Vector3 posFr = new Vector3(0.85f, 0.05f, 0.95f);
+            for (var i = 0; i < bp.Components.Length; i++)
+            {
+                if (bp.Components[i].Id == "motor_fl")
+                    posFl = bp.Components[i].LocalPosition;
+                else if (bp.Components[i].Id == "motor_fr")
+                    posFr = bp.Components[i].LocalPosition;
+            }
+
+            var components = new System.Collections.Generic.List<RobotComponentDef>(bp.Components)
+            {
+                new RobotComponentDef
+                {
+                    Id = "steer_fl",
+                    Kind = RobotComponentKind.Module,
+                    Base = RobotComponentBase.Steering,
+                    CatalogId = "steering_hub",
+                    LocalPosition = posFl,
+                    LocalEuler = Vector3.zero,
+                    Scale = new Vector3(0.18f, 0.2f, 0.18f),
+                    Mass = 0.7f,
+                    HasRigidbody = true,
+                    IsRoot = false,
+                    ElecMaxInOutRate = 20f
+                },
+                new RobotComponentDef
+                {
+                    Id = "steer_fr",
+                    Kind = RobotComponentKind.Module,
+                    Base = RobotComponentBase.Steering,
+                    CatalogId = "steering_hub",
+                    LocalPosition = posFr,
+                    LocalEuler = Vector3.zero,
+                    Scale = new Vector3(0.18f, 0.2f, 0.18f),
+                    Mass = 0.7f,
+                    HasRigidbody = true,
+                    IsRoot = false,
+                    ElecMaxInOutRate = 20f
+                }
+            };
+
+            // Motors sit as FixedHierarchy children under steer hubs (local offset).
+            for (var i = 0; i < components.Count; i++)
+            {
+                var c = components[i];
+                if (c.Id == "motor_fl" || c.Id == "motor_fr")
+                {
+                    c.LocalPosition = new Vector3(0f, -0.08f, 0f);
+                    components[i] = c;
+                }
+            }
+
+            bp.Components = components.ToArray();
+
+            var conns = new System.Collections.Generic.List<RobotConnectionDef>();
+            for (var i = 0; i < bp.Connections.Length; i++)
+            {
+                var c = bp.Connections[i];
+                // Drop chassis→front motor; keep motor→wheel and everything else.
+                if (c.ParentId == "chassis" && (c.ChildId == "motor_fl" || c.ChildId == "motor_fr"))
+                    continue;
+                conns.Add(c);
+            }
+
+            conns.Add(new RobotConnectionDef
+            {
+                ParentId = "chassis",
+                ChildId = "steer_fl",
+                Joint = RobotJointKind.Hinge,
+                HingeAxis = Vector3.up
+            });
+            conns.Add(new RobotConnectionDef
+            {
+                ParentId = "chassis",
+                ChildId = "steer_fr",
+                Joint = RobotJointKind.Hinge,
+                HingeAxis = Vector3.up
+            });
+            conns.Add(new RobotConnectionDef
+            {
+                ParentId = "steer_fl",
+                ChildId = "motor_fl",
+                Joint = RobotJointKind.FixedHierarchy,
+                HingeAxis = Vector3.zero
+            });
+            conns.Add(new RobotConnectionDef
+            {
+                ParentId = "steer_fr",
+                ChildId = "motor_fr",
+                Joint = RobotJointKind.FixedHierarchy,
+                HingeAxis = Vector3.zero
+            });
+            bp.Connections = conns.ToArray();
+
+            // Turn only to steers (opposite); keep forward_back on wheels; drop wheel left_right.
+            var wirings = new System.Collections.Generic.List<RobotWiringDef>();
+            if (bp.Wirings != null)
+            {
+                for (var i = 0; i < bp.Wirings.Length; i++)
+                {
+                    var w = bp.Wirings[i];
+                    if (string.Equals(w.ControlSlotId, "left_right", System.StringComparison.Ordinal))
+                        continue;
+                    wirings.Add(w);
+                }
+            }
+
+            wirings.Add(new RobotWiringDef
+            {
+                ControlSlotId = "left_right",
+                ComponentId = "steer_fl",
+                Channel = "CW",
+                Sign = 1f
+            });
+            wirings.Add(new RobotWiringDef
+            {
+                ControlSlotId = "left_right",
+                ComponentId = "steer_fr",
+                Channel = "CCW",
+                Sign = 1f
+            });
+            bp.Wirings = wirings.ToArray();
+            return bp;
+        }
+
         static void AppendDigitalSlot(
             RobotBlueprint bp,
             string id,

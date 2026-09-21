@@ -163,6 +163,15 @@ namespace Ra2.Robot
                 }
             }
 
+            // Ensure dynamic bodies exist before joints so parent-chain ResolveConnectedBody
+            // finds Steering hubs (S7-14) even if their hinge is declared later in Connections.
+            foreach (var kv in result.Parts)
+            {
+                if (!byId.TryGetValue(kv.Key, out var def) || !def.HasRigidbody || kv.Value == null)
+                    continue;
+                EnsureDynamicBody(kv.Value, def);
+            }
+
             for (var i = 0; i < blueprint.Connections.Length; i++)
             {
                 var conn = blueprint.Connections[i];
@@ -175,7 +184,7 @@ namespace Ra2.Robot
                 {
                     EnsureDynamicBody(child, childDef);
                     var hinge = child.AddComponent<HingeJoint>();
-                    hinge.connectedBody = rb;
+                    hinge.connectedBody = ResolveConnectedBody(conn.ParentId, result, rb);
                     hinge.anchor = Vector3.zero;
                     hinge.axis = conn.HingeAxis.sqrMagnitude > 1e-6f ? conn.HingeAxis.normalized : Vector3.up;
                     hinge.autoConfigureConnectedAnchor = true;
@@ -207,7 +216,7 @@ namespace Ra2.Robot
                     EnsureDynamicBody(child, childDef);
                     var axis = conn.HingeAxis.sqrMagnitude > 1e-6f ? conn.HingeAxis.normalized : Vector3.forward;
                     var slide = child.AddComponent<ConfigurableJoint>();
-                    slide.connectedBody = rb;
+                    slide.connectedBody = ResolveConnectedBody(conn.ParentId, result, rb);
                     slide.anchor = Vector3.zero;
                     slide.axis = axis;
                     slide.autoConfigureConnectedAnchor = true;
@@ -224,6 +233,32 @@ namespace Ra2.Robot
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Hinge/slider attach to nearest Rigidbody on the connection parent chain (S7-14 Ackermann).
+        /// Falls back to chassis root — preserves tank wheel→motor(no RB)→chassis behavior.
+        /// </summary>
+        static Rigidbody ResolveConnectedBody(
+            string parentId,
+            RobotAssemblyResult result,
+            Rigidbody rootBody)
+        {
+            if (string.IsNullOrEmpty(parentId) || result?.Parts == null)
+                return rootBody;
+            if (!result.Parts.TryGetValue(parentId, out var parentGo) || parentGo == null)
+                return rootBody;
+
+            var t = parentGo.transform;
+            while (t != null)
+            {
+                var body = t.GetComponent<Rigidbody>();
+                if (body != null)
+                    return body;
+                t = t.parent;
+            }
+
+            return rootBody;
         }
 
         static void EnsureDynamicBody(GameObject child, RobotComponentDef childDef)
