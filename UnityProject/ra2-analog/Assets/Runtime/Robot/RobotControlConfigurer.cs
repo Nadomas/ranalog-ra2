@@ -27,13 +27,14 @@ namespace Ra2.Robot
             switch (preset)
             {
                 case DrivePreset.ReversedDrive:
-                    blueprint.Wirings = BuildTankWirings(forwardSign: -1f, turnSign: 1f, includeTurn: true);
+                    blueprint.Wirings = BuildTankWirings(forwardSign: 1f, turnSign: 1f, includeTurn: true);
                     break;
                 case DrivePreset.TurnOnly:
-                    blueprint.Wirings = BuildTankWirings(forwardSign: 1f, turnSign: 1f, includeTurn: true, includeForward: false);
+                    blueprint.Wirings = BuildTankWirings(forwardSign: -1f, turnSign: 1f, includeTurn: true, includeForward: false);
                     break;
                 default:
-                    blueprint.Wirings = BuildTankWirings(forwardSign: 1f, turnSign: 1f, includeTurn: true);
+                    // Hinge CW/+effort pushes the sample tank visually backward — flip forward Sign.
+                    blueprint.Wirings = BuildTankWirings(forwardSign: -1f, turnSign: -1f, includeTurn: true);
                     break;
             }
         }

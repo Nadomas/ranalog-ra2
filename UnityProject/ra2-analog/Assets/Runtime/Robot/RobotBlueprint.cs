@@ -425,14 +425,14 @@ namespace Ra2.Robot
 
             bp.Wirings = new[]
             {
-                new RobotWiringDef { ControlSlotId = "forward_back", ComponentId = "wheel_fl", Channel = "CW", Sign = 1f },
-                new RobotWiringDef { ControlSlotId = "forward_back", ComponentId = "wheel_fr", Channel = "CW", Sign = 1f },
-                new RobotWiringDef { ControlSlotId = "forward_back", ComponentId = "wheel_rl", Channel = "CW", Sign = 1f },
-                new RobotWiringDef { ControlSlotId = "forward_back", ComponentId = "wheel_rr", Channel = "CW", Sign = 1f },
-                new RobotWiringDef { ControlSlotId = "left_right", ComponentId = "wheel_fl", Channel = "CCW", Sign = 1f },
-                new RobotWiringDef { ControlSlotId = "left_right", ComponentId = "wheel_fr", Channel = "CW", Sign = 1f },
-                new RobotWiringDef { ControlSlotId = "left_right", ComponentId = "wheel_rl", Channel = "CCW", Sign = 1f },
-                new RobotWiringDef { ControlSlotId = "left_right", ComponentId = "wheel_rr", Channel = "CW", Sign = 1f }
+                new RobotWiringDef { ControlSlotId = "forward_back", ComponentId = "wheel_fl", Channel = "CW", Sign = -1f },
+                new RobotWiringDef { ControlSlotId = "forward_back", ComponentId = "wheel_fr", Channel = "CW", Sign = -1f },
+                new RobotWiringDef { ControlSlotId = "forward_back", ComponentId = "wheel_rl", Channel = "CW", Sign = -1f },
+                new RobotWiringDef { ControlSlotId = "forward_back", ComponentId = "wheel_rr", Channel = "CW", Sign = -1f },
+                new RobotWiringDef { ControlSlotId = "left_right", ComponentId = "wheel_fl", Channel = "CCW", Sign = -1f },
+                new RobotWiringDef { ControlSlotId = "left_right", ComponentId = "wheel_fr", Channel = "CW", Sign = -1f },
+                new RobotWiringDef { ControlSlotId = "left_right", ComponentId = "wheel_rl", Channel = "CCW", Sign = -1f },
+                new RobotWiringDef { ControlSlotId = "left_right", ComponentId = "wheel_rr", Channel = "CW", Sign = -1f }
             };
         }
 

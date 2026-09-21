@@ -53,15 +53,16 @@ namespace Ra2.Robot
             result.Root = root;
             result.Parts[rootDef.Id] = root;
 
-            var chassisGo = CreatePartVisual(rootDef, bodyColor, slideMaterial, useBoxCollider: true);
+            var chassisGo = CreatePartVisual(rootDef, bodyColor, GetChassisGripMaterial(), useBoxCollider: true);
             chassisGo.name = "Chassis";
             chassisGo.transform.SetParent(root.transform, false);
             result.Parts[rootDef.Id + "_mesh"] = chassisGo;
 
             var rb = root.AddComponent<Rigidbody>();
             rb.mass = Mathf.Max(0.01f, rootDef.Mass);
-            rb.linearDamping = 0.05f;
-            rb.angularDamping = 0.4f;
+            rb.useGravity = true;
+            rb.linearDamping = 0.12f;
+            rb.angularDamping = 0.55f;
             rb.interpolation = RigidbodyInterpolation.Interpolate;
             rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
             rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
@@ -276,6 +277,22 @@ namespace Ra2.Robot
         }
 
         static PhysicsMaterial wheelGrip;
+        static PhysicsMaterial chassisGrip;
+
+        static PhysicsMaterial GetChassisGripMaterial()
+        {
+            if (chassisGrip != null)
+                return chassisGrip;
+            chassisGrip = new PhysicsMaterial("RuntimeChassisGrip")
+            {
+                dynamicFriction = 0.55f,
+                staticFriction = 0.65f,
+                bounciness = 0f,
+                frictionCombine = PhysicsMaterialCombine.Average,
+                bounceCombine = PhysicsMaterialCombine.Minimum
+            };
+            return chassisGrip;
+        }
 
         static PhysicsMaterial GetWheelGripMaterial()
         {

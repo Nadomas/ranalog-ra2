@@ -11,11 +11,11 @@
 | Field | Value |
 |-------|--------|
 | **Current milestone** | **STAGE 11 MVP player + UI Toolkit** |
-| **Roadmap position** | Thin spine PASS; **S11-07…S11-09** UI polish **PASS** |
-| **Queue status** | **Idle for agents** — playable `.exe` with polished workshop HUD; `PIPE-T02` human-only |
+| **Roadmap position** | Thin spine PASS; **S11-10** playable fight feel in progress |
+| **Queue status** | **Active** — drive feel + chase AI for local fight |
 | **Last queue update** | 2026-09-21 |
 | **Autonomy recommendation** | Level **2–3** (see [`AI_WORKFLOW.md`](AI_WORKFLOW.md)) |
-| **Evidence snapshot** | [`S11-09_MVP_UI_POLISH.md`](../experiments/S11-09_MVP_UI_POLISH.md) |
+| **Evidence snapshot** | [`S11-10_PLAYABLE_FIGHT_FEEL.md`](../experiments/S11-10_PLAYABLE_FIGHT_FEEL.md) |
 
 ---
 
@@ -163,6 +163,7 @@
 
 | ID | Task | Status | Acceptance (thin) |
 |----|------|--------|-------------------|
+| S11-T10 | Playable local fight feel (drive + chase AI) | open | Player WASD in fight; chase AI engages; TankSteer signs feel forward; smoke still PASS |
 | PIPE-T02 | Cursor Project + Automations (manual UI) | open | Human-only; see AI_WORKFLOW § Manual steps — **not** agent work |
 
 ---
