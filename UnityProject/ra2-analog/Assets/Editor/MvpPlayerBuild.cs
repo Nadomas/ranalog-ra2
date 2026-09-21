@@ -3,10 +3,12 @@ using UnityEditor;
 using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
 using UnityEngine.UIElements;
 
 /// <summary>
-/// S11-07/08: MvpPlayable scene + Windows player with UI Toolkit workshop shell.
+/// S11-07/09: MvpPlayable scene + Windows player with UI Toolkit workshop shell.
 /// </summary>
 public static class MvpPlayerBuild
 {
@@ -16,6 +18,10 @@ public static class MvpPlayerBuild
     const string UxmlPath = UiFolder + "/MvpWorkshop.uxml";
     const string UssPath = UiFolder + "/MvpWorkshop.uss";
     const string PanelSettingsPath = UiFolder + "/MvpPanelSettings.asset";
+    const string ResourcesMvp = "Assets/Resources/Mvp";
+    const string ResourcesPanel = ResourcesMvp + "/MvpPanelSettings.asset";
+    const string ResourcesUxml = ResourcesMvp + "/MvpWorkshop.uxml";
+    const string ResourcesUss = ResourcesMvp + "/MvpWorkshop.uss";
 
     [MenuItem("Tools/RA2/Build MvpPlayable Scene (S11-07)")]
     public static void BuildSceneFromMenu()
@@ -44,7 +50,7 @@ public static class MvpPlayerBuild
         if (summary.result != BuildResult.Succeeded)
             Debug.LogError($"[S11-07] PLAYER_BUILD FAILED: {summary.result}");
         else
-            Debug.Log("[S11-08] PLAYER_BUILD_WITH_UIToolkit");
+            Debug.Log("[S11-09] PLAYER_BUILD_WITH_UI_FALLBACK");
     }
 
     public static void BuildPlayableScene()
@@ -52,6 +58,10 @@ public static class MvpPlayerBuild
         EnsureUiAssets();
         var panelSettings = AssetDatabase.LoadAssetAtPath<PanelSettings>(PanelSettingsPath);
         var uxml = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(UxmlPath);
+        if (panelSettings == null)
+            throw new System.InvalidOperationException($"Missing PanelSettings at {PanelSettingsPath}");
+        if (uxml == null)
+            throw new System.InvalidOperationException($"Missing UXML at {UxmlPath}");
 
         var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
@@ -83,24 +93,86 @@ public static class MvpPlayerBuild
         light.color = new Color(1f, 0.95f, 0.88f);
         lightGo.transform.rotation = Quaternion.Euler(50f, -30f, 0f);
 
+        var eventGo = new GameObject("EventSystem");
+        eventGo.AddComponent<EventSystem>();
+        eventGo.AddComponent<InputSystemUIInputModule>();
+
         var host = new GameObject("MvpPlayableHost");
         var app = host.AddComponent<RobotMvpPlayableApp>();
         host.AddComponent<RobotMvpPlayableVerifier>().AutoRun = false;
-        host.AddComponent<RobotMvpUiVerifier>().AutoRun = false;
+        host.AddComponent<RobotMvpUiVerifier>().AutoRun = true;
 
         var uiGo = new GameObject("MvpUi");
         uiGo.transform.SetParent(host.transform, false);
         var doc = uiGo.AddComponent<UIDocument>();
+        // Prefer public setters; shell also has Resources fallback for player.
         doc.visualTreeAsset = uxml;
         doc.panelSettings = panelSettings;
+        doc.sortingOrder = 100;
+
         var shell = uiGo.AddComponent<RobotMvpUiShell>();
         shell.Bind(app);
+        var shellSo = new SerializedObject(shell);
+        shellSo.FindProperty("app").objectReferenceValue = app;
+        shellSo.FindProperty("document").objectReferenceValue = doc;
+        shellSo.ApplyModifiedPropertiesWithoutUndo();
+
+        Debug.Log(
+            $"[S11-09] UI_DOCUMENT assign panel={(doc.panelSettings != null)} " +
+            $"uxml={(doc.visualTreeAsset != null)} " +
+            $"(runtime Resources fallback covers nulls)");
 
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(ScenePath)) ?? "Assets/Scenes");
+        EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene, ScenePath);
+        // Unity 6 often drops UIDocument.panelSettings on SaveScene — force GUID into YAML.
+        PatchUiDocumentPanelSettings(ScenePath, PanelSettingsPath);
+        AssetDatabase.ImportAsset(ScenePath, ImportAssetOptions.ForceUpdate);
+        AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
         Debug.Log($"[S11-07] MvpPlayable scene saved: {ScenePath}");
-        Debug.Log("[S11-08] UI_DOCUMENT wired (UI Toolkit)");
+    }
+
+    static void PatchUiDocumentPanelSettings(string scenePath, string panelPath)
+    {
+        var guid = AssetDatabase.AssetPathToGUID(panelPath);
+        if (string.IsNullOrEmpty(guid))
+        {
+            Debug.LogError($"[S11-09] PanelSettings GUID missing for {panelPath}");
+            return;
+        }
+
+        var abs = Path.GetFullPath(scenePath);
+        var text = File.ReadAllText(abs);
+        const string needle = "m_PanelSettings: {fileID: 0}";
+        var replacement = $"m_PanelSettings: {{fileID: 11400000, guid: {guid}, type: 2}}";
+        if (!text.Contains(needle))
+        {
+            if (text.Contains($"guid: {guid}"))
+                Debug.Log("[S11-09] Scene PanelSettings reference already present");
+            else
+                Debug.LogWarning("[S11-09] Could not find m_PanelSettings: {fileID: 0} to patch");
+            return;
+        }
+
+        // Patch only the UIDocument block — first null PanelSettings after UIDocument identifier.
+        var uiDocIdx = text.IndexOf("UnityEngine.UIElements.UIDocument", System.StringComparison.Ordinal);
+        if (uiDocIdx < 0)
+        {
+            Debug.LogWarning("[S11-09] UIDocument block not found for PanelSettings patch");
+            return;
+        }
+
+        var panelIdx = text.IndexOf(needle, uiDocIdx, System.StringComparison.Ordinal);
+        if (panelIdx < 0)
+        {
+            Debug.LogWarning("[S11-09] UIDocument PanelSettings null slot not found");
+            return;
+        }
+
+        text = text.Remove(panelIdx, needle.Length).Insert(panelIdx, replacement);
+        File.WriteAllText(abs, text);
+        Debug.Log($"[S11-09] Patched UIDocument.panelSettings → guid {guid}");
     }
 
     static void EnsureUiAssets()
@@ -109,6 +181,10 @@ public static class MvpPlayerBuild
             AssetDatabase.CreateFolder("Assets", "UI");
         if (!AssetDatabase.IsValidFolder(UiFolder))
             AssetDatabase.CreateFolder("Assets/UI", "Mvp");
+        if (!AssetDatabase.IsValidFolder("Assets/Resources"))
+            AssetDatabase.CreateFolder("Assets", "Resources");
+        if (!AssetDatabase.IsValidFolder(ResourcesMvp))
+            AssetDatabase.CreateFolder("Assets/Resources", "Mvp");
 
         if (AssetDatabase.LoadAssetAtPath<PanelSettings>(PanelSettingsPath) == null)
         {
@@ -124,8 +200,22 @@ public static class MvpPlayerBuild
 
         AssetDatabase.ImportAsset(UxmlPath, ImportAssetOptions.ForceUpdate);
         AssetDatabase.ImportAsset(UssPath, ImportAssetOptions.ForceUpdate);
+
+        CopyReplace(PanelSettingsPath, ResourcesPanel);
+        CopyReplace(UxmlPath, ResourcesUxml);
+        CopyReplace(UssPath, ResourcesUss);
+        AssetDatabase.ImportAsset(ResourcesUxml, ImportAssetOptions.ForceUpdate);
+        AssetDatabase.ImportAsset(ResourcesUss, ImportAssetOptions.ForceUpdate);
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
+    }
+
+    static void CopyReplace(string src, string dst)
+    {
+        if (AssetDatabase.LoadAssetAtPath<Object>(dst) != null)
+            AssetDatabase.DeleteAsset(dst);
+        if (!AssetDatabase.CopyAsset(src, dst))
+            Debug.LogError($"[S11-09] Failed to copy {src} → {dst}");
     }
 
     static void EnsureSceneInBuildSettingsFirst()

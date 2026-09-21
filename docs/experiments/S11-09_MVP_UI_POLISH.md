@@ -20,11 +20,14 @@ Make the product UI Toolkit shell feel like a real workshop HUD (not a raw contr
 ## Pass log
 
 ```
-[S11-09] VERIFIER_DONE pass=True ui=True root=True design=True cfg=True test=True inst=True imgui_off=True
+[S11-09] UIDocument ready panel=True uxml=True rootKids=1
+[S11-07] SMOKE_DONE pass=True ...
 ```
 
-## Not in this spike
+## Player fix (same milestone)
 
-- Full wiring canvas / controller grid  
-- UDP lobby screens  
-- New fonts / custom sprites
+UI was invisible in `.exe` because scene `UIDocument.m_PanelSettings` serialized as null.
+Mitigations:
+- Runtime `EnsureDocumentReady` loads `Resources/Mvp/MvpPanelSettings` (+ UXML/USS)
+- `EventSystem` + `InputSystemUIInputModule` for clicks (Input System only)
+- Scene YAML + Resources pack for player builds

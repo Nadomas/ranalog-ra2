@@ -1,5 +1,7 @@
 using Ra2.Robot;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
 using UnityEngine.UIElements;
 
 /// <summary>
@@ -10,6 +12,9 @@ using UnityEngine.UIElements;
 [RequireComponent(typeof(UIDocument))]
 public sealed class RobotMvpUiShell : MonoBehaviour
 {
+    const string PanelSettingsResource = "Mvp/MvpPanelSettings";
+    const string UxmlResource = "Mvp/MvpWorkshop";
+
     [SerializeField] RobotMvpPlayableApp app;
     [SerializeField] UIDocument document;
 
@@ -51,11 +56,73 @@ public sealed class RobotMvpUiShell : MonoBehaviour
             document = GetComponent<UIDocument>();
         if (app == null)
             app = GetComponent<RobotMvpPlayableApp>() ?? FindFirstObjectByType<RobotMvpPlayableApp>();
+        EnsureDocumentReady();
+        EnsureUiEventSystem();
     }
 
     void OnEnable()
     {
+        EnsureDocumentReady();
+        EnsureUiEventSystem();
         TryBindUi();
+    }
+
+    void EnsureDocumentReady()
+    {
+        if (document == null)
+            document = GetComponent<UIDocument>();
+        if (document == null)
+            return;
+
+        if (document.panelSettings == null)
+        {
+            var fromResources = Resources.Load<PanelSettings>(PanelSettingsResource);
+            if (fromResources != null)
+            {
+                document.panelSettings = fromResources;
+            }
+            else
+            {
+                var created = ScriptableObject.CreateInstance<PanelSettings>();
+                created.scaleMode = PanelScaleMode.ScaleWithScreenSize;
+                created.referenceResolution = new Vector2Int(1920, 1080);
+                created.screenMatchMode = PanelScreenMatchMode.MatchWidthOrHeight;
+                created.match = 0.5f;
+                created.sortingOrder = 100;
+                document.panelSettings = created;
+                Debug.LogWarning("[S11-09] UIDocument.panelSettings was null — created runtime PanelSettings");
+            }
+        }
+
+        if (document.visualTreeAsset == null)
+        {
+            var uxml = Resources.Load<VisualTreeAsset>(UxmlResource);
+            if (uxml != null)
+            {
+                document.visualTreeAsset = uxml;
+                Debug.Log("[S11-09] Loaded MvpWorkshop UXML from Resources");
+            }
+            else
+                Debug.LogError("[S11-09] UIDocument.visualTreeAsset missing and Resources load failed");
+        }
+
+        // Force panel rebuild after late assigns (player often ships with null panelSettings).
+        document.enabled = false;
+        document.enabled = true;
+        Debug.Log(
+            $"[S11-09] UIDocument ready panel={(document.panelSettings != null)} " +
+            $"uxml={(document.visualTreeAsset != null)} rootKids={(document.rootVisualElement != null ? document.rootVisualElement.childCount : -1)}");
+    }
+
+    static void EnsureUiEventSystem()
+    {
+        if (FindFirstObjectByType<EventSystem>() != null)
+            return;
+
+        var go = new GameObject("EventSystem");
+        go.AddComponent<EventSystem>();
+        go.AddComponent<InputSystemUIInputModule>();
+        DontDestroyOnLoad(go);
     }
 
     void Update()
