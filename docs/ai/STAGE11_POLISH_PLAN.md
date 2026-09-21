@@ -11,10 +11,18 @@ Player shell, UI Toolkit, local/UDP/LAN fights, wiring Sign/Channel, history, ar
 
 | ID | What | Why |
 |----|------|-----|
-| **S11-17** | Controller-grid chrome (Kind + Binding + wires by slot) | GDD DESIGN≠CONFIGURE without freehand gold-plate |
-| **S11-18** | Local blueprint save/load | MVP SHOULD persistence between sessions |
-| **S11-19** | Control debug HUD in Test | MVP SHOULD — see wiring live |
-| **S11-20** | `STAGE11_EXIT` + checklist/known-issues | Close milestone before hardening |
+| ~~**S11-17**~~ | Controller-grid chrome | **done** |
+| ~~**S11-18**~~ | Local blueprint save/load | **done** |
+| ~~**S11-19**~~ | Control debug HUD in Test | **done** |
+| ~~**S11-20**~~ | `STAGE11_EXIT` + checklist | **done** → [`STAGE11_EXIT.md`](../experiments/STAGE11_EXIT.md) |
+
+## After exit — Stage 12
+
+| ID | What |
+|----|------|
+| **S12-T01** | Thin soak / net stability smoke |
+| **S12-T02** | Stalemate / timeout UX in fight HUD |
+
 
 ## Explicitly later
 

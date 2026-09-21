@@ -32,6 +32,8 @@ public sealed class RobotMvpUiShell : MonoBehaviour
     Label fightTimer;
     Label fightYou;
     Label fightAi;
+    Label controlDebug;
+    Label controlDebugArena;
     Label stepDesign;
     Label stepConfigure;
     Label stepTest;
@@ -175,6 +177,8 @@ public sealed class RobotMvpUiShell : MonoBehaviour
         fightYou = root.Q<Label>("fight-you");
         fightAi = root.Q<Label>("fight-ai");
         fightHud = root.Q("fight-hud");
+        controlDebug = root.Q<Label>("control-debug");
+        controlDebugArena = root.Q<Label>("control-debug-arena");
         stepDesign = root.Q<Label>("step-design");
         stepConfigure = root.Q<Label>("step-configure");
         stepTest = root.Q<Label>("step-test");
@@ -375,10 +379,25 @@ public sealed class RobotMvpUiShell : MonoBehaviour
             }
         }
 
+        RefreshControlDebug(mode, fighting);
+
         if (!string.IsNullOrEmpty(app.PendingResultsText))
         {
             ShowResults(app.PendingResultsText);
             app.ClearPendingResults();
+        }
+    }
+
+    void RefreshControlDebug(WorkshopMode mode, bool fighting)
+    {
+        var show = fighting || mode == WorkshopMode.Test;
+        var text = show ? app.FormatControlDebug() : "";
+        if (controlDebug != null)
+            controlDebug.text = string.IsNullOrEmpty(text) ? "cmd —" : text;
+        if (controlDebugArena != null)
+        {
+            controlDebugArena.text = text ?? "";
+            SetVisible(controlDebugArena, show && !string.IsNullOrEmpty(text));
         }
     }
 

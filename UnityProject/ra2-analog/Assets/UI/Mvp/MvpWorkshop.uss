@@ -390,6 +390,33 @@
     color: var(--muted);
 }
 
+.control-debug {
+    white-space: normal;
+    color: var(--accent);
+    font-size: 11px;
+    background-color: #0c1016;
+    border-width: 1px;
+    border-color: var(--edge);
+    border-radius: 4px;
+    padding: 8px;
+    margin-bottom: 8px;
+    min-height: 52px;
+}
+
+.control-debug-arena {
+    align-self: flex-start;
+    margin-top: 8px;
+    padding: 8px 10px;
+    background-color: rgba(12, 16, 22, 0.82);
+    border-width: 1px;
+    border-color: var(--accent-dim);
+    border-radius: 4px;
+    color: var(--accent);
+    font-size: 11px;
+    white-space: normal;
+    max-width: 360px;
+}
+
 .wire-list {
     flex-direction: column;
 }

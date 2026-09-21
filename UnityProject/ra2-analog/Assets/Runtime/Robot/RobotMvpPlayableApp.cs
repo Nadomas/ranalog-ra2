@@ -41,6 +41,24 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
     public float FightSecondsLeft => fightRunning ? Mathf.Max(0f, fightEndsAt - Time.time) : 0f;
     public string FightYouLabel => fightYouLabel;
     public string FightAiLabel => fightAiLabel;
+    public string LastControlDebug { get; private set; }
+
+    /// <summary>S11-19: live command + binding readout for Test/Fight (local-only).</summary>
+    public string FormatControlDebug()
+    {
+        EnsureChrome();
+        RobotSpawnedInstance inst = null;
+        if (fightRunning && fightPlayer != null)
+            inst = fightPlayer;
+        else if (chrome.Session?.Mode == WorkshopMode.Test)
+            inst = chrome.Session.TestInstance;
+
+        var text = RobotControlDebugFormatter.Format(
+            chrome.Session?.WorkingBlueprint,
+            inst?.Drive);
+        LastControlDebug = text;
+        return text;
+    }
 
     void Awake()
     {
@@ -844,6 +862,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         yield return new WaitForFixedUpdate();
         yield return new WaitForFixedUpdate();
         var hasInst = chrome.Session.TestInstance != null;
+        var debugOk = TrySmokeControlDebug();
         var okAdmit = chrome.TryPrepareAdmit(out _);
         yield return null;
 
@@ -867,14 +886,14 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         Debug.Log($"[S11-16] ARENA_SMOKE pass={arenaOk}");
 
         var pass = okDesign && okCfg && okTest && hasInst && okAdmit && wireOk && gridOk && saveOk &&
-                   localOk && udpOk && lanOk && historyOk && arenaOk;
+                   debugOk && localOk && udpOk && lanOk && historyOk && arenaOk;
         var marker = Path.Combine(Application.persistentDataPath, "ra2-mvp-smoke.txt");
         try
         {
             File.WriteAllText(marker,
                 $"pass={pass}\nstatus={fightStatus}\nlocal_ok={localOk}\nudp_ok={udpOk}\nlan_ok={lanOk}\n" +
-                $"wire_ok={wireOk}\ngrid_ok={gridOk}\nsave_ok={saveOk}\nhistory_ok={historyOk}\narena_ok={arenaOk}\n" +
-                $"unity={Application.unityVersion}\n");
+                $"wire_ok={wireOk}\ngrid_ok={gridOk}\nsave_ok={saveOk}\ndebug_ok={debugOk}\n" +
+                $"history_ok={historyOk}\narena_ok={arenaOk}\nunity={Application.unityVersion}\n");
         }
         catch
         {
@@ -883,8 +902,9 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
 
         Debug.Log(
             $"[S11-07] SMOKE_DONE pass={pass} design={okDesign} cfg={okCfg} test={okTest} " +
-            $"inst={hasInst} admit={okAdmit} wire={wireOk} grid={gridOk} save={saveOk} local={localOk} " +
-            $"udp={udpOk} lan={lanOk} history={historyOk} arena={arenaOk} fight={fightStatus} marker={marker}");
+            $"inst={hasInst} admit={okAdmit} wire={wireOk} grid={gridOk} save={saveOk} debug={debugOk} " +
+            $"local={localOk} udp={udpOk} lan={lanOk} history={historyOk} arena={arenaOk} " +
+            $"fight={fightStatus} marker={marker}");
 
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
@@ -948,6 +968,22 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
                  string.Equals(loaded.Name, "smoke-save-bot", System.StringComparison.Ordinal) &&
                  loaded.Wirings != null && loaded.Wirings.Length > 0;
         Debug.Log($"[S11-18] BLUEPRINT_SAVE_SMOKE pass={ok} name={loaded?.Name} wires={loaded?.Wirings?.Length}");
+        return ok;
+    }
+
+    bool TrySmokeControlDebug()
+    {
+        var inst = chrome.Session.TestInstance;
+        if (inst?.Drive == null)
+            return false;
+        inst.Drive.SetCommand(new PhysicsTestDriveCommand { Move = 1f, Turn = 0.25f, Fire = 0.5f });
+        var text = FormatControlDebug();
+        var ok = !string.IsNullOrEmpty(text) &&
+                 text.Contains("M=1.00") &&
+                 text.Contains("T=0.25") &&
+                 text.Contains("Drive=");
+        Debug.Log($"[S11-19] CONTROL_DEBUG_SMOKE pass={ok} text={text.Replace("\n", " | ")}");
+        inst.Drive.SetCommand(default);
         return ok;
     }
 

@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|--------|
-| **Current milestone** | **STAGE 11 MVP player + UI Toolkit** |
-| **Roadmap position** | Stage 11 polish — **S11-18** done; next **S11-19** control debug |
-| **Queue status** | **Active** — touchable MVP polish → Stage 11 exit → Stage 12 |
+| **Current milestone** | **STAGE 11 EXIT PASS** → Stage 12 hardening next |
+| **Roadmap position** | Thin MVP playable signed — see [`STAGE11_EXIT.md`](../experiments/STAGE11_EXIT.md) |
+| **Queue status** | **Idle for agents** until Stage 12 tasks opened; `PIPE-T02` human-only |
 | **Last queue update** | 2026-09-21 |
 | **Autonomy recommendation** | Level **2–3** (see [`AI_WORKFLOW.md`](AI_WORKFLOW.md)) |
-| **Evidence snapshot** | [`S11-18_BLUEPRINT_SAVE.md`](../experiments/S11-18_BLUEPRINT_SAVE.md) |
+| **Evidence snapshot** | [`STAGE11_EXIT.md`](../experiments/STAGE11_EXIT.md) |
 
 ---
 
@@ -157,6 +157,8 @@
 | S11-T16 | Stronger thin arena art (procedural pit) | done | `S11-16_ARENA_ART.md` |
 | S11-T17 | Fuller controller-grid wiring chrome | done | `S11-17_CONTROLLER_GRID.md` |
 | S11-T18 | Blueprint local save/load (session persistence) | done | `S11-18_BLUEPRINT_SAVE.md` |
+| S11-T19 | Control debug visualization in Test | done | `S11-19_CONTROL_DEBUG.md` |
+| S11-T20 | Stage 11 MVP exit (checklist + known-issues) | done | `STAGE11_EXIT.md` + `MVP_SMOKE_CHECKLIST.md` |
 
 ### Pipeline meta (this setup)
 
@@ -172,19 +174,15 @@
 
 | ID | Task | Status | Acceptance (thin) |
 |----|------|--------|-------------------|
-| S11-T17 | Fuller controller-grid wiring chrome | done | Control slots as Kind+Binding grid; wires grouped by slot; conflict line; smoke |
-| S11-T18 | Blueprint local save/load (session persistence) | done | Save/Load JSON from player UI; round-trip smoke |
-| S11-T19 | Control debug visualization in Test | open | Live slot values / active wires HUD (local-only) |
-| S11-T20 | Stage 11 MVP exit (checklist + known-issues) | open | `STAGE11_EXIT.md` + updated `MVP_SMOKE_CHECKLIST.md` |
+| S12-T01 | Thin soak / net stability smoke (player UDP+LAN) | open | Multi-run smoke script; no critical desync |
+| S12-T02 | Stalemate / timeout UX readable in fight HUD | open | Timer + reason surfaced in results |
 | PIPE-T02 | Cursor Project + Automations (manual UI) | open | Human-only; see AI_WORKFLOW § Manual steps — **not** agent work |
 
-### Plan (why this order)
+### Plan (post Stage 11)
 
-1. **S11-17** — DESIGN≠CONFIGURE depth players feel next (GDD controller grid, still thin).  
-2. **S11-18** — MVP SHOULD: robots persist between sessions without catalog.  
-3. **S11-19** — MVP SHOULD: control debug makes wiring testable.  
-4. **S11-20** — Close Stage 11 with signed exit before Stage 12 hardening.  
-5. **After exit** — Stage 12 thin: soak/net stability, stalemate UX polish (no content/economy).
+1. **S12-T01** — Hardening: repeatable soak on blessed net paths.  
+2. **S12-T02** — Make timeout/stalemate outcomes obvious in UI.  
+3. Then backlog-only content/hardening items as human pulls them.
 
 ---
 

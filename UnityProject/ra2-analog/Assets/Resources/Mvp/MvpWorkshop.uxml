@@ -74,6 +74,8 @@
                         <ui:Label text="W A S D" class="chip" />
                         <ui:Label text="SPACE brake" class="chip" />
                     </ui:VisualElement>
+                    <ui:Label text="CONTROL DEBUG" class="status-caption" />
+                    <ui:Label name="control-debug" text="cmd M=0.00 T=0.00 F=0.00" class="control-debug" />
                     <ui:Button name="btn-reset" text="Reset Test Spawn" class="tool-btn wide accent" />
                 </ui:VisualElement>
 
@@ -110,6 +112,8 @@
                     <ui:Label name="fight-timer" text="0:00" class="fight-timer" />
                     <ui:Label name="fight-ai" text="AI" class="fight-side ai" />
                 </ui:VisualElement>
+
+                <ui:Label name="control-debug-arena" text="" class="control-debug-arena hidden" />
 
                 <ui:VisualElement class="spacer-v" />
                 <ui:VisualElement name="bottom-bar" class="bottom-bar">

@@ -1,44 +1,38 @@
 # MVP Smoke Checklist — Thin touchable loop
 
 > Living checklist toward “пощупать” GDD MVP.  
-> Updated: 2026-09-21. Critical desync class: **empty** (known thin residuals below).
+> Updated: 2026-09-21 — **Stage 11 EXIT PASS** ([`STAGE11_EXIT.md`](STAGE11_EXIT.md)).
 
-## Blessed Play menus (PhysicsTest)
+## Blessed player path
 
-| Step | Menu | Expect |
-|------|------|--------|
-| Construction admit | `… (S4-01 Construction Validation)` | Dual sample admit + CoM |
-| Configure | `… (S5-01 Configure Wiring)` | Preset rebind + JSON |
-| Seamless loop | `… (S6-01 Seamless Loop)` | Design↔Configure↔Test |
-| Combat win | `… (S8-01 Combat Immobility)` | Disable → Immobilized |
-| UDP match | `… (S9-01 Match UDP Lobby)` | Lobby→admit→fight→MatchOutcome both sides |
-| Disconnect | `… (S9-02 Disconnect Policy)` | Goodbye → DisconnectForfeit |
-| Results stub | `… (S10-01 Results Stub)` | Same as S9-01 console contract |
-| Results persist | `… (S10-02 Results Persist)` | JSON file + thin view |
-| MVP glue | `… (S11 MVP Loop Glue)` | Workshop → local + MP admit |
-| Workshop chrome | `… (S11 Workshop Chrome)` | IMGUI Design/Configure/Test |
-| Workshop unified | `… (S11-06 Workshop Unified Chrome)` | Design polygon + Configure bindings + admit |
-| **MVP Windows player** | `Tools/RA2/Build MVP Windows Player (S11-07)` | `Builds/Ra2MvpPlayer/Ra2MvpPlayer.exe` + UI Toolkit |
+| Step | How | Expect |
+|------|-----|--------|
+| Build | `Tools/RA2/Build MVP Windows Player (S11-07)` | `Builds/Ra2MvpPlayer/Ra2MvpPlayer.exe` |
+| Auto smoke | `Tools/RA2/Play MVP Smoke (S11)` or `-ra2-mvp-smoke` | `SMOKE_DONE pass=True` all flags |
+| Manual | Run `.exe` | Design → Wire → Drive → Admit → Local/UDP/LAN → Results → History |
 
-## Manual touch path (local)
+## Smoke flags (current)
 
-1. Run `Ra2MvpPlayer.exe` (rebuild via S11-07 menu if needed).  
-2. Left panel: Design / Configure / Test → tools → Prepare Admit → **Local Fight 1v1**.  
-3. Results overlay after fight.  
-4. UDP combat remain Editor/UDP verifier menus.
+`design cfg test inst admit wire grid save debug local udp lan history arena`
+
+## Manual touch path
+
+1. Design: nudge poly; **Save Bot** / **Load Bot**.  
+2. Wire: controller Kind/Binding; Sign/Channel; TankSteer.  
+3. Drive: WASD; watch **CONTROL DEBUG**.  
+4. Fight: Local / UDP Loopback / Host–Join LAN (`7796`).  
+5. Results overlay + **History**.
 
 ## Known issues / residuals (non-blockers)
 
-- Wiring canvas / controller grid still not full GDD UI  
-- UDP MP not wired into player shell (local fight only)  
 - Freehand polygon gizmo / full composite binding matrix  
-- Weapons beyond functional disable (Stage 7 depth)  
-- Ready/lobby UX stub (S09-T03) still thin/auto  
-- No reconnect; hard drop without goodbye covered by S9-04 heartbeat  
-- Custom UDP not frozen; Dedicated Server Win module optional residual  
+- Full GDD drag-wire canvas (grid is thin)  
+- Dedicated Server Win module not installed (headless residual)  
+- Custom UDP not package-frozen; NGO/NFE unproven  
+- Detach debris net; weapon catalogue  
+- Reconnect / ranked / spectator / replay scrubber  
 - No economy / catalog / career  
-- Match history list UI
 
 ## Critical desync class
 
-None open for thin path: host publishes outcomes; clients display only; disconnect ends match with forfeit.
+None open for thin path: host publishes outcomes; clients display only.
