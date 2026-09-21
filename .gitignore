@@ -29,3 +29,10 @@ Recordings/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Local PhysicsTest smoke reports (S1-01)
+UnityProject/ra2-analog/Assets/Scenes/PhysicsTest_S1_01_*.txt
+UnityProject/ra2-analog/Assets/Scenes/PhysicsTest_S1_01_*.txt.meta
+
+# AI pipeline batchmode / smoke logs
+artifacts/ai/

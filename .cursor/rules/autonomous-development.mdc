@@ -1,0 +1,50 @@
+---
+description: Autonomous coordinator workflow — TASK_QUEUE, stop conditions, cloud/local split
+alwaysApply: true
+---
+
+# Autonomous development
+
+Complementary to `project`, `architecture`, `physics`, `networking`, `unity`. Does **not** override those rules.
+
+## Source of truth
+
+1. `docs/PROJECT_CONTEXT.md`
+2. GDD / GAMEPLAY / roadmap / SDS / UNITY_ENGINE as needed
+3. `docs/experiments/` (reuse conclusions; do not repeat rejected approaches)
+4. `docs/ai/TASK_QUEUE.md` — executable next work
+5. `docs/ai/DEFINITION_OF_DONE.md` · `docs/ai/BLOCKERS.md` · `docs/ai/AI_WORKFLOW.md`
+
+## Queue behavior
+
+- Work the **first open** task in `docs/ai/TASK_QUEUE.md`.
+- Do **not** ask the human for the next task while an unfinished open item exists.
+- Complete tasks in order within the current milestone; do not pull backlog chrome/catalog/economy early.
+- After finish: update `TASK_QUEUE.md`, then take the next open task.
+
+## Autonomy
+
+- Default recommendation: **Level 2–3** (see `docs/ai/AI_WORKFLOW.md`).
+- Level 1 = analyze only (no edits).
+- Never develop product work directly on `main` (see `ai-git` rule).
+
+## Cloud vs Local
+
+- Cloud/static: code, docs, queue, review.
+- Local: Unity Editor, Play Mode, Unity MCP (`http://localhost:8080/`), `scripts/ai/*.ps1`.
+- Do not claim Play Mode verified from Cloud alone.
+
+## Stop conditions
+
+Stop and use `docs/ai/BLOCKERS.md` when: product decision needed; credentials/access missing; verify fails after **3** attempts; Stage 2-class physics/MP invariant regresses; Editor/MCP required and unavailable with batchmode also failing.
+
+## Notifications
+
+Notify human only for: Active blockers, broken build/verify after 3 attempts, milestone complete.
+
+## Unity / scope
+
+- Production engine stays Unity. No new MCP servers. Do not change Runlayer configs.
+- No monolithic managers; keep MonoBehaviour policy from `unity.mdc`.
+- Smallest spike that answers one question.
+---

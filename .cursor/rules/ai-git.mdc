@@ -1,0 +1,33 @@
+---
+description: Git branch and commit policy for autonomous agents
+alwaysApply: true
+---
+
+# AI git policy
+
+## Branches
+
+- **Never** develop or commit product work directly on `main` / `master`.
+- Use: `agent/<short-topic>`, `feature/<short-topic>`, or `experiment/<id-slug>`.
+- Cut the branch before implementing a TASK_QUEUE item when currently on `main`.
+
+## Commits
+
+- One logical task (TASK_QUEUE id) → one commit, or a small focused stack.
+- Prefer conventional commits: `feat`, `fix`, `chore`, `docs`, `refactor`, `test`.
+- Message explains **why**; reference experiment/task ids when useful.
+- Do not commit: `Library/`, `Temp/`, `Logs/`, secrets, `artifacts/ai/` logs, IDE junk.
+- Do not commit unless the user/workflow allows commits for this autonomy level; still prepare a clean diff.
+
+## Push / PR / main
+
+- No `--force` to `main`/`master`. Warn if asked.
+- Level 2: commit locally; ask before push.
+- Level 3: push `agent/*` / `feature/*` and open a PR; do not merge unless Level 4 granted.
+- Remote: `origin` → `https://github.com/Nadomas/ranalog-ra2.git` when configured.
+
+## After task complete
+
+- Update `docs/ai/TASK_QUEUE.md` in the same change set when practical.
+- Leave the working tree ready for the next open task on the same or a fresh `agent/*` branch.
+---

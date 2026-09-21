@@ -8,4 +8,5 @@ alwaysApply: true
 1. Read `docs/PROJECT_CONTEXT.md` for stable shared truth.  
 2. Follow specialized rules: `project`, `architecture`, `physics`, `networking`, `unity`, `csharp`.  
 3. Deep docs: GDD / SDS / Roadmap / UNITY_ENGINE / ARCHITECTURE_REVIEW under `docs/`.  
-4. Never skip physics+multiplayer proof for premature content.
+4. Never skip physics+multiplayer proof for premature content.  
+5. Autonomous pipeline: `docs/ai/` + rules `autonomous-development`, `ai-testing`, `ai-git` — work `TASK_QUEUE` in order.

@@ -1,0 +1,43 @@
+---
+description: Unity verification loop for AI agents (compile, console, tests, Play Mode, MCP)
+alwaysApply: true
+---
+
+# AI testing / Unity verification
+
+Align with `docs/ai/DEFINITION_OF_DONE.md` and `docs/ai/AI_WORKFLOW.md`.  
+Does not relax `physics.mdc` or `networking.mdc`.
+
+## When verifying Unity changes
+
+1. **Compile** — no C# errors after script reload.
+2. **Console** — no new errors from the change (`read_console` types `error` / `error,warning`).
+3. **Tests** — `run_tests` (EditMode; PlayMode if relevant) or spike `*Verifier` in Play Mode.
+4. **Play Mode** — required for physics, joints, drive, spawn, net authority, combat, mode switches.
+5. **Exit Play Mode** cleanly before handing off.
+
+## Unity MCP (project)
+
+- Config: `.cursor/mcp.json` → `unity-mcp` @ `http://localhost:8080/` (`com.emeryporter.unitymcp`).
+- Editor must be open; **Window → Unity MCP → Start**.
+- Prefer: `refresh_unity` → `read_console` → `run_tests` / `manage_playmode` → scene diagnose tools as needed.
+- `manage_checkpoint` before destructive scene/asset edits.
+- Do not install extra Unity MCP packages.
+
+## Scripts fallback
+
+From repo root (Windows):
+
+```powershell
+powershell -File scripts/ai/build.ps1
+powershell -File scripts/ai/test.ps1
+powershell -File scripts/ai/smoke-test.ps1
+```
+
+Logs under `artifacts/ai/`. Set `UNITY_EDITOR_PATH` if auto-detect fails.
+
+## Honesty
+
+- If MCP/Editor is down, say so; use scripts or mark Local verification pending — do not fake Play Mode pass.
+- Search `docs/experiments/` before inventing a new verification approach for the same spike.
+---
