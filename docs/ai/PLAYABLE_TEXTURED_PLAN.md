@@ -4,7 +4,7 @@
 > (readable arena + robot materials), while keeping physics+MP invariants.  
 > Companion to [`TASK_QUEUE.md`](TASK_QUEUE.md) · [`STAGE11_EXIT.md`](../experiments/STAGE11_EXIT.md) · GDD §17.
 
-**Last update:** 2026-09-22 — Stage 14 P2 PASS; Stage 15 default weapon bot active; P3 DS residual deferred
+**Last update:** 2026-09-22 — Stage 15 PASS (default weapon bot + player rebuild); P3 DS residual deferred
 
 ---
 

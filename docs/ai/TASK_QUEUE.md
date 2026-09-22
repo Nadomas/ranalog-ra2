@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|--------|
-| **Current milestone** | **STAGE 15** playable UX depth — **S15-T01 PASS**; rebuild next |
-| **Roadmap position** | S15-T01 done; next **S15-T02** player rebuild (P3 DS residual deferred) |
-| **Queue status** | **Active** — S15-T02 open |
+| **Current milestone** | **STAGE 15** playable UX depth — **PASS** (idle) |
+| **Roadmap position** | S15-T01/T02 PASS; plan §5 P3 DS residual deferred (human module install) |
+| **Queue status** | **Idle** — PIPE-T02 human-only |
 | **Last queue update** | 2026-09-22 |
 | **Autonomy recommendation** | Level **2–3** (see [`AI_WORKFLOW.md`](AI_WORKFLOW.md)) |
-| **Evidence snapshot** | [`S15-01_DEFAULT_WEAPON_BOT.md`](../experiments/S15-01_DEFAULT_WEAPON_BOT.md) · plan §5 |
+| **Evidence snapshot** | [`S15-01_DEFAULT_WEAPON_BOT.md`](../experiments/S15-01_DEFAULT_WEAPON_BOT.md) · [`S15-02_PLAYER_REBUILD.md`](../experiments/S15-02_PLAYER_REBUILD.md) |
 
 ---
 
@@ -174,14 +174,14 @@
 
 | ID | Task | Status | Acceptance (thin) |
 |----|------|--------|-------------------|
-| S15-T02 | Rebuild Ra2MvpPlayer.exe after S14/S15 | open | PLAYER_BUILD Succeeded; smoke still green |
 | PIPE-T02 | Cursor Project + Automations (manual UI) | open | Human-only; see AI_WORKFLOW § Manual steps — **not** agent work |
 
-### Stage 15 — Playable UX depth (in progress)
+### Stage 15 — Playable UX depth (done)
 
 | ID | Task | Status | Evidence |
 |----|------|--------|----------|
 | S15-T01 | Default workshop bot includes weapon spinner + Fire wire | done | `S15-01_DEFAULT_WEAPON_BOT.md` |
+| S15-T02 | Rebuild Ra2MvpPlayer.exe after S14/S15 | done | `S15-02_PLAYER_REBUILD.md` |
 
 ### Stage 14 — Post-textured polish (done)
 
