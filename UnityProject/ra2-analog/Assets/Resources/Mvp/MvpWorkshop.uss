@@ -475,6 +475,10 @@
     letter-spacing: 1px;
 }
 
+.fight-pill-lock {
+    background-color: rgb(200, 120, 20);
+}
+
 .fight-hud {
     margin-top: 10px;
     flex-direction: row;

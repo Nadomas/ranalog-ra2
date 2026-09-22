@@ -337,7 +337,7 @@ public sealed class RobotMvpUiShell : MonoBehaviour
         if (helpLine != null)
         {
             helpLine.text = fighting
-                ? "Ram the red AI. Stay in the ring. Immobile or out = loss."
+                ? "Ram the red AI. Stay mobile — lock countdown = loss."
                 : mode == WorkshopMode.Test
                     ? "Drive with WASD. Prepare Admit, then Start Local Fight."
                     : mode == WorkshopMode.Configure
@@ -349,13 +349,25 @@ public sealed class RobotMvpUiShell : MonoBehaviour
         {
             if (fighting)
             {
-                var left = Mathf.CeilToInt(app.FightSecondsLeft);
-                fightPill.text = left <= 10 ? $"TIME {left}" : "LIVE";
+                var lockPill = app.FightLockPill;
+                if (!string.IsNullOrEmpty(lockPill))
+                    fightPill.text = lockPill;
+                else
+                {
+                    var left = Mathf.CeilToInt(app.FightSecondsLeft);
+                    fightPill.text = left <= 10 ? $"TIME {left}" : "LIVE";
+                }
+
                 fightPill.RemoveFromClassList("hidden");
+                if (!string.IsNullOrEmpty(lockPill))
+                    fightPill.AddToClassList("fight-pill-lock");
+                else
+                    fightPill.RemoveFromClassList("fight-pill-lock");
             }
             else
             {
                 fightPill.AddToClassList("hidden");
+                fightPill.RemoveFromClassList("fight-pill-lock");
             }
         }
 

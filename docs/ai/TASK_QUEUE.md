@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|--------|
-| **Current milestone** | **STAGE 12** playable textured **EXIT PASS** — next backlog polish (human pull) |
-| **Roadmap position** | Stage 11 EXIT PASS; Stage 12 H+V textured exit PASS — see [`PLAYABLE_TEXTURED_EXIT.md`](../experiments/PLAYABLE_TEXTURED_EXIT.md) |
-| **Queue status** | **Idle** — S12-T01…06 done; only PIPE-T02 (human) remains open |
+| **Current milestone** | **STAGE 13** playable feel — S13-T01 done; next **S13-T02** freehand chassis |
+| **Roadmap position** | Stage 12 textured EXIT PASS; S13-T01 immobility countdown PASS |
+| **Queue status** | **Active** — S13-T02 open |
 | **Last queue update** | 2026-09-22 |
 | **Autonomy recommendation** | Level **2–3** (see [`AI_WORKFLOW.md`](AI_WORKFLOW.md)) |
-| **Evidence snapshot** | [`STAGE11_EXIT.md`](../experiments/STAGE11_EXIT.md) · [`PLAYABLE_TEXTURED_EXIT.md`](../experiments/PLAYABLE_TEXTURED_EXIT.md) |
+| **Evidence snapshot** | [`PLAYABLE_TEXTURED_EXIT.md`](../experiments/PLAYABLE_TEXTURED_EXIT.md) · [`S13-01_IMMOBILITY_COUNTDOWN_HUD.md`](../experiments/S13-01_IMMOBILITY_COUNTDOWN_HUD.md) |
 
 ---
 
@@ -174,7 +174,14 @@
 
 | ID | Task | Status | Acceptance (thin) |
 |----|------|--------|-------------------|
+| S13-T02 | Freehand chassis polygon gizmo (thin) | open | Drag/nudge vertices in Design without fake physics |
 | PIPE-T02 | Cursor Project + Automations (manual UI) | open | Human-only; see AI_WORKFLOW § Manual steps — **not** agent work |
+
+### Stage 13 — Playable feel (in progress)
+
+| ID | Task | Status | Evidence |
+|----|------|--------|----------|
+| S13-T01 | Immobility countdown numbers in fight HUD | done | `S13-01_IMMOBILITY_COUNTDOWN_HUD.md` |
 
 ### Stage 12 — Hardening + playable textured (done)
 
@@ -189,8 +196,8 @@
 
 ### Plan (next)
 
-1. Human PIPE-T02 if desired.  
-2. Backlog polish from [`PLAYABLE_TEXTURED_PLAN.md`](PLAYABLE_TEXTURED_PLAN.md) §5 (freehand, immobility countdown UI) — pull explicitly.  
+1. **S13-T01** — Immobility countdown HUD (GDD primary win readability).  
+2. **S13-T02** — Thin freehand chassis gizmo.  
 3. No economy/catalog.
 
 ---

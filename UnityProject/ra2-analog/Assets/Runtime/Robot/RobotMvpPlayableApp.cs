@@ -33,6 +33,9 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
     float fightEndsAt;
     string fightYouLabel = "YOU";
     string fightAiLabel = "AI";
+    string fightLockPill;
+    string fightYouBase = "YOU";
+    string fightAiBase = "AI";
 
     public bool Ready { get; private set; }
     public string FightStatus => fightStatus;
@@ -44,6 +47,8 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
     public float FightSecondsLeft => fightRunning ? Mathf.Max(0f, fightEndsAt - Time.time) : 0f;
     public string FightYouLabel => fightYouLabel;
     public string FightAiLabel => fightAiLabel;
+    /// <summary>S13-01: lock countdown pill text while a seat is accruing immobility; null when idle.</summary>
+    public string FightLockPill => fightLockPill;
     public string LastControlDebug { get; private set; }
 
     /// <summary>S11-19: live command + binding readout for Test/Fight (local-only).</summary>
@@ -283,8 +288,11 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         if (chrome.Session.Mode == WorkshopMode.Test)
             chrome.TrySetMode(WorkshopMode.Configure, out _);
 
-        fightYouLabel = "YOU · HOST";
-        fightAiLabel = "PEER";
+        fightYouBase = "YOU · HOST";
+        fightAiBase = "PEER";
+        fightYouLabel = fightYouBase;
+        fightAiLabel = fightAiBase;
+        fightLockPill = null;
         fightEndsAt = Time.time + interactiveFightSeconds;
 
         var runner = new RobotMvpLanMatchRunner(slideMaterial, interactiveFightSeconds: interactiveFightSeconds);
@@ -303,7 +311,9 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
                 fightPlayer = null;
                 fightOpponent = null;
                 wiredInput = null;
+                fightLockPill = null;
             },
+            onImmobilityTick: rules => PushImmobilityHud(rules),
             done: r => result = r);
 
         PresentLanResult(result);
@@ -329,8 +339,11 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         if (chrome.Session.Mode == WorkshopMode.Test)
             chrome.TrySetMode(WorkshopMode.Configure, out _);
 
-        fightYouLabel = "YOU · JOIN";
-        fightAiLabel = "HOST";
+        fightYouBase = "YOU · JOIN";
+        fightAiBase = "HOST";
+        fightYouLabel = fightYouBase;
+        fightAiLabel = fightAiBase;
+        fightLockPill = null;
         fightEndsAt = Time.time + interactiveFightSeconds;
 
         var runner = new RobotMvpLanMatchRunner(slideMaterial, interactiveFightSeconds: interactiveFightSeconds);
@@ -606,8 +619,11 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         if (chrome.Session.Mode == WorkshopMode.Test)
             chrome.TrySetMode(WorkshopMode.Configure, out _);
 
-        fightYouLabel = "YOU · UDP";
-        fightAiLabel = "AI · NET";
+        fightYouBase = "YOU · UDP";
+        fightAiBase = "AI · NET";
+        fightYouLabel = fightYouBase;
+        fightAiLabel = fightAiBase;
+        fightLockPill = null;
         fightEndsAt = Time.time + interactiveFightSeconds;
 
         var runner = new RobotMvpUdpLoopbackRunner(slideMaterial, interactiveFightSeconds: interactiveFightSeconds);
@@ -627,7 +643,9 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
                 fightPlayer = null;
                 fightOpponent = null;
                 wiredInput = null;
+                fightLockPill = null;
             },
+            onImmobilityTick: rules => PushImmobilityHud(rules),
             done: r => result = r);
 
         if (result.Ok && result.HostSummary.Outcome.Finished)
@@ -701,8 +719,11 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         fightEndsAt = Time.time + interactiveFightSeconds;
         WireTestInput();
         fightStatus = "fight · WASD you · AI hunts";
+        fightYouBase = "YOU";
+        fightAiBase = "AI";
         fightYouLabel = "YOU";
         fightAiLabel = "AI";
+        fightLockPill = null;
 
         var rules = new ImmobilityWinEvaluator(new[] { 0, 1 }, immobileSeconds: immobileNeed, speedThreshold: 0.25f);
         var positions = new Vector3[2];
@@ -722,6 +743,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
             disabled[0] = RobotDamageService.IsFunctionallyDisabled(a);
             disabled[1] = RobotDamageService.IsFunctionallyDisabled(b);
             outcome = rules.Tick(Time.fixedDeltaTime, positions, disabled);
+            PushImmobilityHud(rules);
 
             if (!outcome.Finished)
             {
@@ -975,10 +997,11 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         Debug.Log($"[S12-04] ARENA_TEXTURED_SMOKE pass={texturedOk}");
 
         var stalemateOk = TrySmokeStalemateLabel();
+        var immobilityHudOk = TrySmokeImmobilityCountdownLabel();
 
         var pass = okDesign && okCfg && okTest && hasInst && okAdmit && wireOk && gridOk && saveOk &&
                    debugOk && localOk && udpOk && lanOk && historyOk && arenaOk && texturedOk &&
-                   robotTexOk && soakOk && stalemateOk;
+                   robotTexOk && soakOk && stalemateOk && immobilityHudOk;
         var marker = Path.Combine(Application.persistentDataPath, "ra2-mvp-smoke.txt");
         try
         {
@@ -986,7 +1009,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
                 $"pass={pass}\nstatus={fightStatus}\nlocal_ok={localOk}\nudp_ok={udpOk}\nlan_ok={lanOk}\n" +
                 $"wire_ok={wireOk}\ngrid_ok={gridOk}\nsave_ok={saveOk}\ndebug_ok={debugOk}\n" +
                 $"history_ok={historyOk}\narena_ok={arenaOk}\ntextured_ok={texturedOk}\nrobot_tex_ok={robotTexOk}\n" +
-                $"soak_ok={soakOk}\nstalemate_ok={stalemateOk}\n" +
+                $"soak_ok={soakOk}\nstalemate_ok={stalemateOk}\nimmobility_hud_ok={immobilityHudOk}\n" +
                 $"unity={Application.unityVersion}\n");
         }
         catch
@@ -999,7 +1022,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
             $"inst={hasInst} admit={okAdmit} wire={wireOk} grid={gridOk} save={saveOk} debug={debugOk} " +
             $"local={localOk} udp={udpOk} lan={lanOk} history={historyOk} arena={arenaOk} " +
             $"textured={texturedOk} robotTex={robotTexOk} soak={soakOk} stalemate={stalemateOk} " +
-            $"fight={fightStatus} marker={marker}");
+            $"immobHud={immobilityHudOk} fight={fightStatus} marker={marker}");
 
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
@@ -1093,6 +1116,31 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         return ok;
     }
 
+    bool TrySmokeImmobilityCountdownLabel()
+    {
+        const float need = 1.0f;
+        var side = ImmobilityWinEvaluator.FormatSideHud("YOU", 0.4f, need);
+        var pill = ImmobilityWinEvaluator.FormatLockPill(0.4f, 0f, need);
+        var idle = ImmobilityWinEvaluator.FormatSideHud("YOU", 0f, need);
+        var ok = side.Contains("0.6") &&
+                 pill != null && pill.Contains("LOCK YOU") && pill.Contains("0.6") &&
+                 idle == "YOU";
+        Debug.Log($"[S13-01] IMMOBILITY_HUD_SMOKE pass={ok} side={side} pill={pill}");
+        return ok;
+    }
+
+    void PushImmobilityHud(ImmobilityWinEvaluator rules)
+    {
+        if (rules == null)
+            return;
+        var youAccum = rules.GetImmobileSeconds(0);
+        var aiAccum = rules.GetImmobileSeconds(1);
+        var need = rules.NeedSeconds;
+        fightYouLabel = ImmobilityWinEvaluator.FormatSideHud(fightYouBase, youAccum, need);
+        fightAiLabel = ImmobilityWinEvaluator.FormatSideHud(fightAiBase, aiAccum, need);
+        fightLockPill = ImmobilityWinEvaluator.FormatLockPill(youAccum, aiAccum, need);
+    }
+
     IEnumerator RunLanSameProcessSmoke()
     {
         if (fightRunning)
@@ -1135,6 +1183,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
                     fightPlayer = null;
                     fightOpponent = null;
                 },
+                onImmobilityTick: null,
                 done: r => hostResult = r),
             () => hostDone = true));
 

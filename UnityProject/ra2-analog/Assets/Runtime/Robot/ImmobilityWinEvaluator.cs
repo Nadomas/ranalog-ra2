@@ -134,7 +134,49 @@ namespace Ra2.Robot
             LastOutcome = new MatchOutcome(true, winnerId, loserId, reason);
         }
 
+        public float NeedSeconds => immobileSeconds;
+
         public float GetImmobileSeconds(int index) =>
             index >= 0 && index < immobileAccum.Length ? immobileAccum[index] : 0f;
+
+        /// <summary>Seconds remaining until this seat loses if they stay immobile (0 when not locking).</summary>
+        public float GetCountdownLeft(int index)
+        {
+            var accum = GetImmobileSeconds(index);
+            if (accum <= 0.05f)
+                return 0f;
+            return Mathf.Max(0f, immobileSeconds - accum);
+        }
+
+        /// <summary>Presentation helper — does not affect authority.</summary>
+        public static string FormatSideHud(string baseLabel, float accumSeconds, float needSeconds)
+        {
+            if (string.IsNullOrEmpty(baseLabel))
+                baseLabel = "?";
+            if (accumSeconds <= 0.05f || needSeconds <= 0f)
+                return baseLabel;
+            var left = Mathf.Max(0f, needSeconds - accumSeconds);
+            if (left <= 0.05f)
+                return baseLabel + " · OUT";
+            return baseLabel + " · " + left.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture);
+        }
+
+        /// <summary>Pill text when any seat is locking; null if none.</summary>
+        public static string FormatLockPill(float youAccum, float aiAccum, float needSeconds)
+        {
+            if (needSeconds <= 0f)
+                return null;
+            var youLeft = youAccum > 0.05f ? Mathf.Max(0f, needSeconds - youAccum) : -1f;
+            var aiLeft = aiAccum > 0.05f ? Mathf.Max(0f, needSeconds - aiAccum) : -1f;
+            if (youLeft < 0f && aiLeft < 0f)
+                return null;
+            if (youLeft >= 0f && (aiLeft < 0f || youLeft <= aiLeft))
+                return youLeft <= 0.05f
+                    ? "LOCK YOU OUT"
+                    : "LOCK YOU " + youLeft.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture);
+            return aiLeft <= 0.05f
+                ? "LOCK AI OUT"
+                : "LOCK AI " + aiLeft.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture);
+        }
     }
 }

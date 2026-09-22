@@ -45,6 +45,7 @@ public sealed class RobotMvpLanMatchRunner
         System.Action<string> status,
         System.Action<RobotSpawnedInstance, RobotSpawnedInstance> onLive,
         System.Action onCleared,
+        System.Action<ImmobilityWinEvaluator> onImmobilityTick,
         System.Action<Result> done)
     {
         var hostGo = new GameObject("MvpLanHost");
@@ -129,7 +130,7 @@ public sealed class RobotMvpLanMatchRunner
         onLive?.Invoke(instA, instB);
 
         MatchSummary summary = MatchSummary.None;
-        yield return RunHostFight(instA, instB, lobby, s => summary = s);
+        yield return RunHostFight(instA, instB, lobby, onImmobilityTick, s => summary = s);
 
         if (!summary.Outcome.Finished)
         {
@@ -215,6 +216,7 @@ public sealed class RobotMvpLanMatchRunner
         RobotSpawnedInstance a,
         RobotSpawnedInstance b,
         MatchLobbySession lobby,
+        System.Action<ImmobilityWinEvaluator> onImmobilityTick,
         System.Action<MatchSummary> done)
     {
         var rules = new ImmobilityWinEvaluator(new[] { 0, 1 }, immobileSeconds: immobileNeed, speedThreshold: 0.25f);
@@ -232,6 +234,7 @@ public sealed class RobotMvpLanMatchRunner
             disabled[0] = RobotDamageService.IsFunctionallyDisabled(a);
             disabled[1] = RobotDamageService.IsFunctionallyDisabled(b);
             outcome = rules.Tick(Time.fixedDeltaTime, positions, disabled);
+            onImmobilityTick?.Invoke(rules);
             yield return new WaitForFixedUpdate();
         }
 

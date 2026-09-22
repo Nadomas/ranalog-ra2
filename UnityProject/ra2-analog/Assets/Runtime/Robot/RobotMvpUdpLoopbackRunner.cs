@@ -29,18 +29,25 @@ public sealed class RobotMvpUdpLoopbackRunner
 
     public RobotMvpUdpLoopbackRunner(
         PhysicsMaterial slideMaterial,
-        int matchPort = DefaultPort,
+        int matchPort = 0,
         float peerWait = 8f,
         float spawnWait = 12f,
         float immobile = 1.0f,
         float interactiveFightSeconds = 75f)
     {
         slide = slideMaterial;
-        port = matchPort;
+        port = matchPort > 0 ? matchPort : AllocateEphemeralPort();
         peerWaitSeconds = peerWait;
         spawnWaitSeconds = spawnWait;
         immobileNeed = immobile;
         interactiveSeconds = interactiveFightSeconds;
+    }
+
+    static int AllocateEphemeralPort()
+    {
+        // Avoid sticky TIME_WAIT collisions on fixed DefaultPort during rapid smoke/soak.
+        using (var probe = new System.Net.Sockets.UdpClient(0))
+            return ((System.Net.IPEndPoint)probe.Client.LocalEndPoint).Port;
     }
 
     public IEnumerator Run(
@@ -48,6 +55,7 @@ public sealed class RobotMvpUdpLoopbackRunner
         bool interactive,
         System.Action<RobotSpawnedInstance, RobotSpawnedInstance> onFightLive,
         System.Action onFightCleared,
+        System.Action<ImmobilityWinEvaluator> onImmobilityTick,
         System.Action<Result> done)
     {
         var hostGo = new GameObject("MvpUdpListenHost");
@@ -150,7 +158,8 @@ public sealed class RobotMvpUdpLoopbackRunner
 
         MatchSummary summary = MatchSummary.None;
         if (interactive)
-            yield return RunInteractive(instA, instB, bpA, bpB, lobby, immobileNeed, interactiveSeconds, s => summary = s);
+            yield return RunInteractive(instA, instB, bpA, bpB, lobby, immobileNeed, interactiveSeconds,
+                onImmobilityTick, s => summary = s);
         else
             yield return RunSmoke(instA, instB, bpA, bpB, lobby, immobileNeed, s => summary = s);
 
@@ -202,6 +211,7 @@ public sealed class RobotMvpUdpLoopbackRunner
         MatchLobbySession lobby,
         float immobileNeed,
         float seconds,
+        System.Action<ImmobilityWinEvaluator> onImmobilityTick,
         System.Action<MatchSummary> done)
     {
         var rules = new ImmobilityWinEvaluator(new[] { 0, 1 }, immobileSeconds: immobileNeed, speedThreshold: 0.25f);
@@ -223,6 +233,7 @@ public sealed class RobotMvpUdpLoopbackRunner
             disabled[0] = RobotDamageService.IsFunctionallyDisabled(a);
             disabled[1] = RobotDamageService.IsFunctionallyDisabled(b);
             outcome = rules.Tick(Time.fixedDeltaTime, positions, disabled);
+            onImmobilityTick?.Invoke(rules);
 
             if (!outcome.Finished)
             {
