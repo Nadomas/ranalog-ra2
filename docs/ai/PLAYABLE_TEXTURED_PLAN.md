@@ -99,7 +99,7 @@ S12-T02 timeout/stalemate UX            V2 arena textured kit
 | P2 | Minimal starter part set textures (spin/battery/board) | **DONE** S14-T01 |
 | P2 | Burst/Fire wiring UI path | **DONE** S14-T02 |
 | P2.5 | Default workshop bot with weapon spinner + Fire | **DONE** S15-T01 |
-| P2.5 | Rebuild playable `.exe` after polish | **S15-T02** (next) |
+| P2.5 | Rebuild playable `.exe` after polish | **DONE** S15-T02 |
 | P3 | Dedicated server module | Residual — needs Unity DS Win module (human install) |
 | Later | Paint shop, ranked, economy | Explicit backlog |
 

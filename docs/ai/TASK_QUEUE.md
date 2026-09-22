@@ -210,9 +210,9 @@
 
 ### Plan (next)
 
-1. **S15-T02** — Rebuild Windows MVP player with S14/S15 presentation + default weapon bot.  
-2. Plan §5 **P3** Dedicated Server Win module remains residual (human install).  
-3. No economy/catalog. PIPE-T02 remains human-only.
+1. Idle after Stage 15 PASS — pull plan §5 **P3** only after human installs Unity Dedicated Server (Win).  
+2. Later backlog (paint/ranked/economy) only on explicit request.  
+3. PIPE-T02 remains human-only.
 
 ---
 
