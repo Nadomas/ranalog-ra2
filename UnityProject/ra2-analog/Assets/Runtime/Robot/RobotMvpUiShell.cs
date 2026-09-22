@@ -349,7 +349,8 @@ public sealed class RobotMvpUiShell : MonoBehaviour
         {
             if (fighting)
             {
-                fightPill.text = "LIVE";
+                var left = Mathf.CeilToInt(app.FightSecondsLeft);
+                fightPill.text = left <= 10 ? $"TIME {left}" : "LIVE";
                 fightPill.RemoveFromClassList("hidden");
             }
             else
@@ -383,7 +384,7 @@ public sealed class RobotMvpUiShell : MonoBehaviour
 
         if (!string.IsNullOrEmpty(app.PendingResultsText))
         {
-            ShowResults(app.PendingResultsText);
+            ShowResults(app.PendingResultsText, app.PendingResultsTitle);
             app.ClearPendingResults();
         }
     }
@@ -616,13 +617,13 @@ public sealed class RobotMvpUiShell : MonoBehaviour
             step.AddToClassList("done");
     }
 
-    public void ShowResults(string body)
+    public void ShowResults(string body, string title = null)
     {
         HideHistory();
         if (resultsBody != null)
             resultsBody.text = body ?? "";
         if (resultsTitle != null)
-            resultsTitle.text = "Fight complete";
+            resultsTitle.text = string.IsNullOrEmpty(title) ? "Fight complete" : title;
         SetVisible(resultsOverlay, true);
     }
 

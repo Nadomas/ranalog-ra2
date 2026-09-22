@@ -35,15 +35,42 @@ namespace Ra2.Robot
             sb.Append("Side: ").Append(sideLabel).Append('\n');
             sb.Append("Session: ").Append(summary.SessionId ?? "").Append('\n');
             sb.Append("Finished: ").Append(o.Finished).Append('\n');
-            sb.Append("Reason: ").Append(o.Reason).Append('\n');
+            sb.Append("Reason: ").Append(FormatReasonLabel(o.Reason)).Append('\n');
             sb.Append("Winner: ").Append(o.WinnerRobotId).Append('\n');
             sb.Append("Loser: ").Append(o.LoserRobotId).Append('\n');
             sb.Append("Duration: ").Append(F2(summary.MatchDurationSeconds)).Append(" s\n");
             sb.Append("Immobile loser: ").Append(F2(summary.ImmobileSecondsLoser)).Append(" s\n");
             sb.Append("Immobile winner: ").Append(F2(summary.ImmobileSecondsWinner)).Append(" s\n");
             sb.Append("Loser disabled: ").Append(summary.LoserWasDisabled);
+            if (o.Reason == MatchWinReason.TimeExpired)
+                sb.Append("\nNote: clock expired — center / tie-break");
             return sb.ToString();
         }
+
+        /// <summary>S12-02 results card title from host reason (display only).</summary>
+        public static string FormatResultsTitle(MatchSummary summary)
+        {
+            if (!summary.Outcome.Finished)
+                return "Fight incomplete";
+            return summary.Outcome.Reason switch
+            {
+                MatchWinReason.TimeExpired => "TIME EXPIRED · STALEMATE BREAK",
+                MatchWinReason.DisconnectForfeit => "DISCONNECT FORFEIT",
+                MatchWinReason.OpponentDisabled => "OPPONENT DISABLED",
+                MatchWinReason.Immobilized => "IMMOBILIZED",
+                _ => "Fight complete"
+            };
+        }
+
+        public static string FormatReasonLabel(MatchWinReason reason) =>
+            reason switch
+            {
+                MatchWinReason.TimeExpired => "TimeExpired (stalemate break)",
+                MatchWinReason.DisconnectForfeit => "DisconnectForfeit",
+                MatchWinReason.OpponentDisabled => "OpponentDisabled",
+                MatchWinReason.Immobilized => "Immobilized",
+                _ => reason.ToString()
+            };
 
         /// <summary>Present results (local-only chrome). Optionally persist + push to a view.</summary>
         public static string Present(

@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|--------|
-| **Current milestone** | **STAGE 11 EXIT PASS** → Stage 12 hardening next |
-| **Roadmap position** | Thin MVP playable signed — see [`STAGE11_EXIT.md`](../experiments/STAGE11_EXIT.md) |
-| **Queue status** | **Idle for agents** until Stage 12 tasks opened; `PIPE-T02` human-only |
-| **Last queue update** | 2026-09-21 |
+| **Current milestone** | **STAGE 12** playable textured **EXIT PASS** — next backlog polish (human pull) |
+| **Roadmap position** | Stage 11 EXIT PASS; Stage 12 H+V textured exit PASS — see [`PLAYABLE_TEXTURED_EXIT.md`](../experiments/PLAYABLE_TEXTURED_EXIT.md) |
+| **Queue status** | **Idle** — S12-T01…06 done; only PIPE-T02 (human) remains open |
+| **Last queue update** | 2026-09-22 |
 | **Autonomy recommendation** | Level **2–3** (see [`AI_WORKFLOW.md`](AI_WORKFLOW.md)) |
-| **Evidence snapshot** | [`STAGE11_EXIT.md`](../experiments/STAGE11_EXIT.md) |
+| **Evidence snapshot** | [`STAGE11_EXIT.md`](../experiments/STAGE11_EXIT.md) · [`PLAYABLE_TEXTURED_EXIT.md`](../experiments/PLAYABLE_TEXTURED_EXIT.md) |
 
 ---
 
@@ -174,15 +174,24 @@
 
 | ID | Task | Status | Acceptance (thin) |
 |----|------|--------|-------------------|
-| S12-T01 | Thin soak / net stability smoke (player UDP+LAN) | open | Multi-run smoke script; no critical desync |
-| S12-T02 | Stalemate / timeout UX readable in fight HUD | open | Timer + reason surfaced in results |
 | PIPE-T02 | Cursor Project + Automations (manual UI) | open | Human-only; see AI_WORKFLOW § Manual steps — **not** agent work |
 
-### Plan (post Stage 11)
+### Stage 12 — Hardening + playable textured (done)
 
-1. **S12-T01** — Hardening: repeatable soak on blessed net paths.  
-2. **S12-T02** — Make timeout/stalemate outcomes obvious in UI.  
-3. Then backlog-only content/hardening items as human pulls them.
+| ID | Task | Status | Evidence |
+|----|------|--------|----------|
+| S12-T01 | Thin soak / net stability smoke | done | `S12-01_SOAK.md` |
+| S12-T02 | Stalemate / timeout UX | done | `S12-02_STALEMATE_UX.md` |
+| S12-T03 | URP material kit | done | `S12-03_MATERIAL_KIT.md` |
+| S12-T04 | Arena textured pass | done | `S12-04_ARENA_TEXTURES.md` |
+| S12-T05 | Robot part textures | done | `S12-05_ROBOT_TEXTURES.md` |
+| S12-T06 | Playable textured exit + rebuild | done | `PLAYABLE_TEXTURED_EXIT.md` |
+
+### Plan (next)
+
+1. Human PIPE-T02 if desired.  
+2. Backlog polish from [`PLAYABLE_TEXTURED_PLAN.md`](PLAYABLE_TEXTURED_PLAN.md) §5 (freehand, immobility countdown UI) — pull explicitly.  
+3. No economy/catalog.
 
 ---
 

@@ -241,9 +241,9 @@ public sealed class RobotMvpUdpLoopbackRunner
             var aDist = new Vector3(positions[0].x, 0f, positions[0].z).magnitude;
             var bDist = new Vector3(positions[1].x, 0f, positions[1].z).magnitude;
             if (aDist <= bDist)
-                rules.ForceOutcome(0, 1, MatchWinReason.Immobilized);
+                rules.ForceOutcome(0, 1, MatchWinReason.TimeExpired);
             else
-                rules.ForceOutcome(1, 0, MatchWinReason.Immobilized);
+                rules.ForceOutcome(1, 0, MatchWinReason.TimeExpired);
             outcome = rules.LastOutcome;
         }
 

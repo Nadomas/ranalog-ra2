@@ -8,7 +8,9 @@ namespace Ra2.Robot
         Immobilized = 1,
         OpponentDisabled = 2,
         /// <summary>S9-02: peer dropped mid-fight; disconnected seat forfeits.</summary>
-        DisconnectForfeit = 3
+        DisconnectForfeit = 3,
+        /// <summary>S12-02: match clock expired; host applied tie-break (e.g. center rule).</summary>
+        TimeExpired = 4
     }
 
     public readonly struct MatchOutcome

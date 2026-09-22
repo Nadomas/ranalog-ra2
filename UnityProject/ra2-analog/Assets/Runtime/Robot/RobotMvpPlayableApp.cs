@@ -26,8 +26,10 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
     bool fightRunning;
     string fightStatus = "";
     string pendingResultsText;
+    string pendingResultsTitle;
     RobotSpawnedInstance wiredInput;
     bool smokeMode;
+    bool soakMode;
     float fightEndsAt;
     string fightYouLabel = "YOU";
     string fightAiLabel = "AI";
@@ -37,6 +39,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
     public bool FightRunning => fightRunning;
     public RobotWorkshopChrome Chrome => chrome;
     public string PendingResultsText => pendingResultsText;
+    public string PendingResultsTitle => pendingResultsTitle;
     public bool HasResultsOverlay => !string.IsNullOrEmpty(pendingResultsText);
     public float FightSecondsLeft => fightRunning ? Mathf.Max(0f, fightEndsAt - Time.time) : 0f;
     public string FightYouLabel => fightYouLabel;
@@ -73,11 +76,19 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
     void Start()
     {
         smokeMode = HasCliFlag("-ra2-mvp-smoke");
+        soakMode = HasCliFlag("-ra2-mvp-soak");
 #if UNITY_EDITOR
         if (!smokeMode && UnityEditor.EditorPrefs.GetBool("Ra2MvpForceSmoke", false))
         {
             smokeMode = true;
             UnityEditor.EditorPrefs.DeleteKey("Ra2MvpForceSmoke");
+        }
+
+        if (!soakMode && UnityEditor.EditorPrefs.GetBool("Ra2MvpForceSoak", false))
+        {
+            soakMode = true;
+            smokeMode = true;
+            UnityEditor.EditorPrefs.DeleteKey("Ra2MvpForceSoak");
         }
 #endif
         if (smokeMode)
@@ -125,7 +136,18 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
 
     // IMGUI removed — S11-08 UI Toolkit owns chrome (RobotMvpUiShell).
 
-    public void ClearPendingResults() => pendingResultsText = null;
+    public void ClearPendingResults()
+    {
+        pendingResultsText = null;
+        pendingResultsTitle = null;
+    }
+
+    void PresentPendingResults(MatchSummary summary, string side)
+    {
+        MatchResultsStub.Present(summary, side, persist: true, view: resultsView);
+        pendingResultsText = MatchResultsStub.FormatReadable(summary, side);
+        pendingResultsTitle = MatchResultsStub.FormatResultsTitle(summary);
+    }
 
     public bool TryUiSetMode(WorkshopMode mode)
     {
@@ -348,8 +370,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         if (result.Ok && result.Summary.Outcome.Finished)
         {
             var side = result.WasHost ? "mvp-lan-host" : "mvp-lan-client";
-            MatchResultsStub.Present(result.Summary, side, persist: true, view: resultsView);
-            pendingResultsText = MatchResultsStub.FormatReadable(result.Summary, side);
+            PresentPendingResults(result.Summary, side);
             fightStatus =
                 $"done lan {result.Summary.Outcome.Reason} winner={result.Summary.Outcome.WinnerRobotId}";
             Debug.Log(
@@ -534,8 +555,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
 
         if (summary.Outcome.Finished)
         {
-            MatchResultsStub.Present(summary, "mvp-player", persist: true, view: resultsView);
-            pendingResultsText = MatchResultsStub.FormatReadable(summary, "mvp-player");
+            PresentPendingResults(summary, "mvp-player");
             fightStatus = $"done {summary.Outcome.Reason} winner={summary.Outcome.WinnerRobotId}";
             Debug.Log(
                 $"[S11-07] FIGHT_DONE pass=True reason={summary.Outcome.Reason} " +
@@ -612,8 +632,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
 
         if (result.Ok && result.HostSummary.Outcome.Finished)
         {
-            MatchResultsStub.Present(result.HostSummary, "mvp-udp-host", persist: true, view: resultsView);
-            pendingResultsText = MatchResultsStub.FormatReadable(result.HostSummary, "mvp-udp");
+            PresentPendingResults(result.HostSummary, "mvp-udp-host");
             fightStatus =
                 $"done udp {result.HostSummary.Outcome.Reason} winner={result.HostSummary.Outcome.WinnerRobotId}";
             Debug.Log(
@@ -722,11 +741,11 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
             var aDist = new Vector3(positions[0].x, 0f, positions[0].z).magnitude;
             var bDist = new Vector3(positions[1].x, 0f, positions[1].z).magnitude;
             if (aDist <= bDist)
-                rules.ForceOutcome(winnerId: 0, loserId: 1, MatchWinReason.Immobilized);
+                rules.ForceOutcome(winnerId: 0, loserId: 1, MatchWinReason.TimeExpired);
             else
-                rules.ForceOutcome(winnerId: 1, loserId: 0, MatchWinReason.Immobilized);
+                rules.ForceOutcome(winnerId: 1, loserId: 0, MatchWinReason.TimeExpired);
             outcome = rules.LastOutcome;
-            Debug.Log($"[S11-10] FIGHT_TIMEOUT_CENTER winner={outcome.WinnerRobotId}");
+            Debug.Log($"[S12-02] FIGHT_TIMEOUT_CENTER reason=TimeExpired winner={outcome.WinnerRobotId}");
         }
 
         var summary = new MatchSummary(
@@ -863,6 +882,40 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         yield return new WaitForFixedUpdate();
         var hasInst = chrome.Session.TestInstance != null;
         var debugOk = TrySmokeControlDebug();
+
+        var robotTexOk = false;
+        var probeInst = chrome.Session.TestInstance;
+        var probeRoot = probeInst != null && probeInst.Assembly != null ? probeInst.Assembly.Root : null;
+        // Unity destroyed-object gotcha: use == null (overloaded), not ?.
+        if (probeRoot == null)
+        {
+            Debug.Log("[S12-05] ROBOT_TEX_PROBE root=null");
+        }
+        else
+        {
+            var rends = probeRoot.GetComponentsInChildren<MeshRenderer>(true);
+            Debug.Log($"[S12-05] ROBOT_TEX_PROBE root={probeRoot.name} rends={rends.Length}");
+            for (var i = 0; i < rends.Length; i++)
+            {
+                var mat = rends[i].sharedMaterial;
+                if (mat == null)
+                    continue;
+                var n = mat.name;
+                if (n.IndexOf("Mvp", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    n.IndexOf("Team", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    n.IndexOf("Rubber", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    n.IndexOf("Metal", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    n.IndexOf("Board", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    n.IndexOf("Weapon", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    n.IndexOf("Accent", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    robotTexOk = true;
+                    break;
+                }
+            }
+        }
+        Debug.Log($"[S12-05] ROBOT_TEXTURED_SMOKE pass={robotTexOk}");
+
         var okAdmit = chrome.TryPrepareAdmit(out _);
         yield return null;
 
@@ -878,22 +931,63 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         yield return new WaitForSecondsRealtime(0.2f);
         var lanOk = fightStatus != null && fightStatus.StartsWith("done lan");
 
+        var soakOk = true;
+        var soakPass = 0;
+        var soakFail = 0;
+        if (soakMode)
+        {
+            const int soakRounds = 3;
+            for (var i = 0; i < soakRounds; i++)
+            {
+                yield return RunUdpFightFromWorkshop(interactive: false);
+                yield return new WaitForSecondsRealtime(0.35f);
+                var u = fightStatus != null && fightStatus.StartsWith("done udp");
+                yield return RunLanSameProcessSmoke();
+                yield return new WaitForSecondsRealtime(0.35f);
+                var l = fightStatus != null && fightStatus.StartsWith("done lan");
+                if (u && l)
+                    soakPass++;
+                else
+                    soakFail++;
+                Debug.Log($"[S12-01] SOAK_ROUND i={i + 1}/{soakRounds} udp={u} lan={l}");
+            }
+
+            soakOk = soakFail == 0 && soakPass == soakRounds;
+            Debug.Log($"[S12-01] SOAK_DONE pass={soakOk} ok={soakPass} fail={soakFail}");
+        }
+
         var historyOk = MatchSummaryStore.TryListRecent(new System.Collections.Generic.List<MatchSummaryStore.Dto>(8), 8) > 0;
         Debug.Log($"[S11-15] HISTORY_LIST_SMOKE pass={historyOk}");
 
         EnsureArenaDressing();
-        var arenaOk = GameObject.Find(RobotMvpArenaDressing.RootName) != null;
+        var arenaRoot = GameObject.Find(RobotMvpArenaDressing.RootName);
+        var arenaOk = arenaRoot != null;
+        var texturedOk = false;
+        if (arenaRoot != null)
+        {
+            var apron = arenaRoot.transform.Find("Apron");
+            var rend = apron != null ? apron.GetComponent<MeshRenderer>() : null;
+            texturedOk = rend != null && rend.sharedMaterial != null &&
+                         rend.sharedMaterial.name.IndexOf("Mvp", System.StringComparison.Ordinal) >= 0;
+        }
+
         Debug.Log($"[S11-16] ARENA_SMOKE pass={arenaOk}");
+        Debug.Log($"[S12-04] ARENA_TEXTURED_SMOKE pass={texturedOk}");
+
+        var stalemateOk = TrySmokeStalemateLabel();
 
         var pass = okDesign && okCfg && okTest && hasInst && okAdmit && wireOk && gridOk && saveOk &&
-                   debugOk && localOk && udpOk && lanOk && historyOk && arenaOk;
+                   debugOk && localOk && udpOk && lanOk && historyOk && arenaOk && texturedOk &&
+                   robotTexOk && soakOk && stalemateOk;
         var marker = Path.Combine(Application.persistentDataPath, "ra2-mvp-smoke.txt");
         try
         {
             File.WriteAllText(marker,
                 $"pass={pass}\nstatus={fightStatus}\nlocal_ok={localOk}\nudp_ok={udpOk}\nlan_ok={lanOk}\n" +
                 $"wire_ok={wireOk}\ngrid_ok={gridOk}\nsave_ok={saveOk}\ndebug_ok={debugOk}\n" +
-                $"history_ok={historyOk}\narena_ok={arenaOk}\nunity={Application.unityVersion}\n");
+                $"history_ok={historyOk}\narena_ok={arenaOk}\ntextured_ok={texturedOk}\nrobot_tex_ok={robotTexOk}\n" +
+                $"soak_ok={soakOk}\nstalemate_ok={stalemateOk}\n" +
+                $"unity={Application.unityVersion}\n");
         }
         catch
         {
@@ -904,6 +998,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
             $"[S11-07] SMOKE_DONE pass={pass} design={okDesign} cfg={okCfg} test={okTest} " +
             $"inst={hasInst} admit={okAdmit} wire={wireOk} grid={gridOk} save={saveOk} debug={debugOk} " +
             $"local={localOk} udp={udpOk} lan={lanOk} history={historyOk} arena={arenaOk} " +
+            $"textured={texturedOk} robotTex={robotTexOk} soak={soakOk} stalemate={stalemateOk} " +
             $"fight={fightStatus} marker={marker}");
 
 #if UNITY_EDITOR
@@ -984,6 +1079,17 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
                  text.Contains("Drive=");
         Debug.Log($"[S11-19] CONTROL_DEBUG_SMOKE pass={ok} text={text.Replace("\n", " | ")}");
         inst.Drive.SetCommand(default);
+        return ok;
+    }
+
+    bool TrySmokeStalemateLabel()
+    {
+        var outcome = new MatchOutcome(true, 0, 1, MatchWinReason.TimeExpired);
+        var summary = new MatchSummary(outcome, 75f, 0f, 0f, false, "s12-stalemate-smoke");
+        var title = MatchResultsStub.FormatResultsTitle(summary);
+        var body = MatchResultsStub.FormatReadable(summary, "smoke");
+        var ok = title.Contains("TIME") && body.Contains("TimeExpired");
+        Debug.Log($"[S12-02] STALEMATE_UX_SMOKE pass={ok} title={title}");
         return ok;
     }
 

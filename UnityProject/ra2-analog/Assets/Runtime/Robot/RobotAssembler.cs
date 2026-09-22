@@ -53,7 +53,7 @@ namespace Ra2.Robot
             result.Root = root;
             result.Parts[rootDef.Id] = root;
 
-            var chassisGo = CreatePartVisual(rootDef, bodyColor, GetChassisGripMaterial(), useBoxCollider: true);
+            var chassisGo = CreatePartVisual(rootDef, bodyColor, GetChassisGripMaterial(), useBoxCollider: true, null);
             chassisGo.name = "Chassis";
             chassisGo.transform.SetParent(root.transform, false);
             result.Parts[rootDef.Id + "_mesh"] = chassisGo;
@@ -80,22 +80,22 @@ namespace Ra2.Robot
                     part = CreateWheelPart(def, slideMaterial);
                 else if (def.Kind == RobotComponentKind.NoseMarker)
                 {
-                    part = CreatePartVisual(def, Color.white, null, useBoxCollider: false);
+                    part = CreatePartVisual(def, Color.white, null, useBoxCollider: false, RobotMvpMaterialKit.Accent);
                     part.name = "Nose";
                 }
                 else if (baseKind == RobotComponentBase.ControlBoard)
                 {
-                    part = CreatePartVisual(def, new Color(0.2f, 0.85f, 0.35f), slideMaterial, useBoxCollider: false);
+                    part = CreatePartVisual(def, Color.white, slideMaterial, useBoxCollider: false, RobotMvpMaterialKit.Board);
                     part.name = "control_board";
                 }
                 else if (baseKind == RobotComponentBase.Battery)
                 {
-                    part = CreatePartVisual(def, new Color(0.95f, 0.85f, 0.1f), slideMaterial, useBoxCollider: false);
+                    part = CreatePartVisual(def, Color.white, slideMaterial, useBoxCollider: false, RobotMvpMaterialKit.Metal);
                     part.name = "battery";
                 }
                 else if (baseKind == RobotComponentBase.AirTank)
                 {
-                    part = CreatePartVisual(def, new Color(0.55f, 0.55f, 0.65f), slideMaterial, useBoxCollider: false);
+                    part = CreatePartVisual(def, Color.white, slideMaterial, useBoxCollider: false, RobotMvpMaterialKit.Metal);
                     part.name = def.Id;
                 }
                 else if (baseKind == RobotComponentBase.SpinMotor || baseKind == RobotComponentBase.BurstMotor ||
@@ -103,15 +103,15 @@ namespace Ra2.Robot
                          baseKind == RobotComponentBase.ServoPiston || baseKind == RobotComponentBase.Steering)
                 {
                     // Dynamic actuators need a collider so joints / impulses have a body; visual only when no RB.
-                    var tint = baseKind == RobotComponentBase.Steering
-                        ? new Color(0.35f, 0.55f, 0.85f)
-                        : new Color(0.75f, 0.25f, 0.2f);
-                    part = CreatePartVisual(def, tint, slideMaterial, useBoxCollider: def.HasRigidbody);
+                    var motorMat = baseKind == RobotComponentBase.Steering
+                        ? RobotMvpMaterialKit.Metal
+                        : RobotMvpMaterialKit.Accent;
+                    part = CreatePartVisual(def, Color.white, slideMaterial, useBoxCollider: def.HasRigidbody, motorMat);
                     part.name = def.Id;
                 }
                 else if (baseKind == RobotComponentBase.SmartZone)
                 {
-                    part = CreatePartVisual(def, new Color(0.2f, 0.75f, 0.9f, 0.35f), slideMaterial, useBoxCollider: true);
+                    part = CreatePartVisual(def, Color.white, slideMaterial, useBoxCollider: true, RobotMvpMaterialKit.Board);
                     part.name = def.Id;
                     var col = part.GetComponent<Collider>();
                     if (col != null)
@@ -124,11 +124,11 @@ namespace Ra2.Robot
                 }
                 else if (baseKind == RobotComponentBase.Weapon)
                 {
-                    part = CreatePartVisual(def, new Color(0.85f, 0.85f, 0.9f), slideMaterial, useBoxCollider: false);
+                    part = CreatePartVisual(def, Color.white, slideMaterial, useBoxCollider: false, RobotMvpMaterialKit.Weapon);
                     part.name = def.Id;
                 }
                 else
-                    part = CreatePartVisual(def, bodyColor, slideMaterial, useBoxCollider: true);
+                    part = CreatePartVisual(def, bodyColor, slideMaterial, useBoxCollider: true, null);
 
                 part.transform.SetParent(root.transform, false);
                 part.transform.localPosition = def.LocalPosition;
@@ -324,7 +324,8 @@ namespace Ra2.Robot
             RobotComponentDef def,
             Color color,
             PhysicsMaterial slide,
-            bool useBoxCollider)
+            bool useBoxCollider,
+            Material materialOverride)
         {
             var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
             StripPrimitiveCollider(go);
@@ -337,7 +338,12 @@ namespace Ra2.Robot
 
             var rend = go.GetComponent<MeshRenderer>();
             if (rend != null)
-                rend.sharedMaterial = CreateRuntimeColorMaterial(def.Id, color);
+            {
+                if (materialOverride != null)
+                    RobotMvpMaterialKit.Apply(rend, materialOverride);
+                else
+                    rend.sharedMaterial = RobotMvpMaterialKit.ForTeam(color);
+            }
             return go;
         }
 
@@ -356,23 +362,10 @@ namespace Ra2.Robot
                     sphere.sharedMaterial = grip;
             }
             var rend = go.GetComponent<MeshRenderer>();
-            if (rend != null)
-                rend.sharedMaterial = CreateRuntimeColorMaterial(def.Id, new Color(0.12f, 0.12f, 0.12f));
+            RobotMvpMaterialKit.Apply(rend, RobotMvpMaterialKit.Rubber);
             go.name = def.Id;
             return go;
         }
 
-        static Material CreateRuntimeColorMaterial(string name, Color color)
-        {
-            var shader = Shader.Find("Universal Render Pipeline/Lit");
-            if (shader == null)
-                shader = Shader.Find("Standard");
-            var mat = new Material(shader) { name = "Runtime_" + name };
-            if (mat.HasProperty("_BaseColor"))
-                mat.SetColor("_BaseColor", color);
-            else
-                mat.color = color;
-            return mat;
-        }
     }
 }

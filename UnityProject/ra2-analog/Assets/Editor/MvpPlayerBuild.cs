@@ -56,12 +56,21 @@ public static class MvpPlayerBuild
     [MenuItem("Tools/RA2/Play MVP Smoke (S11)")]
     public static void PlayMvpSmokeFromMenu()
     {
-        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
-            return;
+        EditorSceneManager.SaveOpenScenes();
         EditorSceneManager.OpenScene(ScenePath);
         EditorPrefs.SetBool("Ra2MvpForceSmoke", true);
         EditorApplication.isPlaying = true;
         Debug.Log("[S11] MVP_SMOKE_PLAY requested");
+    }
+
+    [MenuItem("Tools/RA2/Play MVP Soak (S12-01)")]
+    public static void PlayMvpSoakFromMenu()
+    {
+        EditorSceneManager.SaveOpenScenes();
+        EditorSceneManager.OpenScene(ScenePath);
+        EditorPrefs.SetBool("Ra2MvpForceSoak", true);
+        EditorApplication.isPlaying = true;
+        Debug.Log("[S12-01] MVP_SOAK_PLAY requested");
     }
 
     public static void BuildPlayableScene()
