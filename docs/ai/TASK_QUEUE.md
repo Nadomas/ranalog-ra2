@@ -174,14 +174,14 @@
 
 | ID | Task | Status | Acceptance (thin) |
 |----|------|--------|-------------------|
-| S13-T02 | Freehand chassis polygon gizmo (thin) | open | Drag/nudge vertices in Design without fake physics |
 | PIPE-T02 | Cursor Project + Automations (manual UI) | open | Human-only; see AI_WORKFLOW § Manual steps — **not** agent work |
 
-### Stage 13 — Playable feel (in progress)
+### Stage 13 — Playable feel (done)
 
 | ID | Task | Status | Evidence |
 |----|------|--------|----------|
 | S13-T01 | Immobility countdown numbers in fight HUD | done | `S13-01_IMMOBILITY_COUNTDOWN_HUD.md` |
+| S13-T02 | Freehand chassis polygon gizmo (thin) | done | `S13-02_FREEHAND_CHASSIS_GIZMO.md` |
 
 ### Stage 12 — Hardening + playable textured (done)
 
@@ -196,8 +196,8 @@
 
 ### Plan (next)
 
-1. **S13-T01** — Immobility countdown HUD (GDD primary win readability).  
-2. **S13-T02** — Thin freehand chassis gizmo.  
+1. Human PIPE-T02 if desired.  
+2. Backlog polish (starter part texture depth, fire wiring UI) — pull explicitly.  
 3. No economy/catalog.
 
 ---
