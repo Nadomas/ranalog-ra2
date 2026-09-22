@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|--------|
-| **Current milestone** | **STAGE 14** post-textured polish — **PASS** (idle) |
-| **Roadmap position** | Stage 14 P2 PASS; plan §5 P3 residual / Later backlog only on explicit pull |
-| **Queue status** | **Idle** — S14-T01 / S14-T02 done; PIPE-T02 human-only |
+| **Current milestone** | **STAGE 15** playable UX depth — **S15-T01 PASS**; rebuild next |
+| **Roadmap position** | S15-T01 done; next **S15-T02** player rebuild (P3 DS residual deferred) |
+| **Queue status** | **Active** — S15-T02 open |
 | **Last queue update** | 2026-09-22 |
 | **Autonomy recommendation** | Level **2–3** (see [`AI_WORKFLOW.md`](AI_WORKFLOW.md)) |
-| **Evidence snapshot** | [`S14-01_STARTER_PART_TEXTURES.md`](../experiments/S14-01_STARTER_PART_TEXTURES.md) · [`S14-02_FIRE_WIRING_UI.md`](../experiments/S14-02_FIRE_WIRING_UI.md) · plan §5 |
+| **Evidence snapshot** | [`S15-01_DEFAULT_WEAPON_BOT.md`](../experiments/S15-01_DEFAULT_WEAPON_BOT.md) · plan §5 |
 
 ---
 
@@ -174,7 +174,14 @@
 
 | ID | Task | Status | Acceptance (thin) |
 |----|------|--------|-------------------|
+| S15-T02 | Rebuild Ra2MvpPlayer.exe after S14/S15 | open | PLAYER_BUILD Succeeded; smoke still green |
 | PIPE-T02 | Cursor Project + Automations (manual UI) | open | Human-only; see AI_WORKFLOW § Manual steps — **not** agent work |
+
+### Stage 15 — Playable UX depth (in progress)
+
+| ID | Task | Status | Evidence |
+|----|------|--------|----------|
+| S15-T01 | Default workshop bot includes weapon spinner + Fire wire | done | `S15-01_DEFAULT_WEAPON_BOT.md` |
 
 ### Stage 14 — Post-textured polish (done)
 
@@ -203,8 +210,9 @@
 
 ### Plan (next)
 
-1. Idle after Stage 14 P2 PASS — pull plan §5 **P3** (dedicated server residual) or Later only on explicit human request.  
-2. No economy/catalog. PIPE-T02 remains human-only.
+1. **S15-T02** — Rebuild Windows MVP player with S14/S15 presentation + default weapon bot.  
+2. Plan §5 **P3** Dedicated Server Win module remains residual (human install).  
+3. No economy/catalog. PIPE-T02 remains human-only.
 
 ---
 

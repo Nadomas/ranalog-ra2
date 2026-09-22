@@ -4,7 +4,7 @@
 > (readable arena + robot materials), while keeping physics+MP invariants.  
 > Companion to [`TASK_QUEUE.md`](TASK_QUEUE.md) · [`STAGE11_EXIT.md`](../experiments/STAGE11_EXIT.md) · GDD §17.
 
-**Last update:** 2026-09-22 — textured EXIT PASS; Stage 13 feel PASS; Stage 14 P2 PASS (idle)
+**Last update:** 2026-09-22 — Stage 14 P2 PASS; Stage 15 default weapon bot active; P3 DS residual deferred
 
 ---
 
@@ -98,7 +98,9 @@ S12-T02 timeout/stalemate UX            V2 arena textured kit
 | P1 | Immobility countdown UI (numbers) | **DONE** S13-T01 |
 | P2 | Minimal starter part set textures (spin/battery/board) | **DONE** S14-T01 |
 | P2 | Burst/Fire wiring UI path | **DONE** S14-T02 |
-| P3 | Dedicated server module | Residual |
+| P2.5 | Default workshop bot with weapon spinner + Fire | **DONE** S15-T01 |
+| P2.5 | Rebuild playable `.exe` after polish | **S15-T02** (next) |
+| P3 | Dedicated server module | Residual — needs Unity DS Win module (human install) |
 | Later | Paint shop, ranked, economy | Explicit backlog |
 
 ---

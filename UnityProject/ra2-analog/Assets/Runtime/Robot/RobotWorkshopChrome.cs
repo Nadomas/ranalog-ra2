@@ -38,8 +38,9 @@ public sealed class RobotWorkshopChrome : MonoBehaviour
             return;
 
         session = new RobotWorkshopSession();
-        var bp = RobotBlueprint.CreateRa2ConstructionSampleA(new Vector3(0f, 0.55f, 0f), 0f);
+        var bp = RobotBlueprint.CreateRa2SpinnerFireSample(new Vector3(0f, 0.55f, 0f), 0f);
         RobotControlConfigurer.ApplyDrivePreset(bp, RobotControlConfigurer.DrivePreset.TankSteer);
+        RobotControlConfigurer.TryApplyFireWirePreset(bp, out _, out _);
         session.SetWorkingBlueprint(bp);
         status = "session_ready";
     }

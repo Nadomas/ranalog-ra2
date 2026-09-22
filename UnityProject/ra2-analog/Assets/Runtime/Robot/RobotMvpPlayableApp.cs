@@ -1180,9 +1180,26 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
 
     bool TrySmokeFireWiring()
     {
-        // Spinner sample has a weapon SpinMotor; default tank only has drive-axle motors.
-        chrome.Session.SetWorkingBlueprint(
-            RobotBlueprint.CreateRa2SpinnerFireSample(new Vector3(0f, 0.55f, 0f), 0f));
+        var bp = chrome.Session.WorkingBlueprint;
+        var hasSpinner = false;
+        if (bp?.Components != null)
+        {
+            for (var i = 0; i < bp.Components.Length; i++)
+            {
+                if (string.Equals(bp.Components[i].Id, "spinner_motor", System.StringComparison.Ordinal))
+                {
+                    hasSpinner = true;
+                    break;
+                }
+            }
+        }
+
+        if (!hasSpinner)
+        {
+            Debug.Log("[S15-01] DEFAULT_WEAPON_BOT_SMOKE pass=False missing spinner_motor");
+            return false;
+        }
+
         chrome.SelectBindGroup(RobotControlConfigurer.BindingGroupId.Fire);
         if (!chrome.TryConfigureCycleBinding(out var applied, out _))
         {
@@ -1203,7 +1220,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
             return false;
         }
 
-        var bp = chrome.Session.WorkingBlueprint;
+        bp = chrome.Session.WorkingBlueprint;
         var fireBind = RobotControlConfigurer.GetGroupBinding(bp, RobotControlConfigurer.BindingGroupId.Fire);
         var fireTarget = (string)null;
         if (bp?.Wirings != null)
@@ -1229,8 +1246,8 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
                  notAxle &&
                  string.Equals(fireTarget, "spinner_motor", System.StringComparison.Ordinal);
         Debug.Log(
-            $"[S14-02] FIRE_WIRING_SMOKE pass={ok} cycle={applied} bind={fireBind} detail={detail} " +
-            $"keptTarget={fireTarget}");
+            $"[S15-01] DEFAULT_WEAPON_BOT_SMOKE pass={ok} name={bp?.Name} " +
+            $"cycle={applied} bind={fireBind} detail={detail} keptTarget={fireTarget}");
         return ok;
     }
 
