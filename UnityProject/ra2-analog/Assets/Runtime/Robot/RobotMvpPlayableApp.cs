@@ -934,6 +934,26 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         yield return new WaitForFixedUpdate();
         var obstacleOk = TrySmokePracticeObstacles();
         var hasInst = chrome.Session.TestInstance != null;
+        var physOk = false;
+        if (hasInst && chrome.Session.TestInstance.Assembly?.RootBody != null)
+        {
+            var rb = chrome.Session.TestInstance.Assembly.RootBody;
+            var setupOk = rb.useGravity && !rb.isKinematic &&
+                          (rb.constraints & (RigidbodyConstraints.FreezeRotationX |
+                                             RigidbodyConstraints.FreezeRotationZ)) == 0;
+            var y0 = rb.position.y;
+            rb.linearVelocity = new Vector3(0f, 6f, 0f);
+            for (var i = 0; i < 45; i++)
+                yield return new WaitForFixedUpdate();
+            var planted = rb.position.y < y0 + 1.25f && rb.position.y < 2.5f;
+            physOk = setupOk && planted;
+            Debug.Log(
+                $"[PHYS] PLANT_SMOKE pass={physOk} setup={setupOk} planted={planted} " +
+                $"y0={y0:F2} y={rb.position.y:F2} g={rb.useGravity} constraints={rb.constraints}");
+        }
+        else
+            Debug.Log("[PHYS] PLANT_SMOKE pass=False no_rb");
+
         var debugOk = TrySmokeControlDebug();
 
         var robotTexOk = false;
@@ -1036,7 +1056,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         var pass = okDesign && okCfg && okTest && hasInst && okAdmit && wireOk && gridOk && saveOk &&
                    debugOk && localOk && udpOk && lanOk && historyOk && arenaOk && texturedOk &&
                    robotTexOk && soakOk && stalemateOk && immobilityHudOk && freehandOk && fireOk &&
-                   starterMatsOk && armorOk && obstacleOk;
+                   starterMatsOk && armorOk && obstacleOk && physOk;
         var marker = Path.Combine(Application.persistentDataPath, "ra2-mvp-smoke.txt");
         try
         {
@@ -1046,7 +1066,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
                 $"history_ok={historyOk}\narena_ok={arenaOk}\ntextured_ok={texturedOk}\nrobot_tex_ok={robotTexOk}\n" +
                 $"soak_ok={soakOk}\nstalemate_ok={stalemateOk}\nimmobility_hud_ok={immobilityHudOk}\n" +
                 $"freehand_ok={freehandOk}\nfire_ok={fireOk}\nstarter_mats_ok={starterMatsOk}\n" +
-                $"armor_ok={armorOk}\nobstacle_ok={obstacleOk}\n" +
+                $"armor_ok={armorOk}\nobstacle_ok={obstacleOk}\nphys_ok={physOk}\n" +
                 $"unity={Application.unityVersion}\n");
         }
         catch
@@ -1060,7 +1080,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
             $"local={localOk} udp={udpOk} lan={lanOk} history={historyOk} arena={arenaOk} " +
             $"textured={texturedOk} robotTex={robotTexOk} soak={soakOk} stalemate={stalemateOk} " +
             $"immobHud={immobilityHudOk} freehand={freehandOk} fire={fireOk} starterMats={starterMatsOk} " +
-            $"armor={armorOk} obstacle={obstacleOk} fight={fightStatus} marker={marker}");
+            $"armor={armorOk} obstacle={obstacleOk} phys={physOk} fight={fightStatus} marker={marker}");
 
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;

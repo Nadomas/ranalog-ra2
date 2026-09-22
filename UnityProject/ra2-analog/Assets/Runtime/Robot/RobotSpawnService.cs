@@ -48,8 +48,7 @@ namespace Ra2.Robot
             var assembly = RobotAssembler.Assemble(blueprint, parent, slideMaterial, bodyColor);
             sw.Stop();
 
-            var mass = RobotMassProperties.Compute(blueprint);
-            RobotMassProperties.ApplyToRootBody(assembly.RootBody, mass);
+            RobotMassProperties.ApplyToRootBody(assembly.RootBody, blueprint);
 
             var disable = assembly.Root.GetComponent<PhysicsTestDisableFlag>();
             if (disable == null)
@@ -143,6 +142,7 @@ namespace Ra2.Robot
             }
 
             rb.isKinematic = false;
+            rb.useGravity = true;
             return true;
         }
 

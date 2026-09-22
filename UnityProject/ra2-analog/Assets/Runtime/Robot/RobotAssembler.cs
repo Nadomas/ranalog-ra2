@@ -61,11 +61,13 @@ namespace Ra2.Robot
             var rb = root.AddComponent<Rigidbody>();
             rb.mass = Mathf.Max(0.01f, rootDef.Mass);
             rb.useGravity = true;
-            rb.linearDamping = 0.12f;
-            rb.angularDamping = 0.55f;
+            rb.isKinematic = false;
+            // Let pitch/roll respond to hits so wheels can plant again (no hover / freeze-upright hack).
+            rb.constraints = RigidbodyConstraints.None;
+            rb.linearDamping = 0.05f;
+            rb.angularDamping = 0.85f;
             rb.interpolation = RigidbodyInterpolation.Interpolate;
             rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
-            rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
             result.RootBody = rb;
 
             for (var i = 0; i < blueprint.Components.Length; i++)
@@ -274,10 +276,13 @@ namespace Ra2.Robot
                 body = child.AddComponent<Rigidbody>();
                 body.mass = Mathf.Max(0.01f, childDef.Mass);
                 body.linearDamping = 0.05f;
-                body.angularDamping = 0.25f;
+                body.angularDamping = 0.35f;
                 body.interpolation = RigidbodyInterpolation.Interpolate;
                 body.collisionDetectionMode = CollisionDetectionMode.Continuous;
             }
+
+            body.useGravity = true;
+            body.isKinematic = false;
         }
 
         static PhysicsMaterial wheelGrip;

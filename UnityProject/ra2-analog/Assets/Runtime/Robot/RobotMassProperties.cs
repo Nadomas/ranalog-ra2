@@ -86,14 +86,55 @@ namespace Ra2.Robot
             return new RobotMassReport(total, com, rbCount, hingeCount, blueprint.Components.Length);
         }
 
-        /// <summary>Apply blueprint CoM to assembled root body (no transform teleport).</summary>
+        /// <summary>
+        /// Mass + CoM for the chassis root Rigidbody only (excludes parts that spawn their own RB).
+        /// Prevents double-counting wheel/actuator masses that made bots feel floaty after hits.
+        /// </summary>
+        public static void ApplyToRootBody(Rigidbody rootBody, RobotBlueprint blueprint)
+        {
+            if (rootBody == null || blueprint?.Components == null)
+                return;
+
+            var total = 0f;
+            var moment = Vector3.zero;
+            for (var i = 0; i < blueprint.Components.Length; i++)
+            {
+                var c = blueprint.Components[i];
+                // Separate dynamic bodies keep their own mass; do not fold into root.
+                if (c.HasRigidbody && !c.IsRoot)
+                    continue;
+
+                var m = Mathf.Max(0f, c.Mass);
+                if (m <= 0f && !c.IsRoot)
+                    continue;
+                var useMass = m > 0f ? m : 0.01f;
+                total += useMass;
+                moment += c.LocalPosition * useMass;
+            }
+
+            rootBody.mass = Mathf.Max(0.01f, total);
+            var com = total > 1e-6f ? moment / total : Vector3.zero;
+            // Bias CoM slightly downward so wheels plant after impacts without FreezeRotation hacks.
+            com.y = Mathf.Min(com.y, 0.05f) - 0.12f;
+            rootBody.centerOfMass = com;
+            rootBody.useGravity = true;
+            rootBody.isKinematic = false;
+            rootBody.constraints = RigidbodyConstraints.None;
+        }
+
+        /// <summary>Legacy overload — prefer <see cref="ApplyToRootBody(Rigidbody, RobotBlueprint)"/>.</summary>
         public static void ApplyToRootBody(Rigidbody rootBody, RobotMassReport report)
         {
             if (rootBody == null || report.TotalMass <= 1e-6f)
                 return;
 
+            // Without blueprint we cannot strip separate RBs — keep prior behavior but clear freeze.
             rootBody.mass = Mathf.Max(0.01f, report.TotalMass);
-            rootBody.centerOfMass = report.CenterOfMassLocal;
+            var com = report.CenterOfMassLocal;
+            com.y = Mathf.Min(com.y, 0.05f) - 0.12f;
+            rootBody.centerOfMass = com;
+            rootBody.useGravity = true;
+            rootBody.constraints = RigidbodyConstraints.None;
         }
     }
 }
