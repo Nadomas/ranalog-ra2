@@ -1180,6 +1180,9 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
 
     bool TrySmokeFireWiring()
     {
+        // Spinner sample has a weapon SpinMotor; default tank only has drive-axle motors.
+        chrome.Session.SetWorkingBlueprint(
+            RobotBlueprint.CreateRa2SpinnerFireSample(new Vector3(0f, 0.55f, 0f), 0f));
         chrome.SelectBindGroup(RobotControlConfigurer.BindingGroupId.Fire);
         if (!chrome.TryConfigureCycleBinding(out var applied, out _))
         {
@@ -1193,27 +1196,41 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
             return false;
         }
 
+        // Tank preset must not wipe the Fire wire.
+        if (!chrome.TryApplyTankPreset(out var tankErr))
+        {
+            Debug.Log($"[S14-02] FIRE_WIRING_SMOKE pass=False tank err={tankErr}");
+            return false;
+        }
+
         var bp = chrome.Session.WorkingBlueprint;
         var fireBind = RobotControlConfigurer.GetGroupBinding(bp, RobotControlConfigurer.BindingGroupId.Fire);
-        var hasFireWire = false;
+        var fireTarget = (string)null;
         if (bp?.Wirings != null)
         {
             for (var i = 0; i < bp.Wirings.Length; i++)
             {
                 if (string.Equals(bp.Wirings[i].ControlSlotId, "fire", System.StringComparison.Ordinal))
                 {
-                    hasFireWire = true;
+                    fireTarget = bp.Wirings[i].ComponentId;
                     break;
                 }
             }
         }
 
+        var notAxle = !string.IsNullOrEmpty(fireTarget) &&
+                      fireTarget.IndexOf("motor_fl", System.StringComparison.Ordinal) < 0 &&
+                      fireTarget.IndexOf("motor_fr", System.StringComparison.Ordinal) < 0 &&
+                      fireTarget.IndexOf("motor_rl", System.StringComparison.Ordinal) < 0 &&
+                      fireTarget.IndexOf("motor_rr", System.StringComparison.Ordinal) < 0;
         var ok = !string.IsNullOrEmpty(applied) &&
                  !string.IsNullOrEmpty(fireBind) &&
-                 hasFireWire &&
-                 !string.IsNullOrEmpty(detail);
+                 !string.IsNullOrEmpty(detail) &&
+                 notAxle &&
+                 string.Equals(fireTarget, "spinner_motor", System.StringComparison.Ordinal);
         Debug.Log(
-            $"[S14-02] FIRE_WIRING_SMOKE pass={ok} cycle={applied} bind={fireBind} detail={detail}");
+            $"[S14-02] FIRE_WIRING_SMOKE pass={ok} cycle={applied} bind={fireBind} detail={detail} " +
+            $"keptTarget={fireTarget}");
         return ok;
     }
 

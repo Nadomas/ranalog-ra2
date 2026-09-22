@@ -16,27 +16,41 @@ namespace Ra2.Robot
             TurnOnly = 2
         }
 
-        /// <summary>Replace wiring with a named drive preset. Leaves component graph unchanged.</summary>
+        /// <summary>Replace drive wiring with a named preset. Preserves existing Fire-slot wires.</summary>
         public static void ApplyDrivePreset(RobotBlueprint blueprint, DrivePreset preset)
         {
             if (blueprint == null)
                 throw new ArgumentNullException(nameof(blueprint));
 
             EnsureAnalogDriveSlots(blueprint);
+            var fireWires = CollectFireWirings(blueprint);
 
+            RobotWiringDef[] drive;
             switch (preset)
             {
                 case DrivePreset.ReversedDrive:
-                    blueprint.Wirings = BuildTankWirings(forwardSign: 1f, turnSign: 1f, includeTurn: true);
+                    drive = BuildTankWirings(forwardSign: 1f, turnSign: 1f, includeTurn: true);
                     break;
                 case DrivePreset.TurnOnly:
-                    blueprint.Wirings = BuildTankWirings(forwardSign: -1f, turnSign: 1f, includeTurn: true, includeForward: false);
+                    drive = BuildTankWirings(forwardSign: -1f, turnSign: 1f, includeTurn: true, includeForward: false);
                     break;
                 default:
                     // Hinge CW/+effort pushes the sample tank visually backward — flip forward Sign.
-                    blueprint.Wirings = BuildTankWirings(forwardSign: -1f, turnSign: -1f, includeTurn: true);
+                    drive = BuildTankWirings(forwardSign: -1f, turnSign: -1f, includeTurn: true);
                     break;
             }
+
+            if (fireWires.Count == 0)
+            {
+                blueprint.Wirings = drive;
+                return;
+            }
+
+            var merged = new RobotWiringDef[drive.Length + fireWires.Count];
+            Array.Copy(drive, merged, drive.Length);
+            for (var i = 0; i < fireWires.Count; i++)
+                merged[drive.Length + i] = fireWires[i];
+            blueprint.Wirings = merged;
         }
 
         public static void SetSlotBinding(RobotBlueprint blueprint, string slotId, string inputBinding)
@@ -135,10 +149,9 @@ namespace Ra2.Robot
             return true;
         }
 
+        /// <summary>Read-only: returns binding for the group slot, or null if the slot is missing.</summary>
         public static string GetGroupBinding(RobotBlueprint blueprint, BindingGroupId group)
         {
-            if (group == BindingGroupId.Fire)
-                EnsureFireSlot(blueprint);
             var slots = SlotIdsForGroup(group);
             if (slots.Length == 0)
                 return null;
@@ -182,15 +195,13 @@ namespace Ra2.Robot
             return TryApplyGroupBinding(blueprint, group, applied, out error);
         }
 
-        /// <summary>Warn when Drive/Turn/Fire share the same binding string.</summary>
+        /// <summary>Warn when Drive/Turn/Fire share the same binding string. Read-only (no slot creation).</summary>
         public static List<string> FindBindingGroupConflicts(RobotBlueprint blueprint)
         {
             var warnings = new List<string>();
             if (blueprint == null)
                 return warnings;
 
-            EnsureAnalogDriveSlots(blueprint);
-            EnsureFireSlot(blueprint);
             var drive = GetGroupBinding(blueprint, BindingGroupId.Drive);
             var turn = GetGroupBinding(blueprint, BindingGroupId.Turn);
             var fire = GetGroupBinding(blueprint, BindingGroupId.Fire);
@@ -206,7 +217,7 @@ namespace Ra2.Robot
         }
 
         /// <summary>
-        /// S14-02: ensure Button Fire slot + wire it to first Spin/Burst actuator (Fire or CW channel).
+        /// S14-02: ensure Button Fire slot + wire it to a weapon/burst actuator (not drive-axle SpinMotors).
         /// </summary>
         public static bool TryApplyFireWirePreset(RobotBlueprint blueprint, out string detail, out string error)
         {
@@ -251,22 +262,86 @@ namespace Ra2.Robot
             return true;
         }
 
+        static List<RobotWiringDef> CollectFireWirings(RobotBlueprint blueprint)
+        {
+            var list = new List<RobotWiringDef>();
+            if (blueprint?.Wirings == null)
+                return list;
+            for (var i = 0; i < blueprint.Wirings.Length; i++)
+            {
+                if (string.Equals(blueprint.Wirings[i].ControlSlotId, "fire", StringComparison.Ordinal))
+                    list.Add(blueprint.Wirings[i]);
+            }
+
+            return list;
+        }
+
+        /// <summary>
+        /// Prefer Burst* then non-axle SpinMotor/Servo. Skip wheel-drive SpinMotors (motor_fl… / parents of wheels).
+        /// </summary>
         static string FindFirstFireActuatorId(RobotBlueprint blueprint)
         {
             if (blueprint?.Components == null)
                 return null;
+
+            string spinFallback = null;
+            string servoFallback = null;
             for (var i = 0; i < blueprint.Components.Length; i++)
             {
-                var b = blueprint.Components[i].ResolvedBase();
-                if (b == RobotComponentBase.SpinMotor ||
-                    b == RobotComponentBase.BurstMotor ||
-                    b == RobotComponentBase.BurstPiston ||
-                    b == RobotComponentBase.ServoMotor ||
-                    b == RobotComponentBase.ServoPiston)
-                    return blueprint.Components[i].Id;
+                var c = blueprint.Components[i];
+                var b = c.ResolvedBase();
+                if (b == RobotComponentBase.BurstMotor || b == RobotComponentBase.BurstPiston)
+                    return c.Id;
+
+                if (b == RobotComponentBase.SpinMotor)
+                {
+                    if (IsDriveAxleSpinMotor(blueprint, c))
+                        continue;
+                    if (spinFallback == null)
+                        spinFallback = c.Id;
+                }
+                else if ((b == RobotComponentBase.ServoMotor || b == RobotComponentBase.ServoPiston) &&
+                         servoFallback == null)
+                {
+                    servoFallback = c.Id;
+                }
             }
 
-            return null;
+            return spinFallback ?? servoFallback;
+        }
+
+        static bool IsDriveAxleSpinMotor(RobotBlueprint blueprint, RobotComponentDef component)
+        {
+            if (component.ResolvedBase() != RobotComponentBase.SpinMotor)
+                return false;
+
+            var id = component.Id;
+            if (!string.IsNullOrEmpty(id) &&
+                (string.Equals(id, "motor_fl", StringComparison.Ordinal) ||
+                 string.Equals(id, "motor_fr", StringComparison.Ordinal) ||
+                 string.Equals(id, "motor_rl", StringComparison.Ordinal) ||
+                 string.Equals(id, "motor_rr", StringComparison.Ordinal)))
+                return true;
+
+            if (blueprint?.Connections == null || blueprint.Components == null || string.IsNullOrEmpty(id))
+                return false;
+
+            for (var i = 0; i < blueprint.Connections.Length; i++)
+            {
+                var conn = blueprint.Connections[i];
+                if (!string.Equals(conn.ParentId, id, StringComparison.Ordinal))
+                    continue;
+                for (var j = 0; j < blueprint.Components.Length; j++)
+                {
+                    if (!string.Equals(blueprint.Components[j].Id, conn.ChildId, StringComparison.Ordinal))
+                        continue;
+                    if (blueprint.Components[j].ResolvedBase() == RobotComponentBase.Wheel ||
+                        blueprint.Components[j].Kind == RobotComponentKind.Wheel)
+                        return true;
+                }
+            }
+
+            return false;
         }
 
         static bool IsBurstLike(RobotBlueprint blueprint, string componentId)

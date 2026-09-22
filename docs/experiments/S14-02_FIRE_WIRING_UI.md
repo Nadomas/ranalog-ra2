@@ -21,9 +21,15 @@ In Configure, the player can select the Fire bind group, cycle Fire key presets,
 ## Pass log
 
 ```
-[S14-02] FIRE_WIRING_SMOKE pass=True cycle=F bind=F detail=fire→motor_fl/CW
+[S14-02] FIRE_WIRING_SMOKE pass=True cycle=F bind=F detail=fire→spinner_motor/CW keptTarget=spinner_motor
 [S11-07] SMOKE_DONE … fire=True
 ```
+
+## Follow-up fixes (review)
+
+- Wire Fire skips drive-axle `SpinMotor` (`motor_fl`… / parents of wheels); prefers Burst* then weapon spin.
+- Tank/drive presets preserve existing `fire` slot wires.
+- `GetGroupBinding` / conflict scan are read-only (no silent `EnsureFireSlot`).
 
 ## Out of scope
 
