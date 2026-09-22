@@ -23,6 +23,8 @@ public sealed class RobotMvpUiShell : MonoBehaviour
     Label statusLabel;
     Label polyInfo;
     Label bindInfo;
+    Label armorInfo;
+    Label obstacleInfo;
     Label resultsBody;
     Label resultsTitle;
     Label arenaCaption;
@@ -167,6 +169,8 @@ public sealed class RobotMvpUiShell : MonoBehaviour
         statusLabel = root.Q<Label>("status");
         polyInfo = root.Q<Label>("poly-info");
         bindInfo = root.Q<Label>("bind-info");
+        armorInfo = root.Q<Label>("armor-info");
+        obstacleInfo = root.Q<Label>("obstacle-info");
         resultsBody = root.Q<Label>("results-body");
         resultsTitle = root.Q<Label>("results-title");
         arenaCaption = root.Q<Label>("arena-caption");
@@ -211,6 +215,7 @@ public sealed class RobotMvpUiShell : MonoBehaviour
         Wire(root.Q<Button>("btn-poly-prev"), () => app.TryUiPolyStep(-1));
         Wire(root.Q<Button>("btn-poly-next"), () => app.TryUiPolyStep(1));
         Wire(root.Q<Button>("btn-poly-nudge"), () => app.TryUiPolyNudge());
+        Wire(root.Q<Button>("btn-armor-cycle"), () => app.TryUiCycleArmor());
         Wire(root.Q<Button>("btn-bp-save"), () => app.TryUiSaveBlueprint());
         Wire(root.Q<Button>("btn-bp-load"), () =>
         {
@@ -235,6 +240,7 @@ public sealed class RobotMvpUiShell : MonoBehaviour
             lastSlotFingerprint = int.MinValue;
         });
         Wire(btnReset, () => app.TryUiResetTest());
+        Wire(root.Q<Button>("btn-obstacle-cycle"), () => app.TryUiCycleObstacle());
         Wire(root.Q<Button>("btn-admit"), () => app.TryUiPrepareAdmit());
         Wire(btnAdmitTest, () => app.TryUiTestAdmit());
         Wire(btnFight, () => app.TryUiLocalFight());
@@ -300,6 +306,12 @@ public sealed class RobotMvpUiShell : MonoBehaviour
             polyInfo.text =
                 $"pts={RobotChassisPolygonEditor.PointCount(bp)}/{RobotChassisPolygonEditor.MaxPoints}  sel={chrome.PolySelectedIndex}";
         }
+
+        if (armorInfo != null && bp != null)
+            armorInfo.text = $"Armor={bp.Chassis.Armor}";
+
+        if (obstacleInfo != null)
+            obstacleInfo.text = $"Obstacle={RobotMvpPracticeObstacles.Current}";
 
         if (bindInfo != null && bp != null)
         {

@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|--------|
-| **Current milestone** | **STAGE 15** playable UX depth — **PASS** (idle) |
-| **Roadmap position** | S15-T01/T02 PASS; plan §5 P3 DS residual deferred (human module install) |
+| **Current milestone** | **STAGE 16** RA2 Practice/Armor — **PASS** (idle) |
+| **Roadmap position** | S16-T01/T02 PASS; P3 DS residual deferred |
 | **Queue status** | **Idle** — PIPE-T02 human-only |
 | **Last queue update** | 2026-09-22 |
 | **Autonomy recommendation** | Level **2–3** (see [`AI_WORKFLOW.md`](AI_WORKFLOW.md)) |
-| **Evidence snapshot** | [`S15-01_DEFAULT_WEAPON_BOT.md`](../experiments/S15-01_DEFAULT_WEAPON_BOT.md) · [`S15-02_PLAYER_REBUILD.md`](../experiments/S15-02_PLAYER_REBUILD.md) |
+| **Evidence snapshot** | [`S16-01_PRACTICE_OBSTACLES.md`](../experiments/S16-01_PRACTICE_OBSTACLES.md) · [`S16-02_ARMOR_CYCLE.md`](../experiments/S16-02_ARMOR_CYCLE.md) |
 
 ---
 
@@ -176,6 +176,13 @@
 |----|------|--------|-------------------|
 | PIPE-T02 | Cursor Project + Automations (manual UI) | open | Human-only; see AI_WORKFLOW § Manual steps — **not** agent work |
 
+### Stage 16 — RA2 Practice/Armor (done)
+
+| ID | Task | Status | Evidence |
+|----|------|--------|----------|
+| S16-T01 | Practice Test Room obstacles (barrels/blocks/crates/cones) | done | `S16-01_PRACTICE_OBSTACLES.md` |
+| S16-T02 | Armor type cycle Polymer→Steel (chassis mass) | done | `S16-02_ARMOR_CYCLE.md` |
+
 ### Stage 15 — Playable UX depth (done)
 
 | ID | Task | Status | Evidence |
@@ -210,8 +217,8 @@
 
 ### Plan (next)
 
-1. Idle after Stage 15 PASS — pull plan §5 **P3** only after human installs Unity Dedicated Server (Win).  
-2. Later backlog (paint/ranked/economy) only on explicit request.  
+1. Idle after Stage 16 PASS — next RA2-aligned thin only on explicit pull (paint shop / DS module / catalog).  
+2. P3 Dedicated Server only after human installs Win DS module.  
 3. PIPE-T02 remains human-only.
 
 ---

@@ -39,6 +39,8 @@
                         <ui:Button name="btn-poly-next" text="Next ▶" class="tool-btn tool-btn-end" />
                     </ui:VisualElement>
                     <ui:Button name="btn-poly-nudge" text="Nudge +X" class="tool-btn wide accent" />
+                    <ui:Button name="btn-armor-cycle" text="Cycle Armor" class="tool-btn wide" />
+                    <ui:Label name="armor-info" text="Armor=Aluminum" class="tool-meta" />
                     <ui:VisualElement class="divider" />
                     <ui:Label text="Blueprint slot" class="tool-title" />
                     <ui:Label text="Local save on this machine (workshop-bot.json)." class="tool-help" />
@@ -80,6 +82,8 @@
                     </ui:VisualElement>
                     <ui:Label text="CONTROL DEBUG" class="status-caption" />
                     <ui:Label name="control-debug" text="cmd M=0.00 T=0.00 F=0.00" class="control-debug" />
+                    <ui:Label name="obstacle-info" text="Obstacle=None" class="tool-meta" />
+                    <ui:Button name="btn-obstacle-cycle" text="Cycle Obstacles" class="tool-btn wide" />
                     <ui:Button name="btn-reset" text="Reset Test Spawn" class="tool-btn wide accent" />
                 </ui:VisualElement>
 

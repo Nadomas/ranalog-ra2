@@ -138,6 +138,64 @@ public sealed class RobotWorkshopChrome : MonoBehaviour
         return ok;
     }
 
+    /// <summary>S16-01 Test Room: cycle RA2-like practice obstacles (local-only).</summary>
+    public bool TryCyclePracticeObstacle(out PracticeObstacleKind kind, out string error)
+    {
+        EnsureSession();
+        error = null;
+        if (session.Mode != WorkshopMode.Test)
+        {
+            error = "not_in_test";
+            kind = RobotMvpPracticeObstacles.Current;
+            status = error;
+            return false;
+        }
+
+        kind = RobotMvpPracticeObstacles.Cycle();
+        status = $"obstacle={kind}";
+        return true;
+    }
+
+    /// <summary>S16-02 Design: cycle chassis armor Polymer→Steel (mass tradeoff).</summary>
+    public bool TryCycleArmor(out RobotArmorType armor, out string error)
+    {
+        EnsureSession();
+        if (session.Mode != WorkshopMode.Design)
+        {
+            error = "not_in_design";
+            armor = session.WorkingBlueprint?.Chassis.Armor ?? RobotArmorType.Aluminum;
+            status = error;
+            return false;
+        }
+
+        var bp = session.WorkingBlueprint;
+        if (bp == null)
+        {
+            error = "no_blueprint";
+            armor = RobotArmorType.Aluminum;
+            status = error;
+            return false;
+        }
+
+        var ok = RobotChassisArmor.TryCycleArmor(bp, out armor, out error);
+        status = ok ? $"armor={armor} mass={ChassisMass(bp):F2}" : $"armor_fail={error}";
+        return ok;
+    }
+
+    static float ChassisMass(RobotBlueprint bp)
+    {
+        if (bp?.Components == null)
+            return 0f;
+        for (var i = 0; i < bp.Components.Length; i++)
+        {
+            if (bp.Components[i].ResolvedBase() == RobotComponentBase.Chassis ||
+                string.Equals(bp.Components[i].Id, "chassis", System.StringComparison.Ordinal))
+                return bp.Components[i].Mass;
+        }
+
+        return 0f;
+    }
+
     /// <summary>S11-06 Design: nudge selected chassis polygon point (local-only).</summary>
     public bool TryDesignNudge(Vector2 delta, out string error)
     {

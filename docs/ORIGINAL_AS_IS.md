@@ -395,17 +395,19 @@ Magic: `CFL3` + per-entry **zlib** (`78 9C`).
 
 ### 13.3 Уже закрыто у нас vs пробелы относительно оригинала
 
-| Оригинал | ra2-analog сейчас |
-|----------|-------------------|
-| Chassis editor | ещё нет (Stage 6+) |
-| Full component catalog | не нужен рано; spike-parts |
-| Wiring graph | концепт в GDD; runtime thin |
-| Spin/burst/servo + pistons | Stage 1 wheel hinge spike only |
-| SmartZone | нет |
-| Internal damage field | нет |
-| Immobility countdown | нет |
-| Modular assemble + blueprint JSON | Stage 3 PARTIAL |
-| Net authority | Stage 2 GO |
+| Оригинал | ra2-analog сейчас (2026-09-22) |
+|----------|--------------------------------|
+| Chassis editor ≤16 | **PASS** thin (polygon + freehand gizmo) |
+| DESIGN ≠ CONFIGURE + Fire | **PASS** thin (Drive/Turn/Fire + Wire Fire) |
+| Spin/burst/servo + pistons | **PASS** thin Stage 7+ |
+| SmartZone | thin spike exists (S7-09) |
+| Immobility countdown | **PASS** (S8 + S13 HUD) |
+| Modular assemble + blueprint JSON | **PASS** Stage 3+ |
+| Net authority | **PASS** Stage 2 GO |
+| Practice obstacles | **PASS** S16-T01 |
+| Armor 4-type workshop cycle | **PASS** S16-T02 (mass tradeoff thin) |
+| Paint shop | Later / post-MVP |
+| Full ~68 catalog | Explicit backlog |
 
 ---
 

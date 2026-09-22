@@ -202,6 +202,18 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         chrome.TryResetTest(out _);
     }
 
+    public void TryUiCycleObstacle()
+    {
+        EnsureChrome();
+        chrome.TryCyclePracticeObstacle(out _, out _);
+    }
+
+    public void TryUiCycleArmor()
+    {
+        EnsureChrome();
+        chrome.TryCycleArmor(out _, out _);
+    }
+
     public void TryUiPrepareAdmit()
     {
         EnsureChrome();
@@ -281,6 +293,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         fightRunning = true;
         fightStatus = "lan host…";
         resultsView?.Hide();
+        RobotMvpPracticeObstacles.Clear();
         EnsureChrome();
         EnsureArenaBounds();
 
@@ -333,6 +346,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         fightRunning = true;
         fightStatus = "lan join…";
         resultsView?.Hide();
+        RobotMvpPracticeObstacles.Clear();
         EnsureChrome();
 
         if (!TryResolveAdmitBlueprint(out var admitBp, out var err))
@@ -545,6 +559,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         fightRunning = true;
         fightStatus = "fighting…";
         resultsView?.Hide();
+        RobotMvpPracticeObstacles.Clear();
 
         EnsureChrome();
         RobotBlueprint admitBp;
@@ -601,6 +616,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         fightRunning = true;
         fightStatus = "udp lobby…";
         resultsView?.Hide();
+        RobotMvpPracticeObstacles.Clear();
         EnsureChrome();
         EnsureArenaBounds();
 
@@ -902,6 +918,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         chrome.TryDesignNudge(new Vector2(0.1f, 0f), out _);
         yield return null;
         var freehandOk = TrySmokeFreehandGizmo();
+        var armorOk = TrySmokeArmorCycle();
         var okCfg = chrome.TrySetMode(WorkshopMode.Configure, out _);
         yield return null;
         chrome.TryConfigureCycleBinding(out _, out _);
@@ -915,6 +932,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         var okTest = chrome.TrySetMode(WorkshopMode.Test, out _);
         yield return new WaitForFixedUpdate();
         yield return new WaitForFixedUpdate();
+        var obstacleOk = TrySmokePracticeObstacles();
         var hasInst = chrome.Session.TestInstance != null;
         var debugOk = TrySmokeControlDebug();
 
@@ -1018,7 +1036,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         var pass = okDesign && okCfg && okTest && hasInst && okAdmit && wireOk && gridOk && saveOk &&
                    debugOk && localOk && udpOk && lanOk && historyOk && arenaOk && texturedOk &&
                    robotTexOk && soakOk && stalemateOk && immobilityHudOk && freehandOk && fireOk &&
-                   starterMatsOk;
+                   starterMatsOk && armorOk && obstacleOk;
         var marker = Path.Combine(Application.persistentDataPath, "ra2-mvp-smoke.txt");
         try
         {
@@ -1028,6 +1046,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
                 $"history_ok={historyOk}\narena_ok={arenaOk}\ntextured_ok={texturedOk}\nrobot_tex_ok={robotTexOk}\n" +
                 $"soak_ok={soakOk}\nstalemate_ok={stalemateOk}\nimmobility_hud_ok={immobilityHudOk}\n" +
                 $"freehand_ok={freehandOk}\nfire_ok={fireOk}\nstarter_mats_ok={starterMatsOk}\n" +
+                $"armor_ok={armorOk}\nobstacle_ok={obstacleOk}\n" +
                 $"unity={Application.unityVersion}\n");
         }
         catch
@@ -1041,7 +1060,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
             $"local={localOk} udp={udpOk} lan={lanOk} history={historyOk} arena={arenaOk} " +
             $"textured={texturedOk} robotTex={robotTexOk} soak={soakOk} stalemate={stalemateOk} " +
             $"immobHud={immobilityHudOk} freehand={freehandOk} fire={fireOk} starterMats={starterMatsOk} " +
-            $"fight={fightStatus} marker={marker}");
+            $"armor={armorOk} obstacle={obstacleOk} fight={fightStatus} marker={marker}");
 
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
@@ -1265,6 +1284,62 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
             $"battery={RobotMvpMaterialKit.Battery?.name} spin={RobotMvpMaterialKit.Spin?.name} " +
             $"board={RobotMvpMaterialKit.Board?.name}");
         return kitOk;
+    }
+
+    bool TrySmokeArmorCycle()
+    {
+        var bp = chrome.Session.WorkingBlueprint;
+        float Mass()
+        {
+            if (bp?.Components == null)
+                return 0f;
+            for (var i = 0; i < bp.Components.Length; i++)
+            {
+                if (bp.Components[i].ResolvedBase() == RobotComponentBase.Chassis ||
+                    string.Equals(bp.Components[i].Id, "chassis", System.StringComparison.Ordinal))
+                    return bp.Components[i].Mass;
+            }
+
+            return 0f;
+        }
+
+        var before = Mass();
+        var beforeArmor = bp.Chassis.Armor;
+        if (!chrome.TryCycleArmor(out var armor, out var err))
+        {
+            Debug.Log($"[S16-02] ARMOR_CYCLE_SMOKE pass=False err={err}");
+            return false;
+        }
+
+        bp = chrome.Session.WorkingBlueprint;
+        var after = Mass();
+        var ok = armor != beforeArmor && after > before * 1.01f;
+        Debug.Log(
+            $"[S16-02] ARMOR_CYCLE_SMOKE pass={ok} {beforeArmor}→{armor} mass={before:F2}→{after:F2}");
+        return ok;
+    }
+
+    bool TrySmokePracticeObstacles()
+    {
+        RobotMvpPracticeObstacles.Clear();
+        if (!chrome.TryCyclePracticeObstacle(out var kind1, out var err))
+        {
+            Debug.Log($"[S16-01] PRACTICE_OBSTACLE_SMOKE pass=False err={err}");
+            return false;
+        }
+
+        var root1 = GameObject.Find(RobotMvpPracticeObstacles.RootName);
+        chrome.TryCyclePracticeObstacle(out var kind2, out _);
+        var root2 = GameObject.Find(RobotMvpPracticeObstacles.RootName);
+        var ok = kind1 == PracticeObstacleKind.Barrels &&
+                 root1 != null &&
+                 kind2 == PracticeObstacleKind.Blocks &&
+                 root2 != null &&
+                 root2.transform.childCount > 0;
+        Debug.Log(
+            $"[S16-01] PRACTICE_OBSTACLE_SMOKE pass={ok} k1={kind1} k2={kind2} kids={root2?.transform.childCount}");
+        RobotMvpPracticeObstacles.Clear();
+        return ok;
     }
 
     void PushImmobilityHud(ImmobilityWinEvaluator rules)
