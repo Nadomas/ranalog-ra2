@@ -87,17 +87,19 @@ namespace Ra2.Robot
             return warnings;
         }
 
-        /// <summary>Named binding groups (S5-02 thin) — convenience over multiple control slots.</summary>
+        /// <summary>Named binding groups (S5-02 / S14-02) — convenience over multiple control slots.</summary>
         public enum BindingGroupId : byte
         {
             Drive = 0,
-            Turn = 1
+            Turn = 1,
+            Fire = 2
         }
 
         public static string[] SlotIdsForGroup(BindingGroupId group) =>
             group switch
             {
                 BindingGroupId.Turn => new[] { "left_right" },
+                BindingGroupId.Fire => new[] { "fire" },
                 _ => new[] { "forward_back" }
             };
 
@@ -105,6 +107,7 @@ namespace Ra2.Robot
             group switch
             {
                 BindingGroupId.Turn => "Turn (Left-Right)",
+                BindingGroupId.Fire => "Fire",
                 _ => "Drive (Forward-Back)"
             };
 
@@ -122,7 +125,10 @@ namespace Ra2.Robot
                 return false;
             }
 
-            EnsureAnalogDriveSlots(blueprint);
+            if (group == BindingGroupId.Fire)
+                EnsureFireSlot(blueprint);
+            else
+                EnsureAnalogDriveSlots(blueprint);
             var slots = SlotIdsForGroup(group);
             for (var i = 0; i < slots.Length; i++)
                 SetSlotBinding(blueprint, slots[i], inputBinding);
@@ -131,13 +137,15 @@ namespace Ra2.Robot
 
         public static string GetGroupBinding(RobotBlueprint blueprint, BindingGroupId group)
         {
+            if (group == BindingGroupId.Fire)
+                EnsureFireSlot(blueprint);
             var slots = SlotIdsForGroup(group);
             if (slots.Length == 0)
                 return null;
             return GetSlotBinding(blueprint, slots[0]);
         }
 
-        /// <summary>Cycle Drive/Turn bindings through a small preset list (thin UX).</summary>
+        /// <summary>Cycle Drive/Turn/Fire bindings through a small preset list (thin UX).</summary>
         public static bool TryCycleGroupBinding(
             RobotBlueprint blueprint,
             BindingGroupId group,
@@ -146,10 +154,18 @@ namespace Ra2.Robot
         {
             applied = null;
             error = null;
-            EnsureAnalogDriveSlots(blueprint);
-            var options = group == BindingGroupId.Turn
-                ? new[] { "A/D", "Left/Right", "J/L" }
-                : new[] { "W/S", "S/W", "Up/Down" };
+            if (group == BindingGroupId.Fire)
+                EnsureFireSlot(blueprint);
+            else
+                EnsureAnalogDriveSlots(blueprint);
+
+            string[] options;
+            if (group == BindingGroupId.Turn)
+                options = new[] { "A/D", "Left/Right", "J/L" };
+            else if (group == BindingGroupId.Fire)
+                options = new[] { "Space", "F", "Mouse0" };
+            else
+                options = new[] { "W/S", "S/W", "Up/Down" };
 
             var current = GetGroupBinding(blueprint, group) ?? options[0];
             var idx = 0;
@@ -166,7 +182,7 @@ namespace Ra2.Robot
             return TryApplyGroupBinding(blueprint, group, applied, out error);
         }
 
-        /// <summary>Warn when Drive and Turn share the same binding string.</summary>
+        /// <summary>Warn when Drive/Turn/Fire share the same binding string.</summary>
         public static List<string> FindBindingGroupConflicts(RobotBlueprint blueprint)
         {
             var warnings = new List<string>();
@@ -174,13 +190,123 @@ namespace Ra2.Robot
                 return warnings;
 
             EnsureAnalogDriveSlots(blueprint);
+            EnsureFireSlot(blueprint);
             var drive = GetGroupBinding(blueprint, BindingGroupId.Drive);
             var turn = GetGroupBinding(blueprint, BindingGroupId.Turn);
+            var fire = GetGroupBinding(blueprint, BindingGroupId.Fire);
             if (!string.IsNullOrEmpty(drive) &&
                 string.Equals(drive, turn, StringComparison.Ordinal))
                 warnings.Add($"group_binding_overlap:{drive}");
+            if (!string.IsNullOrEmpty(fire) &&
+                (string.Equals(fire, drive, StringComparison.Ordinal) ||
+                 string.Equals(fire, turn, StringComparison.Ordinal)))
+                warnings.Add($"fire_binding_overlap:{fire}");
 
             return warnings;
+        }
+
+        /// <summary>
+        /// S14-02: ensure Button Fire slot + wire it to first Spin/Burst actuator (Fire or CW channel).
+        /// </summary>
+        public static bool TryApplyFireWirePreset(RobotBlueprint blueprint, out string detail, out string error)
+        {
+            detail = null;
+            error = null;
+            if (blueprint == null)
+            {
+                error = "no_blueprint";
+                return false;
+            }
+
+            EnsureFireSlot(blueprint);
+            var actuatorId = FindFirstFireActuatorId(blueprint);
+            if (string.IsNullOrEmpty(actuatorId))
+            {
+                error = "no_fire_actuator";
+                return false;
+            }
+
+            var channel = IsBurstLike(blueprint, actuatorId) ? "Fire" : "CW";
+            // Remove existing wires from fire slot, then add one.
+            var list = new List<RobotWiringDef>();
+            if (blueprint.Wirings != null)
+            {
+                for (var i = 0; i < blueprint.Wirings.Length; i++)
+                {
+                    if (string.Equals(blueprint.Wirings[i].ControlSlotId, "fire", StringComparison.Ordinal))
+                        continue;
+                    list.Add(blueprint.Wirings[i]);
+                }
+            }
+
+            list.Add(new RobotWiringDef
+            {
+                ControlSlotId = "fire",
+                ComponentId = actuatorId,
+                Channel = channel,
+                Sign = 1f
+            });
+            blueprint.Wirings = list.ToArray();
+            detail = $"fire→{actuatorId}/{channel}";
+            return true;
+        }
+
+        static string FindFirstFireActuatorId(RobotBlueprint blueprint)
+        {
+            if (blueprint?.Components == null)
+                return null;
+            for (var i = 0; i < blueprint.Components.Length; i++)
+            {
+                var b = blueprint.Components[i].ResolvedBase();
+                if (b == RobotComponentBase.SpinMotor ||
+                    b == RobotComponentBase.BurstMotor ||
+                    b == RobotComponentBase.BurstPiston ||
+                    b == RobotComponentBase.ServoMotor ||
+                    b == RobotComponentBase.ServoPiston)
+                    return blueprint.Components[i].Id;
+            }
+
+            return null;
+        }
+
+        static bool IsBurstLike(RobotBlueprint blueprint, string componentId)
+        {
+            if (blueprint?.Components == null)
+                return false;
+            for (var i = 0; i < blueprint.Components.Length; i++)
+            {
+                if (!string.Equals(blueprint.Components[i].Id, componentId, StringComparison.Ordinal))
+                    continue;
+                var b = blueprint.Components[i].ResolvedBase();
+                return b == RobotComponentBase.BurstMotor || b == RobotComponentBase.BurstPiston;
+            }
+
+            return false;
+        }
+
+        static void EnsureFireSlot(RobotBlueprint blueprint)
+        {
+            if (blueprint.ControlSlots != null)
+            {
+                for (var i = 0; i < blueprint.ControlSlots.Length; i++)
+                {
+                    if (string.Equals(blueprint.ControlSlots[i].Id, "fire", StringComparison.Ordinal))
+                        return;
+                }
+            }
+
+            EnsureAnalogDriveSlots(blueprint);
+            var slots = new List<RobotControlSlotDef>(blueprint.ControlSlots ?? Array.Empty<RobotControlSlotDef>())
+            {
+                new RobotControlSlotDef
+                {
+                    Id = "fire",
+                    DisplayName = "Fire",
+                    Kind = RobotControlKind.Button,
+                    InputBinding = "Space"
+                }
+            };
+            blueprint.ControlSlots = slots.ToArray();
         }
 
         static void EnsureAnalogDriveSlots(RobotBlueprint blueprint)

@@ -18,6 +18,8 @@ namespace Ra2.Robot
         static Material accent;
         static Material board;
         static Material weapon;
+        static Material battery;
+        static Material spin;
 
         public static Material Floor => floor ??= LoadOrCreate("MvpFloor", new Color(0.22f, 0.24f, 0.28f), 0.05f, 0.35f);
         public static Material Apron => apron ??= LoadOrCreate("MvpApron", new Color(0.08f, 0.09f, 0.11f), 0.0f, 0.2f);
@@ -27,6 +29,8 @@ namespace Ra2.Robot
         public static Material Accent => accent ??= LoadOrCreate("MvpAccent", new Color(0.75f, 0.22f, 0.12f), 0.2f, 0.45f);
         public static Material Board => board ??= LoadOrCreate("MvpBoard", new Color(0.2f, 0.85f, 0.35f), 0.15f, 0.4f);
         public static Material Weapon => weapon ??= LoadOrCreate("MvpWeapon", new Color(0.85f, 0.85f, 0.9f), 0.4f, 0.5f);
+        public static Material Battery => battery ??= LoadOrCreate("MvpBattery", new Color(0.95f, 0.78f, 0.12f), 0.35f, 0.45f);
+        public static Material Spin => spin ??= LoadOrCreate("MvpSpin", new Color(0.35f, 0.55f, 0.95f), 0.55f, 0.5f);
 
         public static Material ForTeam(Color teamTint)
         {

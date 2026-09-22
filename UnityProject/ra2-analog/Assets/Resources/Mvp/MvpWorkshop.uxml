@@ -57,6 +57,10 @@
                         <ui:Button name="btn-bind-turn" text="Turn" class="tool-btn tool-btn-end" />
                     </ui:VisualElement>
                     <ui:VisualElement class="row">
+                        <ui:Button name="btn-bind-fire" text="Fire" class="tool-btn" />
+                        <ui:Button name="btn-fire-preset" text="Wire Fire" class="tool-btn accent tool-btn-end" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="row">
                         <ui:Button name="btn-bind-cycle" text="Cycle binding" class="tool-btn" />
                         <ui:Button name="btn-tank" text="TankSteer" class="tool-btn accent tool-btn-end" />
                     </ui:VisualElement>

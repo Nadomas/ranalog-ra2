@@ -90,7 +90,7 @@ namespace Ra2.Robot
                 }
                 else if (baseKind == RobotComponentBase.Battery)
                 {
-                    part = CreatePartVisual(def, Color.white, slideMaterial, useBoxCollider: false, RobotMvpMaterialKit.Metal);
+                    part = CreatePartVisual(def, Color.white, slideMaterial, useBoxCollider: false, RobotMvpMaterialKit.Battery);
                     part.name = "battery";
                 }
                 else if (baseKind == RobotComponentBase.AirTank)
@@ -103,9 +103,13 @@ namespace Ra2.Robot
                          baseKind == RobotComponentBase.ServoPiston || baseKind == RobotComponentBase.Steering)
                 {
                     // Dynamic actuators need a collider so joints / impulses have a body; visual only when no RB.
-                    var motorMat = baseKind == RobotComponentBase.Steering
-                        ? RobotMvpMaterialKit.Metal
-                        : RobotMvpMaterialKit.Accent;
+                    Material motorMat;
+                    if (baseKind == RobotComponentBase.Steering)
+                        motorMat = RobotMvpMaterialKit.Metal;
+                    else if (baseKind == RobotComponentBase.SpinMotor)
+                        motorMat = RobotMvpMaterialKit.Spin;
+                    else
+                        motorMat = RobotMvpMaterialKit.Accent;
                     part = CreatePartVisual(def, Color.white, slideMaterial, useBoxCollider: def.HasRigidbody, motorMat);
                     part.name = def.Id;
                 }

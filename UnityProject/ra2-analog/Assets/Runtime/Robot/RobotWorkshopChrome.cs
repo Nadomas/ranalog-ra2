@@ -72,6 +72,34 @@ public sealed class RobotWorkshopChrome : MonoBehaviour
         return true;
     }
 
+    /// <summary>S14-02 Configure: ensure Fire slot + wire to first Spin/Burst actuator.</summary>
+    public bool TryApplyFirePreset(out string detail, out string error)
+    {
+        EnsureSession();
+        if (session.Mode != WorkshopMode.Configure)
+        {
+            error = "not_in_configure";
+            detail = null;
+            status = error;
+            return false;
+        }
+
+        var bp = session.WorkingBlueprint;
+        if (bp == null)
+        {
+            error = "no_blueprint";
+            detail = null;
+            status = error;
+            return false;
+        }
+
+        var ok = RobotControlConfigurer.TryApplyFireWirePreset(bp, out detail, out error);
+        status = ok ? $"fire_preset {detail}" : $"fire_fail={error}";
+        if (ok)
+            bindGroup = RobotControlConfigurer.BindingGroupId.Fire;
+        return ok;
+    }
+
     public bool TryPrepareAdmit(out string error)
     {
         EnsureSession();

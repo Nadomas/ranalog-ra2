@@ -190,6 +190,12 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         chrome.TryApplyTankPreset(out _);
     }
 
+    public void TryUiFirePreset()
+    {
+        EnsureChrome();
+        chrome.TryApplyFirePreset(out _, out _);
+    }
+
     public void TryUiResetTest()
     {
         EnsureChrome();
@@ -901,6 +907,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         chrome.TryConfigureCycleBinding(out _, out _);
         yield return null;
         chrome.TryApplyTankPreset(out _);
+        var fireOk = TrySmokeFireWiring();
         var wireOk = TrySmokeWireCanvas();
         var gridOk = TrySmokeControllerGrid();
         var saveOk = TrySmokeBlueprintSaveLoad();
@@ -935,7 +942,9 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
                     n.IndexOf("Metal", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
                     n.IndexOf("Board", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
                     n.IndexOf("Weapon", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    n.IndexOf("Accent", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                    n.IndexOf("Accent", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    n.IndexOf("Battery", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    n.IndexOf("Spin", System.StringComparison.OrdinalIgnoreCase) >= 0)
                 {
                     robotTexOk = true;
                     break;
@@ -1004,10 +1013,12 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
 
         var stalemateOk = TrySmokeStalemateLabel();
         var immobilityHudOk = TrySmokeImmobilityCountdownLabel();
+        var starterMatsOk = TrySmokeStarterPartMats();
 
         var pass = okDesign && okCfg && okTest && hasInst && okAdmit && wireOk && gridOk && saveOk &&
                    debugOk && localOk && udpOk && lanOk && historyOk && arenaOk && texturedOk &&
-                   robotTexOk && soakOk && stalemateOk && immobilityHudOk && freehandOk;
+                   robotTexOk && soakOk && stalemateOk && immobilityHudOk && freehandOk && fireOk &&
+                   starterMatsOk;
         var marker = Path.Combine(Application.persistentDataPath, "ra2-mvp-smoke.txt");
         try
         {
@@ -1016,7 +1027,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
                 $"wire_ok={wireOk}\ngrid_ok={gridOk}\nsave_ok={saveOk}\ndebug_ok={debugOk}\n" +
                 $"history_ok={historyOk}\narena_ok={arenaOk}\ntextured_ok={texturedOk}\nrobot_tex_ok={robotTexOk}\n" +
                 $"soak_ok={soakOk}\nstalemate_ok={stalemateOk}\nimmobility_hud_ok={immobilityHudOk}\n" +
-                $"freehand_ok={freehandOk}\n" +
+                $"freehand_ok={freehandOk}\nfire_ok={fireOk}\nstarter_mats_ok={starterMatsOk}\n" +
                 $"unity={Application.unityVersion}\n");
         }
         catch
@@ -1029,7 +1040,8 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
             $"inst={hasInst} admit={okAdmit} wire={wireOk} grid={gridOk} save={saveOk} debug={debugOk} " +
             $"local={localOk} udp={udpOk} lan={lanOk} history={historyOk} arena={arenaOk} " +
             $"textured={texturedOk} robotTex={robotTexOk} soak={soakOk} stalemate={stalemateOk} " +
-            $"immobHud={immobilityHudOk} freehand={freehandOk} fight={fightStatus} marker={marker}");
+            $"immobHud={immobilityHudOk} freehand={freehandOk} fire={fireOk} starterMats={starterMatsOk} " +
+            $"fight={fightStatus} marker={marker}");
 
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
@@ -1164,6 +1176,61 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
             $"[S13-02] FREEHAND_GIZMO_SMOKE pass={ok} set={setOk} moved={moved} visible={visible} " +
             $"sel={chrome.PolySelectedIndex}");
         return ok;
+    }
+
+    bool TrySmokeFireWiring()
+    {
+        chrome.SelectBindGroup(RobotControlConfigurer.BindingGroupId.Fire);
+        if (!chrome.TryConfigureCycleBinding(out var applied, out _))
+        {
+            Debug.Log("[S14-02] FIRE_WIRING_SMOKE pass=False cycle");
+            return false;
+        }
+
+        if (!chrome.TryApplyFirePreset(out var detail, out var err))
+        {
+            Debug.Log($"[S14-02] FIRE_WIRING_SMOKE pass=False preset err={err}");
+            return false;
+        }
+
+        var bp = chrome.Session.WorkingBlueprint;
+        var fireBind = RobotControlConfigurer.GetGroupBinding(bp, RobotControlConfigurer.BindingGroupId.Fire);
+        var hasFireWire = false;
+        if (bp?.Wirings != null)
+        {
+            for (var i = 0; i < bp.Wirings.Length; i++)
+            {
+                if (string.Equals(bp.Wirings[i].ControlSlotId, "fire", System.StringComparison.Ordinal))
+                {
+                    hasFireWire = true;
+                    break;
+                }
+            }
+        }
+
+        var ok = !string.IsNullOrEmpty(applied) &&
+                 !string.IsNullOrEmpty(fireBind) &&
+                 hasFireWire &&
+                 !string.IsNullOrEmpty(detail);
+        Debug.Log(
+            $"[S14-02] FIRE_WIRING_SMOKE pass={ok} cycle={applied} bind={fireBind} detail={detail}");
+        return ok;
+    }
+
+    bool TrySmokeStarterPartMats()
+    {
+        var kitOk = RobotMvpMaterialKit.Battery != null &&
+                    RobotMvpMaterialKit.Spin != null &&
+                    RobotMvpMaterialKit.Board != null &&
+                    (RobotMvpMaterialKit.Battery.name.IndexOf("Battery", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                     RobotMvpMaterialKit.Battery.name.IndexOf("Mvp", System.StringComparison.OrdinalIgnoreCase) >= 0) &&
+                    (RobotMvpMaterialKit.Spin.name.IndexOf("Spin", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                     RobotMvpMaterialKit.Spin.name.IndexOf("Mvp", System.StringComparison.OrdinalIgnoreCase) >= 0);
+        Debug.Log(
+            $"[S14-01] STARTER_PART_MATS_SMOKE pass={kitOk} " +
+            $"battery={RobotMvpMaterialKit.Battery?.name} spin={RobotMvpMaterialKit.Spin?.name} " +
+            $"board={RobotMvpMaterialKit.Board?.name}");
+        return kitOk;
     }
 
     void PushImmobilityHud(ImmobilityWinEvaluator rules)

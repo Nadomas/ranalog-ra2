@@ -220,6 +220,13 @@ public sealed class RobotMvpUiShell : MonoBehaviour
         });
         Wire(root.Q<Button>("btn-bind-drive"), () => app.TryUiSelectBind(RobotControlConfigurer.BindingGroupId.Drive));
         Wire(root.Q<Button>("btn-bind-turn"), () => app.TryUiSelectBind(RobotControlConfigurer.BindingGroupId.Turn));
+        Wire(root.Q<Button>("btn-bind-fire"), () => app.TryUiSelectBind(RobotControlConfigurer.BindingGroupId.Fire));
+        Wire(root.Q<Button>("btn-fire-preset"), () =>
+        {
+            app.TryUiFirePreset();
+            lastWireFingerprint = int.MinValue;
+            lastSlotFingerprint = int.MinValue;
+        });
         Wire(root.Q<Button>("btn-bind-cycle"), () => app.TryUiCycleBind());
         Wire(root.Q<Button>("btn-tank"), () =>
         {
@@ -298,7 +305,8 @@ public sealed class RobotMvpUiShell : MonoBehaviour
         {
             var drive = RobotControlConfigurer.GetGroupBinding(bp, RobotControlConfigurer.BindingGroupId.Drive);
             var turn = RobotControlConfigurer.GetGroupBinding(bp, RobotControlConfigurer.BindingGroupId.Turn);
-            bindInfo.text = $"Drive={drive}  Turn={turn}  sel={chrome.BindGroup}";
+            var fire = RobotControlConfigurer.GetGroupBinding(bp, RobotControlConfigurer.BindingGroupId.Fire);
+            bindInfo.text = $"Drive={drive}  Turn={turn}  Fire={fire ?? "—"}  sel={chrome.BindGroup}";
         }
 
         if (mode == WorkshopMode.Configure)
@@ -341,7 +349,7 @@ public sealed class RobotMvpUiShell : MonoBehaviour
                 : mode == WorkshopMode.Test
                     ? "Drive with WASD. Prepare Admit, then Start Local Fight."
                     : mode == WorkshopMode.Configure
-                        ? "Edit Kind/Binding on slots, then Sign/Channel on wires."
+                        ? "Edit Drive/Turn/Fire bindings, Wire Fire for actuators."
                         : "Drag yellow handles on the floor, or nudge chassis points.";
         }
 
