@@ -294,8 +294,8 @@ namespace Ra2.Robot
                 return chassisGrip;
             chassisGrip = new PhysicsMaterial("RuntimeChassisGrip")
             {
-                dynamicFriction = 0.55f,
-                staticFriction = 0.65f,
+                dynamicFriction = 0.62f,
+                staticFriction = 0.73f,
                 bounciness = 0f,
                 frictionCombine = PhysicsMaterialCombine.Average,
                 bounceCombine = PhysicsMaterialCombine.Minimum
@@ -309,8 +309,8 @@ namespace Ra2.Robot
                 return wheelGrip;
             wheelGrip = new PhysicsMaterial("RuntimeWheelGrip")
             {
-                dynamicFriction = 0.9f,
-                staticFriction = 1.05f,
+                dynamicFriction = 1.01f,
+                staticFriction = 1.18f,
                 bounciness = 0f,
                 frictionCombine = PhysicsMaterialCombine.Average,
                 bounceCombine = PhysicsMaterialCombine.Minimum

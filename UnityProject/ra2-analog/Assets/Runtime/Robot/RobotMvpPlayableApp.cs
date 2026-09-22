@@ -1486,8 +1486,8 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
     static PhysicsMaterial CreateRuntimeGrip() =>
         new PhysicsMaterial("RuntimeGrip")
         {
-            dynamicFriction = 0.85f,
-            staticFriction = 0.95f,
+            dynamicFriction = 0.95f,
+            staticFriction = 1.06f,
             bounciness = 0f,
             frictionCombine = PhysicsMaterialCombine.Average,
             bounceCombine = PhysicsMaterialCombine.Minimum
