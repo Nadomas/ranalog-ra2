@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|--------|
-| **Current milestone** | **STAGE 13** playable feel — S13-T01 done; next **S13-T02** freehand chassis |
-| **Roadmap position** | Stage 12 textured EXIT PASS; S13-T01 immobility countdown PASS |
-| **Queue status** | **Active** — S13-T02 open |
+| **Current milestone** | **STAGE 13** playable feel — S13-T01/T02 **PASS**; queue idle (PIPE-T02 human) |
+| **Roadmap position** | Stage 12 textured EXIT PASS; Stage 13 feel polish PASS |
+| **Queue status** | **Idle** — only PIPE-T02 (human) remains open |
 | **Last queue update** | 2026-09-22 |
 | **Autonomy recommendation** | Level **2–3** (see [`AI_WORKFLOW.md`](AI_WORKFLOW.md)) |
-| **Evidence snapshot** | [`PLAYABLE_TEXTURED_EXIT.md`](../experiments/PLAYABLE_TEXTURED_EXIT.md) · [`S13-01_IMMOBILITY_COUNTDOWN_HUD.md`](../experiments/S13-01_IMMOBILITY_COUNTDOWN_HUD.md) |
+| **Evidence snapshot** | [`S13-01_IMMOBILITY_COUNTDOWN_HUD.md`](../experiments/S13-01_IMMOBILITY_COUNTDOWN_HUD.md) · [`S13-02_FREEHAND_CHASSIS_GIZMO.md`](../experiments/S13-02_FREEHAND_CHASSIS_GIZMO.md) |
 
 ---
 

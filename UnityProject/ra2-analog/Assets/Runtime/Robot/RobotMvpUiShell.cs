@@ -342,7 +342,7 @@ public sealed class RobotMvpUiShell : MonoBehaviour
                     ? "Drive with WASD. Prepare Admit, then Start Local Fight."
                     : mode == WorkshopMode.Configure
                         ? "Edit Kind/Binding on slots, then Sign/Channel on wires."
-                        : "Nudge chassis points, then Wire bindings.";
+                        : "Drag yellow handles on the floor, or nudge chassis points.";
         }
 
         if (fightPill != null)

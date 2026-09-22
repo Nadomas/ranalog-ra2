@@ -139,6 +139,45 @@ public sealed class RobotWorkshopChrome : MonoBehaviour
         return ok;
     }
 
+    /// <summary>S13-02 Design: set absolute baseplate point (freehand drag).</summary>
+    public bool TryDesignSetPoint(int index, Vector2 localPoint, out string error)
+    {
+        EnsureSession();
+        if (session.Mode != WorkshopMode.Design)
+        {
+            error = "not_in_design";
+            status = error;
+            return false;
+        }
+
+        var bp = session.WorkingBlueprint;
+        if (bp == null)
+        {
+            error = "no_blueprint";
+            status = error;
+            return false;
+        }
+
+        var ok = RobotChassisPolygonEditor.TrySetPoint(bp, index, localPoint, out error);
+        if (ok)
+            polySelectedIndex = index;
+        status = ok
+            ? $"design_set i={index} pts={RobotChassisPolygonEditor.PointCount(bp)}"
+            : $"set_fail={error}";
+        return ok;
+    }
+
+    public bool TrySelectPolyIndex(int index)
+    {
+        EnsureSession();
+        var pts = RobotChassisPolygonEditor.PointCount(session?.WorkingBlueprint);
+        if (pts <= 0 || index < 0 || index >= pts)
+            return false;
+        polySelectedIndex = index;
+        status = $"sel={polySelectedIndex} pts={pts}";
+        return true;
+    }
+
     /// <summary>S11-06 Configure: cycle selected Drive/Turn binding group.</summary>
     public bool TryConfigureCycleBinding(out string applied, out string error)
     {

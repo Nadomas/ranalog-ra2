@@ -486,6 +486,11 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         chrome.SuppressImgui = true;
         chrome.EnsureSession();
 
+        var gizmo = GetComponent<RobotChassisPolygonGizmo>();
+        if (gizmo == null)
+            gizmo = gameObject.AddComponent<RobotChassisPolygonGizmo>();
+        gizmo.Bind(chrome);
+
         resultsView = GetComponent<MatchResultsView>();
         if (resultsView == null)
             resultsView = gameObject.AddComponent<MatchResultsView>();
@@ -890,6 +895,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
         yield return null;
         chrome.TryDesignNudge(new Vector2(0.1f, 0f), out _);
         yield return null;
+        var freehandOk = TrySmokeFreehandGizmo();
         var okCfg = chrome.TrySetMode(WorkshopMode.Configure, out _);
         yield return null;
         chrome.TryConfigureCycleBinding(out _, out _);
@@ -1001,7 +1007,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
 
         var pass = okDesign && okCfg && okTest && hasInst && okAdmit && wireOk && gridOk && saveOk &&
                    debugOk && localOk && udpOk && lanOk && historyOk && arenaOk && texturedOk &&
-                   robotTexOk && soakOk && stalemateOk && immobilityHudOk;
+                   robotTexOk && soakOk && stalemateOk && immobilityHudOk && freehandOk;
         var marker = Path.Combine(Application.persistentDataPath, "ra2-mvp-smoke.txt");
         try
         {
@@ -1010,6 +1016,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
                 $"wire_ok={wireOk}\ngrid_ok={gridOk}\nsave_ok={saveOk}\ndebug_ok={debugOk}\n" +
                 $"history_ok={historyOk}\narena_ok={arenaOk}\ntextured_ok={texturedOk}\nrobot_tex_ok={robotTexOk}\n" +
                 $"soak_ok={soakOk}\nstalemate_ok={stalemateOk}\nimmobility_hud_ok={immobilityHudOk}\n" +
+                $"freehand_ok={freehandOk}\n" +
                 $"unity={Application.unityVersion}\n");
         }
         catch
@@ -1022,7 +1029,7 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
             $"inst={hasInst} admit={okAdmit} wire={wireOk} grid={gridOk} save={saveOk} debug={debugOk} " +
             $"local={localOk} udp={udpOk} lan={lanOk} history={historyOk} arena={arenaOk} " +
             $"textured={texturedOk} robotTex={robotTexOk} soak={soakOk} stalemate={stalemateOk} " +
-            $"immobHud={immobilityHudOk} fight={fightStatus} marker={marker}");
+            $"immobHud={immobilityHudOk} freehand={freehandOk} fight={fightStatus} marker={marker}");
 
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
@@ -1126,6 +1133,36 @@ public sealed class RobotMvpPlayableApp : MonoBehaviour
                  pill != null && pill.Contains("LOCK YOU") && pill.Contains("0.6") &&
                  idle == "YOU";
         Debug.Log($"[S13-01] IMMOBILITY_HUD_SMOKE pass={ok} side={side} pill={pill}");
+        return ok;
+    }
+
+    bool TrySmokeFreehandGizmo()
+    {
+        var bp = chrome.Session.WorkingBlueprint;
+        var gizmo = GetComponent<RobotChassisPolygonGizmo>();
+        if (bp == null || gizmo == null)
+        {
+            Debug.Log("[S13-02] FREEHAND_GIZMO_SMOKE pass=False missing");
+            return false;
+        }
+
+        var pts = RobotChassisPolygonEditor.GetPoints(bp);
+        if (pts.Length < 1)
+        {
+            Debug.Log("[S13-02] FREEHAND_GIZMO_SMOKE pass=False no_pts");
+            return false;
+        }
+
+        var before = pts[0];
+        var target = before + new Vector2(0.12f, -0.05f);
+        var setOk = chrome.TryDesignSetPoint(0, target, out _);
+        var after = RobotChassisPolygonEditor.GetPoints(bp)[0];
+        var moved = setOk && (after - before).sqrMagnitude > 0.001f;
+        var visible = gizmo.IsVisible;
+        var ok = moved && visible && chrome.PolySelectedIndex == 0;
+        Debug.Log(
+            $"[S13-02] FREEHAND_GIZMO_SMOKE pass={ok} set={setOk} moved={moved} visible={visible} " +
+            $"sel={chrome.PolySelectedIndex}");
         return ok;
     }
 
