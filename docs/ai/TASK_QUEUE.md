@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|--------|
-| **Current milestone** | **STAGE 13** playable feel — S13-T01/T02 **PASS**; queue idle (PIPE-T02 human) |
-| **Roadmap position** | Stage 12 textured EXIT PASS; Stage 13 feel polish PASS |
-| **Queue status** | **Idle** — only PIPE-T02 (human) remains open |
+| **Current milestone** | **STAGE 14** post-textured polish — **PASS** (idle) |
+| **Roadmap position** | Stage 14 P2 PASS; plan §5 P3 residual / Later backlog only on explicit pull |
+| **Queue status** | **Idle** — S14-T01 / S14-T02 done; PIPE-T02 human-only |
 | **Last queue update** | 2026-09-22 |
 | **Autonomy recommendation** | Level **2–3** (see [`AI_WORKFLOW.md`](AI_WORKFLOW.md)) |
-| **Evidence snapshot** | [`S13-01_IMMOBILITY_COUNTDOWN_HUD.md`](../experiments/S13-01_IMMOBILITY_COUNTDOWN_HUD.md) · [`S13-02_FREEHAND_CHASSIS_GIZMO.md`](../experiments/S13-02_FREEHAND_CHASSIS_GIZMO.md) |
+| **Evidence snapshot** | [`S14-01_STARTER_PART_TEXTURES.md`](../experiments/S14-01_STARTER_PART_TEXTURES.md) · [`S14-02_FIRE_WIRING_UI.md`](../experiments/S14-02_FIRE_WIRING_UI.md) · plan §5 |
 
 ---
 
@@ -176,6 +176,13 @@
 |----|------|--------|-------------------|
 | PIPE-T02 | Cursor Project + Automations (manual UI) | open | Human-only; see AI_WORKFLOW § Manual steps — **not** agent work |
 
+### Stage 14 — Post-textured polish (done)
+
+| ID | Task | Status | Evidence |
+|----|------|--------|----------|
+| S14-T01 | Distinct spin/battery/board materials | done | `S14-01_STARTER_PART_TEXTURES.md` |
+| S14-T02 | Burst/Fire wiring UI path (thin) | done | `S14-02_FIRE_WIRING_UI.md` |
+
 ### Stage 13 — Playable feel (done)
 
 | ID | Task | Status | Evidence |
@@ -196,9 +203,8 @@
 
 ### Plan (next)
 
-1. Human PIPE-T02 if desired.  
-2. Backlog polish (starter part texture depth, fire wiring UI) — pull explicitly.  
-3. No economy/catalog.
+1. Idle after Stage 14 P2 PASS — pull plan §5 **P3** (dedicated server residual) or Later only on explicit human request.  
+2. No economy/catalog. PIPE-T02 remains human-only.
 
 ---
 

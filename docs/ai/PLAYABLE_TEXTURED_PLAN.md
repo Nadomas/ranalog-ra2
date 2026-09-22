@@ -4,7 +4,7 @@
 > (readable arena + robot materials), while keeping physics+MP invariants.  
 > Companion to [`TASK_QUEUE.md`](TASK_QUEUE.md) · [`STAGE11_EXIT.md`](../experiments/STAGE11_EXIT.md) · GDD §17.
 
-**Last update:** 2026-09-22 — **EXIT PASS** → [`PLAYABLE_TEXTURED_EXIT.md`](../experiments/PLAYABLE_TEXTURED_EXIT.md)
+**Last update:** 2026-09-22 — textured EXIT PASS; Stage 13 feel PASS; Stage 14 P2 PASS (idle)
 
 ---
 
@@ -90,14 +90,14 @@ S12-T02 timeout/stalemate UX            V2 arena textured kit
 
 ---
 
-## 5. После цели (очередь, не сейчас)
+## 5. После цели (очередь)
 
-| Priority | Item | Note |
-|----------|------|------|
-| P1 | Freehand chassis gizmo | Feel of Design |
-| P1 | Immobility countdown UI (numbers) | GDD primary win |
-| P2 | Minimal starter part set textures (spin/battery/board) | Still not full catalog |
-| P2 | Burst/Fire wiring UI path | GDD spike post thin |
+| Priority | Item | Status |
+|----------|------|--------|
+| P1 | Freehand chassis gizmo | **DONE** S13-T02 |
+| P1 | Immobility countdown UI (numbers) | **DONE** S13-T01 |
+| P2 | Minimal starter part set textures (spin/battery/board) | **DONE** S14-T01 |
+| P2 | Burst/Fire wiring UI path | **DONE** S14-T02 |
 | P3 | Dedicated server module | Residual |
 | Later | Paint shop, ranked, economy | Explicit backlog |
 
